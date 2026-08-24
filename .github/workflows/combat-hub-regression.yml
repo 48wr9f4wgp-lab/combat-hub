@@ -1,0 +1,26 @@
+name: COMBAT HUB Regression
+
+on:
+  push:
+    paths:
+      - 'combat-hub.js'
+      - 'tests/combat-hub-regression.mjs'
+      - '.github/workflows/combat-hub-regression.yml'
+  pull_request:
+    paths:
+      - 'combat-hub.js'
+      - 'tests/combat-hub-regression.mjs'
+      - '.github/workflows/combat-hub-regression.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: JavaScript syntax check
+        run: node --check combat-hub.js
+      - name: COMBAT HUB regression suite
+        run: node tests/combat-hub-regression.mjs
