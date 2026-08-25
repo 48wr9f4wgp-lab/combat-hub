@@ -37,7 +37,7 @@ has(/max=Date\.now\(\)\+180\*86400000/, 'next-event search horizon changed unexp
 has(/validOrgName\(e\.name\)/, 'organization validation missing from next-event search');
 
 // Safe fallback behavior: unknown cards must never invent fighters.
-has(/const main=\{a:'対戦カード',b:'発表待ち',context:ev\.name\}/, 'TBA card fallback missing');
+has(/\{a:'対戦カード',b:'発表待ち',context:ev\.name\}/, 'TBA card fallback missing');
 has(/main:\{a:'次大会',b:'確認中',context:S\.label\}/, 'next-event pending fallback missing');
 has(/stripHTML\(D\.name\|\|D\.main\.context\)/, 'HTML/entity-clean display path missing');
 has(/replace\(\/&amp;\/gi,'&'\)/, 'HTML entity decoding regressed');
