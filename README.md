@@ -1,47 +1,47 @@
-# COMBAT HUB
+# COMBAT HUB — Friends Stable
 
-Standalone Scriptable widget for UFC / RIZIN / ONE / BOXING / K-1.
+友人向けの固定安定チャンネル。現在の配布版は `v7.3.0-github`。
 
 ## Runtime
 
 - iOS / iPadOS: Scriptable
 - Widget size: Medium
-- Widget Parameter: `UFC`, `RIZIN`, `ONE`, `BOXING`, or `K1`
-- No HTML, CSS, manifest, GitHub Pages, Vercel, or Tackle Fit runtime dependency
+- Widget Parameter: `UFC`, `RIZIN`, `ONE`, `BOXING`, `K1`
+- Runtime / Loader / Bootstrap はすべて `48wr9f4wgp-lab/combat-hub` 内で完結
+- `tackle-fit` / Vercel / GitHub Pages への実行依存なし
 
-## Canonical Scriptable setup
+## Canonical friend setup
 
-Scriptable should store and execute `combat-hub-loader.js`.
-The Loader fetches the production runtime from this repository only:
+Scriptableには `friend-loader.js`、または初回導入用の `friend-bootstrap.js` を使用する。
 
-- `https://raw.githubusercontent.com/48wr9f4wgp-lab/combat-hub/main/combat-hub.js`
-- `https://github.com/48wr9f4wgp-lab/combat-hub/raw/refs/heads/main/combat-hub.js`
+Stable runtime:
 
-The Loader keeps an isolated v4 runtime cache inside Scriptable and falls back to the last validated cache if GitHub is temporarily unavailable.
+`https://raw.githubusercontent.com/48wr9f4wgp-lab/combat-hub/friends-stable/combat-hub.js`
+
+Stable Loader:
+
+`https://raw.githubusercontent.com/48wr9f4wgp-lab/combat-hub/friends-stable/friend-loader.js`
 
 ## Files
 
-- `combat-hub-loader.js` — canonical Scriptable Loader
-- `combat-hub.js` — production Scriptable runtime
-- `tests/combat-hub-regression.mjs` — regression guards
-- `.github/workflows/combat-hub-regression.yml` — syntax + regression CI
+- `combat-hub.js` — 友人向け固定安定版 v7.3
+- `friend-loader.js` — 友人用Loader
+- `friend-bootstrap.js` — 初回導入用短縮Bootstrap
+- `FRIENDS_INSTALL.md` — 導入手順
+- `FRIENDS_SHARE_MESSAGE.md` — LINE共有用文面
+- `tests/combat-hub-regression.mjs` — 友人版専用回帰ガード
+
+## Release policy
+
+`main` の変更はこのブランチへ自動では流さない。
+実機確認済みの更新だけ、明示的な承認後に `friends-stable` へ昇格する。
 
 ## Test
 
 ```bash
 node --check combat-hub.js
-node --check combat-hub-loader.js
+node --check friend-loader.js
+node --check friend-bootstrap.js
 node --check tests/combat-hub-regression.mjs
 node tests/combat-hub-regression.mjs
 ```
-
-## Data sources
-
-The script reads public event/profile pages for UFC, RIZIN, ONE, Ring Magazine, and K-1 and keeps bounded local caches inside Scriptable.
-
-## Repository boundary
-
-COMBAT HUB is maintained independently from `tackle-fit`.
-Tackle Fit HTML/PWA/Pages assets and repositories are not runtime dependencies of this project.
-
-The final migration gate is physical-device verification after switching the iPhone Scriptable script to the canonical Loader above.
