@@ -1,70 +1,55 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const src = fs.readFileSync('combat-hub.js', 'utf8');
+const runtime = fs.readFileSync('combat-hub.js', 'utf8');
+const loader = fs.readFileSync('friend-loader.js', 'utf8');
+const bootstrap = fs.readFileSync('friend-bootstrap.js', 'utf8');
 
-function has(re, msg) {
+function has(src, re, msg) {
   assert.match(src, re, msg);
 }
 
-// Production shape / transport guard
-has(/const VERSION='7\.6\.0-github'/, 'Expected current stable COMBAT HUB version');
-has(/UFC:'ufc'/, 'UFC parameter missing');
-has(/RIZIN:'rizin'/, 'RIZIN parameter missing');
-has(/ONE:'one'/, 'ONE parameter missing');
-has(/BOXING:'boxing'/, 'BOXING parameter missing');
-has(/K1:'k1'/, 'K1 parameter missing');
-assert.equal(/vercel\.app/i.test(src), false, 'Vercel dependency must not return');
-
-// Current locked-event truth set. These are intentionally hard guards until each event passes.
-const expected = {
-  ufc: "2026-08-29T19:00:00+09:00",
-  rizin: "2026-09-10T16:00:00+09:00",
-  one: "2026-08-28T20:30:00+09:00",
-  k1: "2026-09-12T12:00:00+09:00",
-};
-for (const [key, iso] of Object.entries(expected)) {
-  assert.ok(src.includes(`${key}:{startAt:'${iso}'`), `${key} snapshot startAt drifted: ${iso}`);
+// Friend channel is intentionally frozen at the verified v7.3 runtime.
+has(runtime, /const VERSION='7\.3\.0-github'/, 'friends-stable must remain on v7.3.0 until explicitly promoted');
+for (const token of ["UFC:'ufc'", "RIZIN:'rizin'", "ONE:'one'", "BOXING:'boxing'", "K1:'k1'"]) {
+  assert.ok(runtime.includes(token), `Missing parameter mapping: ${token}`);
 }
 
-// Boxing deliberately has timeTba=true; exact clock must not be presented as confirmed.
-has(/boxing:\{startAt:'2026-09-12T12:00:00-07:00',[^\n]*timeTba:true/, 'BOXING must remain time-TBA');
+// No runtime/distribution dependency on Tackle Fit or Vercel.
+for (const [name, src] of [['runtime', runtime], ['loader', loader], ['bootstrap', bootstrap]]) {
+  assert.equal(/tackle-fit/i.test(src), false, `${name} must not reference tackle-fit`);
+  assert.equal(/vercel\.app/i.test(src), false, `${name} must not reference Vercel`);
+}
 
-// Roll-forward safety: do not swap away from the current confirmed event too early.
-has(/function currentLocked\(snap\)\{const end=new Date\(snap\.startAt\)\.getTime\(\)\+12\*3600000;return Date\.now\(\)<end;\}/, '12h current-event lock guard missing');
-has(/const min=new Date\(snap\.startAt\)\.getTime\(\)\+6\*3600000/, 'next-event lower-bound guard missing');
-has(/max=Date\.now\(\)\+180\*86400000/, 'next-event search horizon changed unexpectedly');
-has(/validOrgName\(e\.name\)/, 'organization validation missing from next-event search');
+// Stable-channel transport must stay inside this repository and branch.
+has(loader, /raw\.githubusercontent\.com\/48wr9f4wgp-lab\/combat-hub\/friends-stable\/combat-hub\.js/, 'friend RAW URL drifted');
+has(loader, /api\.github\.com\/repos\/48wr9f4wgp-lab\/combat-hub\/contents\/combat-hub\.js\?ref=friends-stable/, 'friend API URL drifted');
+has(bootstrap, /raw\.githubusercontent\.com\/48wr9f4wgp-lab\/combat-hub\/friends-stable\/friend-loader\.js/, 'bootstrap URL drifted');
+has(loader, /combat-hub-friends-runtime\.js/, 'friend runtime cache missing');
+has(loader, /30 \* 60 \* 1000/, 'friend cache TTL changed unexpectedly');
 
-// Safe fallback behavior: unknown cards must never invent fighters.
-has(/\{a:'対戦カード',b:'発表待ち',context:ev\.name\}/, 'TBA card fallback missing');
-has(/main:\{a:'次大会',b:'確認中',context:S\.label\}/, 'next-event pending fallback missing');
-has(/stripHTML\(D\.name\|\|D\.main\.context\)/, 'HTML/entity-clean display path missing');
-has(/replace\(\/&amp;\/gi,'&'\)/, 'HTML entity decoding regressed');
+// Current locked-event truth set.
+const expected = {
+  ufc: '2026-08-29T19:00:00+09:00',
+  rizin: '2026-09-10T16:00:00+09:00',
+  one: '2026-08-28T20:30:00+09:00',
+  k1: '2026-09-12T12:00:00+09:00',
+};
+for (const [key, iso] of Object.entries(expected)) {
+  assert.ok(runtime.includes(`${key}:{startAt:'${iso}'`), `${key} snapshot startAt drifted: ${iso}`);
+}
+has(runtime, /boxing:\{startAt:'2026-09-12T12:00:00-07:00',[^\n]*timeTba:true/, 'BOXING must remain time-TBA');
+has(runtime, /function currentLocked\(snap\)\{const end=new Date\(snap\.startAt\)\.getTime\(\)\+12\*3600000;return Date\.now\(\)<end;\}/, '12h event lock missing');
+has(runtime, /\{a:'対戦カード',b:'発表待ち',context:ev\.name\}/, 'TBA fallback missing');
+has(runtime, /main:\{a:'次大会',b:'確認中',context:S\.label\}/, 'next-event pending fallback missing');
 
-// Cache behavior must remain bounded and recoverable.
-has(/combat-hub-next-\$\{KEY\}\.json/, 'per-organization next-event cache missing');
-has(/now-cached\.savedAt<4\*3600000/, 'next-event cache TTL changed unexpectedly');
-has(/if\(cached\?\.data\)return \{\.\.\.cached\.data,stale:true\}/, 'stale-cache fallback missing');
+// v7.3 device-verified visual identity guards.
+has(runtime, /KEY==='k1'\?370:360/, 'K-1 left overlap fix missing');
+has(runtime, /KEY==='k1'\?350:365/, 'K-1 right overlap fix missing');
+has(runtime, /softBand\(/, 'soft background banding missing');
+has(runtime, /aBox\.size=new Size\(136,0\)/, 'v7.3 left main layout drifted');
+has(runtime, /vsBox\.size=new Size\(34,0\)/, 'v7.3 center VS layout drifted');
+has(runtime, /'VS',13\.5,new Color\(S\.accent\),'black'/, 'v7.3 VS styling drifted');
+has(runtime, /bn\.rightAlignText\(\)/, 'v7.3 right-name alignment drifted');
 
-// Visual regression guards discovered on device.
-has(/KEY==='k1'\?370:360/, 'K-1 left hero overlap fix missing');
-has(/KEY==='k1'\?350:365/, 'K-1 right hero overlap fix missing');
-has(/softBand\(/, 'soft background banding missing');
-
-// Main-event hierarchy guards.
-has(/'MAIN EVENT',6\.1,new Color\(S\.accent\),'bold'/, 'MAIN EVENT emphasis label missing');
-has(/'VS',15\.2,new Color\(S\.accent\),'black'/, 'Main VS emphasis regressed');
-has(/mainSize:13\.4/, 'Main fighter font emphasis missing');
-has(/mainSize:13\.6/, 'Main fighter font emphasis missing for short-name layouts');
-
-// Symmetric fixed-height main-card layout guards.
-has(/aBox\.size=new Size\(140,36\)/, 'Left main fighter box lost fixed height');
-has(/centerBox\.size=new Size\(44,36\)/, 'Main center column lost fixed height');
-has(/bBox\.size=new Size\(140,36\)/, 'Right main fighter box lost fixed height');
-has(/aBox\.addSpacer\(\);const an=/, 'Left main fighter is not vertically centered');
-has(/bBox\.addSpacer\(\);const bn=/, 'Right main fighter is not vertically centered');
-has(/an\.centerAlignText\(\)/, 'Left main fighter is not horizontally centered');
-has(/bn\.centerAlignText\(\)/, 'Right main fighter is not horizontally centered');
-
-console.log('COMBAT HUB regression checks: OK');
+console.log('COMBAT HUB friends-stable regression checks: OK');
