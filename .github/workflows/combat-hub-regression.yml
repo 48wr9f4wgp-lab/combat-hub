@@ -1,4 +1,4 @@
-name: COMBAT HUB Regression
+name: COMBAT HUB Friends Stable Regression
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: combat-hub-${{ github.workflow }}-${{ github.ref }}
+  group: combat-hub-friends-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -21,11 +21,13 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24.x'
-      - name: Runtime syntax check
+      - name: Friend runtime syntax check
         run: node --check combat-hub.js
-      - name: Loader syntax check
-        run: node --check combat-hub-loader.js
+      - name: Friend loader syntax check
+        run: node --check friend-loader.js
+      - name: Friend bootstrap syntax check
+        run: node --check friend-bootstrap.js
       - name: Regression-suite syntax check
         run: node --check tests/combat-hub-regression.mjs
-      - name: COMBAT HUB regression suite
+      - name: COMBAT HUB friends-stable regression suite
         run: node tests/combat-hub-regression.mjs
