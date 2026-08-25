@@ -8,6 +8,7 @@ It is intentionally isolated from `main` so Codex can later compare, cherry-pick
 - Repository: `48wr9f4wgp-lab/combat-hub`
 - Base branch: `main`
 - Work branch: `chatgpt/codex-handoff-20260825`
+- Draft PR: #1
 - Created: 2026-08-25 JST
 
 ## Rules while this branch is active
@@ -47,12 +48,31 @@ Codex reported the following local changes. These are treated as design intent, 
 
 ## ChatGPT branch changes
 
+### Completed on branch
+
+- Added `combat-hub-loader.js` Loader v4 reconstruction.
+  - Uses only the independent `48wr9f4wgp-lab/combat-hub` runtime URLs.
+  - Uses v4 cache names so old v3 runtime cache cannot be reused accidentally.
+  - Requires runtime >= 7.6.0.
+  - Fresh home-screen cache TTL: 30 minutes.
+  - Manual Scriptable execution prefers verified remote runtime.
+  - Remote verified runtime is allowed to replace a numerically higher cached patch version so emergency rollback remains possible.
+  - Falls back to a validated local v4 cache if both remote paths fail.
+- Strengthened `.github/workflows/combat-hub-regression.yml` on this branch.
+  - Runs on every push and pull request.
+  - Adds `workflow_dispatch`.
+  - Uses Node 24.x.
+  - 5 minute timeout.
+  - Cancels superseded runs on the same ref.
+  - Syntax-checks runtime, Loader, and regression test before executing tests.
+- Opened Draft PR #1 as the permanent comparison surface for Codex return.
+
 ### Pending / in progress
 
-- Reconstruct standalone Loader v4.
 - Reconstruct runtime reliability improvements as small reviewable commits.
 - Upgrade regression tests from source-pattern checks to execution-level checks.
-- Strengthen CI.
+- Expand README with independent operations and rollback procedure.
+- Physical-device verification after eventual production Loader migration.
 
 ## Physical-device verification
 
