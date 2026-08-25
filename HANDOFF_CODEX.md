@@ -1,95 +1,86 @@
 # COMBAT HUB — Codex Handoff Ledger
 
-## Purpose
+## Current purpose
 
-This branch is the ChatGPT-side continuation branch while Codex usage is temporarily limited.
-It is intentionally isolated from `main` so Codex can later compare, cherry-pick, rebase, or merge without ambiguity.
+ChatGPT is continuing COMBAT HUB development while Codex usage is temporarily limited.
+All new reliability work is isolated so Codex can later compare, cherry-pick, rebase, or merge without ambiguity.
 
 - Repository: `48wr9f4wgp-lab/combat-hub`
-- Base branch: `main`
-- Work branch: `chatgpt/codex-handoff-20260825`
-- Draft PR: #1
-- Created: 2026-08-25 JST
+- Production branch: `main`
+- Friends stable branch: `friends-stable`
+- Current ChatGPT work branch: `chatgpt/reliability-v7.7`
+- Reliability target: v7.7
+- Updated: 2026-08-26 JST
 
-## Rules while this branch is active
+## Current production state
 
-1. `main` is treated as frozen by ChatGPT.
-2. One purpose per commit where practical.
-3. No Scriptable production Loader switch without explicit user action on the iPhone.
-4. No deletion of the legacy COMBAT HUB files from `tackle-fit`.
-5. No update of the friends distribution channel unless separately approved.
-6. Visual design remains the verified v7.6 baseline unless a regression requires repair.
-7. Every functional change should have regression coverage where feasible.
-8. Any item not verified on a physical iPhone must be marked as not device-verified.
+- COMBAT HUB is fully separated from `tackle-fit` for active runtime/distribution.
+- Personal production route is now:
+  - Scriptable → Loader v4 → `combat-hub/main/combat-hub.js`
+- Personal runtime on `main`: `7.6.0-github`.
+- Five parameters are active: UFC / RIZIN / ONE / BOXING / K1.
+- Physical-device smoke tests passed for all five categories after the repository migration.
+- `friends-stable` exists in this repository and remains intentionally frozen at `7.3.0-github`.
+- Legacy `tackle-fit/friends-stable` was reset to the COMBAT-HUB-removed Tackle Fit main commit; active friend distribution files no longer live there.
+- A historical backup branch in `tackle-fit` may remain for recovery/history only and is not an active runtime path.
 
-## State inherited from main
+## Rules for v7.7 Reliability Pass
 
-- Runtime on GitHub main: `7.6.0-github`
-- Five parameters: UFC / RIZIN / ONE / BOXING / K1
-- v7.6 visual alignment was verified on an iPhone before repository separation work.
-- The production iPhone Loader has NOT yet been switched to the independent `combat-hub` repository.
-- Legacy `tackle-fit` runtime remains available as rollback insurance.
+1. Do not modify `friends-stable` unless the user explicitly approves friend-channel promotion.
+2. Keep the verified v7.6 visual/layout design frozen unless a functional regression requires repair.
+3. Reliability changes belong on `chatgpt/reliability-v7.7`, not directly on `main`.
+4. One purpose per commit where practical.
+5. Every functional change should gain regression coverage where feasible.
+6. GitHub/CI verification is not equivalent to physical-device verification.
+7. Do not claim a runtime change is production-complete before Scriptable device verification.
+8. No Store/public distribution, paid-service changes, or unrelated external-impact operations.
 
-## Codex local work reported but not pushed before its limit
+## Reliability backlog inherited from Codex local work
 
-Codex reported the following local changes. These are treated as design intent, not as trusted committed source, and are being independently reconstructed/tested on this branch:
+Codex reported these local changes before its usage limit. They are treated as design intent, not trusted committed source, and should be independently reconstructed/tested:
 
-- Standalone Loader v4 using only `48wr9f4wgp-lab/combat-hub` raw URLs.
-- New cache namespace: `combat-hub-runtime-v4.js` and `combat-hub-runtime-v4-meta.json`.
-- Runtime minimum version 7.6.0.
-- Runtime bump to `7.6.1-github`.
 - Standards-compliant relative URL resolution.
-- Next-event discovery that falls through to detail pages when listing JSON-LD has no eligible event.
-- BOXING event-name validation instead of accepting every Event JSON-LD node.
-- UFC/RIZIN unknown-fighter poster fallback after roll-forward.
+- Next-event discovery that filters listing JSON-LD for eligible candidates before deciding whether detail-page traversal is needed.
+- BOXING event-name validation instead of accepting every `Event` JSON-LD node.
+- UFC/RIZIN unknown-fighter event-poster fallback after roll-forward.
 - Execution-based Scriptable mock regression tests.
-- CI expanded to all pushes/PRs plus manual dispatch, Node 24.x, syntax checks and timeout.
-- README expanded with standalone operations and rollback procedure.
+- Better coverage for post-event roll-forward and cache behavior.
 
-## ChatGPT branch changes
+Already completed and merged before this v7.7 branch:
 
-### Completed on branch
+- Standalone Loader v4 using only `48wr9f4wgp-lab/combat-hub` URLs.
+- Isolated v4 Loader cache namespace.
+- Runtime minimum 7.6.0.
+- CI on pushes/PRs/manual dispatch with Node 24.x and syntax checks.
+- Independent repository README/operations documentation.
+- Full personal iPhone migration and five-category device smoke test.
+- New `combat-hub/friends-stable` channel with v7.3 and independent friend Loader/Bootstrap/CI.
+- Active COMBAT HUB files removed from Tackle Fit distribution paths.
 
-- Added `combat-hub-loader.js` Loader v4 reconstruction.
-  - Uses only the independent `48wr9f4wgp-lab/combat-hub` runtime URLs.
-  - Uses v4 cache names so old v3 runtime cache cannot be reused accidentally.
-  - Requires runtime >= 7.6.0.
-  - Fresh home-screen cache TTL: 30 minutes.
-  - Manual Scriptable execution prefers verified remote runtime.
-  - Remote verified runtime is allowed to replace a numerically higher cached patch version so emergency rollback remains possible.
-  - Falls back to a validated local v4 cache if both remote paths fail.
-- Strengthened `.github/workflows/combat-hub-regression.yml` on this branch.
-  - Runs on every push and pull request.
-  - Adds `workflow_dispatch`.
-  - Uses Node 24.x.
-  - 5 minute timeout.
-  - Cancels superseded runs on the same ref.
-  - Syntax-checks runtime, Loader, and regression test before executing tests.
-- Opened Draft PR #1 as the permanent comparison surface for Codex return.
+## v7.7 implementation order
 
-### Pending / in progress
-
-- Reconstruct runtime reliability improvements as small reviewable commits.
-- Upgrade regression tests from source-pattern checks to execution-level checks.
-- Expand README with independent operations and rollback procedure.
-- Physical-device verification after eventual production Loader migration.
-
-## Physical-device verification
-
-Anything developed on this branch is **not considered production-verified** until the user switches the iPhone Loader and confirms all five widgets on-device.
+1. Relative URL resolver hardening.
+2. Eligible-first next-event discovery.
+3. BOXING false-positive filtering.
+4. Unknown-fighter poster fallback for UFC/RIZIN.
+5. Regression suite upgrade toward execution-level Scriptable mocks.
+6. Cache/network-efficiency review.
+7. Post-event roll-forward regression scenarios for all five categories.
+8. CI green on the branch.
+9. Physical-device verification before any merge/promotion to production.
 
 ## Codex return procedure
 
 When Codex access returns:
 
-1. Fetch `origin/main` and `origin/chatgpt/codex-handoff-20260825`.
-2. Preserve any uncommitted Codex work before doing anything else (`git status`, then stash or commit to a temporary branch).
-3. Compare Codex local changes against this branch rather than blindly overwriting either side.
-4. Run the complete regression suite on the chosen combined tree.
-5. Resolve differences based on behavior/tests, not timestamp.
-6. Only after tests pass, merge/cherry-pick into `main`.
-7. Keep the old `tackle-fit` runtime until independent-repo iPhone verification succeeds.
+1. Preserve any uncommitted Codex local work first (`git status`; stash or temporary branch if needed).
+2. Fetch `origin/main` and `origin/chatgpt/reliability-v7.7`.
+3. Compare Codex local work against the v7.7 branch; do not overwrite either side blindly.
+4. Prefer behavior validated by tests over timestamp/newness.
+5. Run the full regression suite on the combined candidate tree.
+6. Review the Draft PR for v7.7 before merge.
+7. Physical-device checks remain required for runtime/UI behavior not fully represented by mocks.
 
-## Current production-impact status
+## Production-impact status of this branch
 
-No production route has been changed by this branch. The user's existing home-screen widgets should continue using their current Loader path until the explicit migration step.
+Until explicitly merged, `chatgpt/reliability-v7.7` does not change the user's active home-screen widgets or the friend stable channel.
