@@ -143,6 +143,53 @@ async function boot(parameter, { textResponses = {}, imageResponses = {}, now = 
   return { api: context.__combatInternals, fm, requests };
 }
 
+function runtimeSource(version, label) {
+  return `// COMBAT HUB runtime fixture\nconst VERSION='${version}-github';\nglobalThis.__runtimeSelected='${label}';\nglobalThis.__runtimeExecutions=(globalThis.__runtimeExecutions||0)+1;\nScript.complete();`;
+}
+
+async function runLoader({ runsInWidget, now, remoteResponses = {}, cacheSource = null, cacheSavedAt = null }) {
+  const fm = makeFileManager();
+  const requests = [];
+  const cachePath = fm.api.joinPath('/docs', 'combat-hub-runtime-v4.js');
+  const metaPath = fm.api.joinPath('/docs', 'combat-hub-runtime-v4-meta.json');
+  if (cacheSource) {
+    fm.api.writeString(cachePath, cacheSource);
+    fm.api.writeString(metaPath, JSON.stringify({ savedAt: cacheSavedAt ?? now, runtimeVersion: 'fixture' }));
+  }
+  class TestDate extends Date {
+    static now() { return now; }
+  }
+  class Request {
+    constructor(url) {
+      this.url = url;
+      this.timeoutInterval = 0;
+      this.headers = {};
+      requests.push(url);
+    }
+    async loadString() {
+      for (const [prefix, response] of Object.entries(remoteResponses)) {
+        if (this.url.startsWith(prefix)) {
+          if (response instanceof Error) throw response;
+          return response;
+        }
+      }
+      throw new Error(`remote unavailable: ${this.url}`);
+    }
+  }
+  let completes = 0;
+  const context = {
+    config: { runsInWidget },
+    FileManager: { local: () => fm.api },
+    Request,
+    Date: TestDate,
+    Script: { complete: () => { completes += 1; } },
+    console,
+  };
+  vm.createContext(context);
+  await vm.runInContext(loaderSrc, context, { timeout: 2000 });
+  return { fm, requests, context, completes, cachePath, metaPath };
+}
+
 // Actual runtime URL resolver tests.
 {
   const { api } = await boot('ONE');
@@ -166,7 +213,7 @@ async function boot(parameter, { textResponses = {}, imageResponses = {}, now = 
   assert.equal(api.validOrgName('Press Conference Event'), false);
 }
 
-// Regression for the old traversal bug: irrelevant listing JSON-LD must not block detail-page discovery.
+// Regression for path-relative event and poster URLs.
 {
   const listing = 'https://www.onefc.com/events/';
   const detail = 'https://www.onefc.com/events/next-card/';
@@ -191,6 +238,34 @@ async function boot(parameter, { textResponses = {}, imageResponses = {}, now = 
   assert.equal(next.main.b, 'Fighter Beta');
   assert.equal(next.posterURL, poster);
   assert.ok(requests.some(r => r.kind === 'string' && r.url === detail), 'Detail page traversal did not occur');
+}
+
+// Every category must be able to roll forward from an ineligible listing Event to an eligible detail page.
+const rollForwardFixtures = [
+  { parameter: 'UFC', listing: 'https://www.ufc.com/events', href: '/event/next-card', detail: 'https://www.ufc.com/event/next-card', name: 'UFC Fight Night: Alpha vs Beta' },
+  { parameter: 'RIZIN', listing: 'https://jp.rizinff.com/', href: '/_ct/999999', detail: 'https://jp.rizinff.com/_ct/999999', name: 'RIZIN TEST 2026' },
+  { parameter: 'ONE', listing: 'https://www.onefc.com/events/', href: 'next-card/', detail: 'https://www.onefc.com/events/next-card/', name: 'ONE Friday Fights 169' },
+  { parameter: 'BOXING', listing: 'https://www.ringmagazine.com/events', href: '/events/alpha-vs-beta', detail: 'https://www.ringmagazine.com/events/alpha-vs-beta', name: 'Alpha vs Beta' },
+  { parameter: 'K1', listing: 'https://www.k-1.co.jp/k-1wgp/schedule', href: '/k-1wgp/schedule/99999', detail: 'https://www.k-1.co.jp/k-1wgp/schedule/99999', name: 'K-1 TEST 2026' },
+];
+for (const f of rollForwardFixtures) {
+  const irrelevantName = f.parameter === 'BOXING' ? 'Press Conference Event' : 'Unrelated Expo';
+  const listingHtml = `
+    <script type="application/ld+json">{"@type":"Event","name":"${irrelevantName}","startDate":"2026-09-20T20:00:00+09:00"}</script>
+    <a href="${f.href}">Next</a>`;
+  const detailHtml = `
+    <script type="application/ld+json">{"@type":"Event","name":"${f.name}","startDate":"2026-09-25T20:30:00+09:00","location":{"name":"Test Arena"}}</script>
+    <h1>Alpha Fighter vs Beta Fighter</h1>`;
+  const { api, requests } = await boot(f.parameter, {
+    now: Date.parse('2026-09-15T00:00:00+09:00'),
+    textResponses: { [f.listing]: listingHtml, [f.detail]: detailHtml },
+  });
+  const next = await api.strictNextEvent({ startAt: '2026-09-10T00:00:00+09:00', location: 'Previous', name: 'Previous Event', main: {}, support: [] });
+  assert.ok(next, `${f.parameter} failed to roll forward`);
+  assert.equal(next.name, f.name, `${f.parameter} selected wrong event`);
+  assert.equal(next.main.a, 'Alpha Fighter', `${f.parameter} main fighter A not parsed`);
+  assert.equal(next.main.b, 'Beta Fighter', `${f.parameter} main fighter B not parsed`);
+  assert.ok(requests.some(r => r.kind === 'string' && r.url === f.detail), `${f.parameter} detail page was not requested`);
 }
 
 // UFC/RIZIN unknown fighters should use the event poster rather than collapsing to a plain gradient.
@@ -246,6 +321,56 @@ for (const parameter of ['UFC', 'RIZIN']) {
   const data = await api.loadData();
   assert.equal(data.name, 'UFC Stale Event');
   assert.equal(data.stale, true, 'Stale cache fallback flag missing');
+}
+
+// Loader manual run: verified remote is fetched, cached, and executed exactly once.
+{
+  const now = Date.parse('2026-09-20T00:00:00+09:00');
+  const remoteBase = 'https://raw.githubusercontent.com/48wr9f4wgp-lab/combat-hub/main/combat-hub.js';
+  const remote = runtimeSource('7.7.0', 'remote');
+  const r = await runLoader({ runsInWidget: false, now, remoteResponses: { [remoteBase]: remote } });
+  assert.equal(r.context.__runtimeSelected, 'remote');
+  assert.equal(r.context.__runtimeExecutions, 1, 'Loader executed runtime more than once');
+  assert.equal(r.completes, 1);
+  assert.equal(r.fm.strings.get(r.cachePath), remote, 'Verified remote was not cached');
+}
+
+// Loader widget path: a fresh validated cache must avoid network work.
+{
+  const now = Date.parse('2026-09-20T00:00:00+09:00');
+  const cached = runtimeSource('7.6.0', 'fresh-cache');
+  const r = await runLoader({ runsInWidget: true, now, cacheSource: cached, cacheSavedAt: now - 60_000 });
+  assert.equal(r.context.__runtimeSelected, 'fresh-cache');
+  assert.equal(r.context.__runtimeExecutions, 1);
+  assert.equal(r.requests.length, 0, 'Fresh widget cache should skip GitHub requests');
+}
+
+// Loader network failure: last validated cache remains usable.
+{
+  const now = Date.parse('2026-09-20T00:00:00+09:00');
+  const cached = runtimeSource('7.6.0', 'offline-cache');
+  const r = await runLoader({ runsInWidget: false, now, cacheSource: cached, cacheSavedAt: now - 2 * 3600_000 });
+  assert.equal(r.context.__runtimeSelected, 'offline-cache');
+  assert.equal(r.context.__runtimeExecutions, 1);
+  assert.ok(r.requests.length >= 2, 'Manual run should attempt both remote routes before cache fallback');
+}
+
+// Emergency rollback: verified remote wins even when cache has a numerically newer version.
+{
+  const now = Date.parse('2026-09-20T00:00:00+09:00');
+  const remoteBase = 'https://raw.githubusercontent.com/48wr9f4wgp-lab/combat-hub/main/combat-hub.js';
+  const cached = runtimeSource('7.8.0', 'higher-cache');
+  const rollback = runtimeSource('7.7.0', 'verified-rollback');
+  const r = await runLoader({
+    runsInWidget: false,
+    now,
+    cacheSource: cached,
+    cacheSavedAt: now - 2 * 3600_000,
+    remoteResponses: { [remoteBase]: rollback },
+  });
+  assert.equal(r.context.__runtimeSelected, 'verified-rollback');
+  assert.equal(r.context.__runtimeExecutions, 1);
+  assert.equal(r.fm.strings.get(r.cachePath), rollback, 'Emergency rollback did not replace newer cache');
 }
 
 console.log('COMBAT HUB v7.7 regression checks: OK');
