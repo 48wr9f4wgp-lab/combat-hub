@@ -2,25 +2,30 @@ name: COMBAT HUB Regression
 
 on:
   push:
-    paths:
-      - 'combat-hub.js'
-      - 'tests/combat-hub-regression.mjs'
-      - '.github/workflows/combat-hub-regression.yml'
   pull_request:
-    paths:
-      - 'combat-hub.js'
-      - 'tests/combat-hub-regression.mjs'
-      - '.github/workflows/combat-hub-regression.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: combat-hub-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   regression:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - name: JavaScript syntax check
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.x'
+      - name: Runtime syntax check
         run: node --check combat-hub.js
+      - name: Loader syntax check
+        run: node --check combat-hub-loader.js
+      - name: Regression-suite syntax check
+        run: node --check tests/combat-hub-regression.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
