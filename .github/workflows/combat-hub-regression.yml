@@ -23,9 +23,15 @@ jobs:
           node-version: '24.x'
       - name: Runtime syntax check
         run: node --check combat-hub.js
-      - name: Loader syntax check
+      - name: Production Loader syntax check
         run: node --check combat-hub-loader.js
+      - name: Preview Loader syntax check
+        run: node --check combat-hub-preview-loader.js
       - name: Regression-suite syntax check
         run: node --check tests/combat-hub-regression.mjs
+      - name: Cache regression syntax check
+        run: node --check tests/combat-hub-cache-regression.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
+      - name: COMBAT HUB cache performance suite
+        run: node tests/combat-hub-cache-regression.mjs
