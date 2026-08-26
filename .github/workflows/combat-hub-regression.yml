@@ -27,11 +27,17 @@ jobs:
         run: node --check combat-hub-loader.js
       - name: Preview Loader syntax check
         run: node --check combat-hub-preview-loader.js
+      - name: Diagnostics syntax check
+        run: node --check combat-hub-diagnostics.js
       - name: Regression-suite syntax check
         run: node --check tests/combat-hub-regression.mjs
       - name: Cache regression syntax check
         run: node --check tests/combat-hub-cache-regression.mjs
+      - name: Diagnostics regression syntax check
+        run: node --check tests/combat-hub-diagnostics-regression.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
       - name: COMBAT HUB cache performance suite
         run: node tests/combat-hub-cache-regression.mjs
+      - name: COMBAT HUB diagnostics suite
+        run: node tests/combat-hub-diagnostics-regression.mjs
