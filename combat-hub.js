@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.7.2-github — UFC roll-forward hotfix / visual layout unchanged
+// v7.7.3-github — UFC Paris trusted snapshot / roll-forward fallback retained
 
 (async()=>{
-const VERSION='7.7.2-github';
+const VERSION='7.7.3-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -33,7 +33,7 @@ const VISUAL={
 const V=VISUAL[KEY];
 
 const SNAPSHOT={
-  ufc:{startAt:'2026-08-29T19:00:00+09:00',location:'上海',name:'UFC Fight Night: Nurmagomedov vs Song',main:{a:'NURMAGOMEDOV',b:'SONG',context:'BANTAMWEIGHT'},support:[{label:'CO-MAIN',a:'ヤン・シャオナン',b:'デニージ・ゴミス'},{label:'FEATURED',a:'アオリ・チロン',b:'朝倉 海'}],source:'https://www.ufc.com/event/ufc-fight-night-august-29-2026'},
+  ufc:{startAt:'2026-09-06T04:00:00+09:00',location:'パリ',name:'UFCファイトナイト・パリ',main:{a:'HOOKER',b:'PARNASSE',context:'LIGHTWEIGHT'},support:[{label:'CO-MAIN',a:'ファレス・ジアム',b:'アクセル・ソラ'},{label:'FEATURED',a:'マイケル・ペイジ',b:'ヌルスルトン・ルジボエフ'}],source:'https://jp.ufc.com/event/ufc-fight-night-september-05-2026'},
   rizin:{startAt:'2026-09-10T16:00:00+09:00',location:'大阪',name:'超RIZIN.5',main:{a:'ラジャブアリ・シェイドゥラエフ',b:'AJ・マッキー',context:'フェザー級タイトル戦'},support:[{label:'CO-MAIN',a:'朝倉未来',b:'青木真也'},{label:'FEATURED',a:'ホベルト・サトシ・ソウザ',b:'野村駿太'}],source:'https://jp.rizinff.com/_ct/17834937'},
   one:{startAt:'2026-08-28T20:30:00+09:00',location:'バンコク',name:'ONE Friday Fights 168',cardTba:true,main:{a:'対戦カード',b:'発表待ち',context:'ONE Friday Fights 168'},support:[],source:'https://www.onefc.com/events/one-friday-fights-168/'},
   boxing:{startAt:'2026-09-12T12:00:00-07:00',displayDate:'9/12 (土)',location:'ラスベガス',name:'Garcia vs Benn',timeTba:true,main:{a:'ライアン・ガルシア',b:'コナー・ベン',context:'WBC ウェルター級タイトル戦'},support:[],source:'https://www.ringmagazine.com/news/ryan-garcia-vs-conor-benn-set-for-sept-12-in-las-vegas-2lAAiNVusWH1ZYNPUFQdQo'},
@@ -73,7 +73,7 @@ function ufcDetailLocation(html){if(KEY!=='ufc'||!html)return'';const m=html.mat
 function currentLocked(snap){const end=new Date(snap.startAt).getTime()+12*3600000;return Date.now()<end;}
 async function strictNextEvent(snap){try{const listing=await reqText(S.listing);const min=new Date(snap.startAt).getTime()+6*3600000,max=Date.now()+180*86400000,eligible=e=>{const t=new Date(e.startAt).getTime();return Number.isFinite(t)&&t>min&&t<max&&validOrgName(e.name);};let candidates=jsonLdEvents(listing,S.listing).map(normalizeOneCompositeEvent).filter(eligible);if(KEY==='ufc')candidates.push(...ufcListingEvents(listing,S.listing,min,max).filter(eligible));const uniq=new Map();for(const e of candidates){const k=`${e.source||''}|${new Date(e.startAt).getTime()}`;if(!uniq.has(k))uniq.set(k,e);}candidates=[...uniq.values()];if(!candidates.length){for(const u of links(listing,S.listing,S.detail).slice(0,12)){try{const html=await reqText(u,8);for(const e of jsonLdEvents(html,u)){const candidate=normalizeOneCompositeEvent({...e,source:u});if(eligible(candidate))candidates.push(candidate);}}catch(_){}}}candidates=candidates.sort((a,b)=>new Date(a.startAt)-new Date(b.startAt));if(!candidates.length)return null;const ev=candidates[0];let html='';try{html=await reqText(ev.source,8);}catch(_){}const detailName=html?ufcDetailName(html):'',detailLoc=html?ufcDetailLocation(html):'',pairs=html?fightPairs(html):[];const fallbackMain={a:'対戦カード',b:'発表待ち',context:ev.name};const main=pairs.length?{a:pairs[0].a,b:pairs[0].b,context:''}:fallbackMain;if(!pairs.length&&detailName)main.context=detailName;const support=pairs.slice(1,3).map((p,i)=>({label:i?'FEATURED':'CO-MAIN',a:p.a,b:p.b}));return {...snap,...ev,name:detailName||stripHTML(ev.name)||snap.name,location:shortLoc(detailLoc||ev.location)||(KEY==='ufc'?'会場確認中':snap.location),main,support,cardTba:!pairs.length,posterURL:html?metaImage(html,ev.source):null,timeTba:false,displayDate:null,live:true};}catch(_){return null;}}
 async function loadData(){const snap=normalizeOneCompositeEvent({...SNAPSHOT[KEY]});if(currentLocked(snap)){snap.posterURL=await cachedMetaImageURL(snap.source,`${KEY}-event`,4*3600000);snap.lockedCurrent=true;return snap;}const path=cacheFile(`combat-hub-next-${KEY}.json`),cached=readJSON(path),now=Date.now();if(cached&&now-cached.savedAt<4*3600000)return normalizeOneCompositeEvent(cached.data);const live=await strictNextEvent(snap);if(live){writeJSON(path,{savedAt:now,data:live});return live;}if(cached?.data)return {...normalizeOneCompositeEvent(cached.data),stale:true};return {...snap,cardTba:true,main:{a:'次大会',b:'確認中',context:S.label},support:[],nextPending:true};}
-const KNOWN_UFC={NURMAGOMEDOV:'https://www.ufc.com/athlete/umar-nurmagomedov',SONG:'https://www.ufc.com/athlete/song-yadong'};
+const KNOWN_UFC={NURMAGOMEDOV:'https://www.ufc.com/athlete/umar-nurmagomedov',SONG:'https://www.ufc.com/athlete/song-yadong',HOOKER:'https://www.ufc.com/athlete/dan-hooker',PARNASSE:'https://www.ufc.com/athlete/salahdine-parnasse'};
 const KNOWN_RIZIN={'ラジャブアリ・シェイドゥラエフ':'https://jp.rizinff.com/_tags/%E3%83%A9%E3%82%B8%E3%83%A3%E3%83%96%E3%82%A2%E3%83%AA%E3%83%BB%E3%82%B7%E3%82%A7%E3%82%A4%E3%83%89%E3%82%A5%E3%83%A9%E3%82%A8%E3%83%95','AJ・マッキー':'https://jp.rizinff.com/_tags/AJ%E3%83%BB%E3%83%9E%E3%83%83%E3%82%AD%E3%83%BC'};
 const KNOWN_K1={'金子晃大':'https://www.k-1.co.jp/fighter/716','璃明武':'https://www.k-1.co.jp/k-1wgp/fighter/856'};
 function rizinImg(html,url,name){for(const tag of html.match(/<img\b[^>]*>/gi)||[]){const alt=stripHTML(attr(tag,'alt')||'');if(alt&&(alt.includes(name)||name.includes(alt))){const src=attr(tag,'data-src')||attr(tag,'data-original')||attr(tag,'src');if(src)return absoluteURL(src,url);}}return metaImage(html,url);}
