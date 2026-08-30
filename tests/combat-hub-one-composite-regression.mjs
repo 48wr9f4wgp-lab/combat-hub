@@ -3,7 +3,7 @@ import fs from 'node:fs';
 
 const source = fs.readFileSync(new URL('../combat-hub.js', import.meta.url), 'utf8');
 
-assert.match(source, /const VERSION='7\.7\.1-github'/, 'runtime version should be 7.7.1-github');
+assert.match(source, /const VERSION='7\.7\.\d+-github'/, 'runtime version should stay on v7.7 patch line');
 assert.match(source, /function normalizeOneCompositeEvent\(ev\)/, 'ONE composite-event normalizer must exist');
 assert.match(source, /ONE Friday Fights\\s\+\\d\+/, 'normalizer must detect ONE Friday Fights event numbers');
 assert.match(source, /The Inner Circle\\s\+\\d\+/, 'normalizer must detect paired The Inner Circle events');
