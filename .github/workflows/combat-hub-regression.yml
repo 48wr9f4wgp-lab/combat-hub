@@ -31,7 +31,11 @@ jobs:
         run: node --check tests/combat-hub-regression.mjs
       - name: Cache regression syntax check
         run: node --check tests/combat-hub-cache-regression.mjs
+      - name: ONE composite-time regression syntax check
+        run: node --check tests/combat-hub-one-composite-regression.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
       - name: COMBAT HUB cache performance suite
         run: node tests/combat-hub-cache-regression.mjs
+      - name: COMBAT HUB ONE composite-time suite
+        run: node tests/combat-hub-one-composite-regression.mjs
