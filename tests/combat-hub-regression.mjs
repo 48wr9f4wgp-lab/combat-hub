@@ -10,7 +10,7 @@ function has(re, msg) {
 }
 
 // Production shape / transport guard
-has(/const VERSION='7\.7\.0-github'/, 'Expected v7.7 reliability runtime');
+has(/const VERSION='7\.7\.\d+-github'/, 'Expected v7.7 reliability runtime');
 has(/UFC:'ufc'/, 'UFC parameter missing');
 has(/RIZIN:'rizin'/, 'RIZIN parameter missing');
 has(/ONE:'one'/, 'ONE parameter missing');
@@ -43,7 +43,7 @@ has(/boxing:\{startAt:'2026-09-12T12:00:00-07:00',[^\n]*timeTba:true/, 'BOXING m
 has(/function currentLocked\(snap\)\{const end=new Date\(snap\.startAt\)\.getTime\(\)\+12\*3600000;return Date\.now\(\)<end;\}/, '12h current-event lock guard missing');
 has(/new Date\(snap\.startAt\)\.getTime\(\)\+6\*3600000/, 'next-event lower-bound guard missing');
 has(/Date\.now\(\)\+180\*86400000/, 'next-event search horizon changed unexpectedly');
-has(/jsonLdEvents\(listing,S\.listing\)\.filter\(eligible\)/, 'listing candidates must be eligibility-filtered before traversal decision');
+has(/jsonLdEvents\(listing,S\.listing\)\.map\(normalizeOneCompositeEvent\)\.filter\(eligible\)/, 'listing candidates must be normalized and eligibility-filtered before traversal decision');
 has(/if\(!candidates\.length\)\{for\(const u of links/, 'detail traversal fallback missing');
 
 // Safe fallback behavior: unknown cards must never invent fighters.
@@ -55,7 +55,7 @@ has(/async function eventPoster\(D\)/, 'event-poster fallback helper missing');
 // Cache behavior must remain bounded and recoverable.
 has(/combat-hub-next-\$\{KEY\}\.json/, 'per-organization next-event cache missing');
 has(/now-cached\.savedAt<4\*3600000/, 'next-event cache TTL changed unexpectedly');
-has(/if\(cached\?\.data\)return \{\.\.\.cached\.data,stale:true\}/, 'stale-cache fallback missing');
+has(/if\(cached\?\.data\)return \{\.\.\.normalizeOneCompositeEvent\(cached\.data\),stale:true\}/, 'stale-cache fallback missing');
 
 // Visual regression guards: v7.7 reliability pass must not alter verified v7.6 layout.
 has(/KEY==='k1'\?370:360/, 'K-1 left hero overlap fix missing');
@@ -77,7 +77,7 @@ const renderMarker = 'const D=await loadData(),ctx=await heroContext(D),w=new Li
 assert.ok(src.includes(renderMarker), 'Runtime instrumentation marker changed');
 const instrumented = src.replace(
   renderMarker,
-  `globalThis.__combatInternals={absoluteURL,validOrgName,strictNextEvent,jsonLdEvents,links,metaImage,heroContext,eventPoster,loadData};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
+  `globalThis.__combatInternals={absoluteURL,validOrgName,normalizeOneCompositeEvent,strictNextEvent,jsonLdEvents,links,metaImage,heroContext,eventPoster,loadData};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
 );
 
 function makeFileManager() {
@@ -201,6 +201,27 @@ async function runLoader({ runsInWidget, now, remoteResponses = {}, cacheSource 
   assert.equal(api.absoluteURL('../images/poster.jpg', 'https://www.onefc.com/events/next-card/'), 'https://www.onefc.com/events/images/poster.jpg');
   assert.equal(api.absoluteURL('?view=card', 'https://www.onefc.com/events/next-card/'), 'https://www.onefc.com/events/next-card/?view=card');
   assert.equal(api.absoluteURL('#main', 'https://www.onefc.com/events/next-card/?view=card'), 'https://www.onefc.com/events/next-card/?view=card#main');
+}
+
+// ONE composite pages expose the earlier Inner Circle start. Normalize the primary Friday Fights display only once.
+{
+  const { api } = await boot('ONE');
+  const composite = api.normalizeOneCompositeEvent({
+    name: 'ONE Friday Fights 169 & The Inner Circle 29',
+    startAt: '2026-09-04T20:30:00+09:00',
+    source: 'https://www.onefc.com/events/one-friday-fights-169/',
+  });
+  assert.equal(composite.name, 'ONE Friday Fights 169');
+  assert.equal(composite.startAt, '2026-09-04T13:30:00.000Z');
+  assert.equal(composite.oneComposite, true);
+  assert.equal(composite.compositeName, 'ONE Friday Fights 169 & The Inner Circle 29');
+
+  const alreadyFriday = api.normalizeOneCompositeEvent({
+    name: 'ONE Friday Fights 170 & The Inner Circle 30',
+    startAt: '2026-09-11T22:30:00+09:00',
+  });
+  assert.equal(alreadyFriday.startAt, '2026-09-11T22:30:00+09:00', 'Already-correct 22:30 JST must not be shifted twice');
+  assert.equal(alreadyFriday.name, 'ONE Friday Fights 170');
 }
 
 // BOXING must reject generic page Event JSON-LD while accepting fight-shaped event names.
