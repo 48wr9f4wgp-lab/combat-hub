@@ -27,7 +27,7 @@ assert.equal(/tackle-fit/i.test(loaderSrc), false, 'Loader must not depend on Ta
 
 // Current locked-event truth set. These are hard guards until each event passes.
 const expected = {
-  ufc: "2026-08-29T19:00:00+09:00",
+  ufc: "2026-09-06T04:00:00+09:00",
   rizin: "2026-09-10T16:00:00+09:00",
   one: "2026-08-28T20:30:00+09:00",
   k1: "2026-09-12T12:00:00+09:00",
