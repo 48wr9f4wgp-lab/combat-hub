@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const src = fs.readFileSync('combat-hub.js', 'utf8');
 
-assert.match(src, /const VERSION='7\.7\.6-github'/, 'Expected final visual runtime v7.7.6');
+assert.match(src, /const VERSION='7\.7\.7-github'/, 'Expected final visual runtime v7.7.7');
 assert.match(src, /function tx\(st,s,z,c,w='regular',n=1\)/, 'tx signature changed unexpectedly');
 assert.match(src, /t\.font=fnt\(typeSize\(z\),w\)/, 'Typography scaling must be centralized in tx()');
 assert.match(src, /if\(z===20\)return 20\.5/, 'Organization label scale missing');
@@ -20,10 +20,10 @@ assert.match(src, /function supportFont\(s\)\{const n=\[\.\.\.String\(s\|\|''\)\
 assert.match(src, /C=\{text:'#F7F8FA',sub:'#D7DCE3',muted:'#9AA2AD'\}/, 'Readability contrast tokens regressed');
 
 // Final visual polish guards.
-assert.match(src, /function mainDisplayName\(s\)\{const v=String\(s\|\|''\);if\(KEY!=='rizin'\|\|\[\.\.\.v\]\.length<=12\)return v;/, 'RIZIN long-name balancer missing');
-assert.match(src, /if\(KEY==='rizin'&&aName\.includes\('\\n'\)\)an\.minimumScaleFactor=\.78/, 'RIZIN left long-name scale floor missing');
-assert.match(src, /if\(KEY==='rizin'&&bName\.includes\('\\n'\)\)bn\.minimumScaleFactor=\.78/, 'RIZIN right long-name scale floor missing');
-assert.match(src, /function boxingCenterBand\(c\)\{if\(KEY!=='boxing'\)return;/, 'BOXING center contrast band missing');
+assert.match(src, /function mainNameParts\(s\)\{const v=String\(s\|\|''\);if\(KEY!=='rizin'\|\|\[\.\.\.v\]\.length<=12\)return\[v\];/, 'RIZIN long-name splitter missing');
+assert.match(src, /function renderMainName\(box,name\)\{const parts=mainNameParts\(name\);for\(const part of parts\)\{const t=tx\(box,part,V\.mainSize,new Color\(C\.text\),'black',1\);/, 'RIZIN complete-line renderer missing');
+assert.match(src, /if\(KEY==='rizin'&&parts\.length>1\)t\.minimumScaleFactor=\.86/, 'RIZIN multiline scale floor missing');
+assert.match(src, /function boxingCenterBand\(c\)\{if\(KEY!=='boxing'\)return;const bands=\[190,158,126,96,68\]/, 'BOXING center contrast band missing or too weak');
 assert.equal((src.match(/boxingCenterBand\(c\);softCenter/g) || []).length, 2, 'BOXING center contrast must apply to hero and poster backgrounds');
 assert.match(src, /const footColor=KEY==='one'\?new Color\('#E0E4EA',\.82\):new Color\(C\.muted\)/, 'ONE footer contrast polish missing');
 
