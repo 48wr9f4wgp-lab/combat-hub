@@ -75,6 +75,17 @@ jobs:
           )
           p.write_text(s, encoding='utf-8')
 
+          rp = Path('tests/combat-hub-regression.mjs')
+          r = rp.read_text(encoding='utf-8')
+          old = r"has(/aBox\.addSpacer\(\);const an=/, 'Left main fighter is not vertically centered');"
+          new = r"has(/aBox\.addSpacer\(\);const aName=mainDisplayName\(ctx\.a\.name\),an=/, 'Left main fighter is not vertically centered');"
+          if old not in r: raise SystemExit('left vertical-centering guard not found')
+          r = r.replace(old, new, 1)
+          old = r"has(/bBox\.addSpacer\(\);const bn=/, 'Right main fighter is not vertically centered');"
+          new = r"has(/bBox\.addSpacer\(\);const bName=mainDisplayName\(ctx\.b\.name\),bn=/, 'Right main fighter is not vertically centered');"
+          if old not in r: raise SystemExit('right vertical-centering guard not found')
+          rp.write_text(r.replace(old, new, 1), encoding='utf-8')
+
           tp = Path('tests/combat-hub-typography-regression.mjs')
           t = tp.read_text(encoding='utf-8')
           old = "assert.match(src, /const VERSION='7\\.7\\.5-github'/, 'Expected readability runtime v7.7.5');"
@@ -112,6 +123,6 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add combat-hub.js tests/combat-hub-typography-regression.mjs tests/combat-hub-k1-layout-regression.mjs
+          git add combat-hub.js tests/combat-hub-regression.mjs tests/combat-hub-typography-regression.mjs tests/combat-hub-k1-layout-regression.mjs
           git commit -m "polish: finalize visual hierarchy v7.7.6"
           git push origin HEAD:polish/final-visual-v7.7.6
