@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.7.4-github — K-1 optical main-card alignment / data engine unchanged
+// v7.7.5-github — typography/readability scale / verified layout preserved
 
 (async()=>{
-const VERSION='7.7.4-github';
+const VERSION='7.7.5-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -21,7 +21,7 @@ const SERIES={
   boxing:{label:'BOXING',accent:'#4BA3FF',listing:'https://www.ringmagazine.com/events',detail:/(?:\/events\/|\/news\/)/i},
   k1:{label:'K-1',accent:'#FF8C3A',listing:'https://www.k-1.co.jp/k-1wgp/schedule',detail:/\/schedule\/\d+/i}
 };
-const S=SERIES[KEY], C={text:'#F7F8FA',sub:'#CDD2D9',muted:'#8B929D'};
+const S=SERIES[KEY], C={text:'#F7F8FA',sub:'#D7DCE3',muted:'#9AA2AD'};
 
 const VISUAL={
   ufc:{heroShade:.68,posterShade:.58,headerShade:.13,mainShade:.12,footShade:.17,veil:.018,gap:17,mainSize:13.4,division:7.3},
@@ -42,7 +42,8 @@ const SNAPSHOT={
 
 const fm=FileManager.local(),DOC=fm.documentsDirectory();
 function fnt(z,w='regular'){if(w==='black'&&Font.blackSystemFont)return Font.blackSystemFont(z);if(w==='bold')return Font.boldSystemFont(z);if(w==='semibold')return Font.semiboldSystemFont(z);return Font.systemFont(z);}
-function tx(st,s,z,c,w='regular',n=1){const t=st.addText(String(s??''));t.font=fnt(z,w);t.textColor=c;t.lineLimit=n;t.minimumScaleFactor=.42;return t;}
+function typeSize(z){if(z===20)return 20.5;if(z===8.1)return 9.0;if(z===7)return 7.5;if(z===6.2)return 6.7;if(z===12.8)return 13.1;if(z===13.7)return 14.4;if(z===8.0)return 8.8;if(z===6.8)return 7.5;if(z===6.1)return 6.8;if(z===7.1)return 7.8;if(z===13.1)return 13.8;if(z===13.4)return 14.1;if(z===13.6)return 14.3;if(z===7.2)return 7.9;if(z===7.3)return 8.0;return z;}
+function tx(st,s,z,c,w='regular',n=1){const t=st.addText(String(s??''));t.font=fnt(typeSize(z),w);t.textColor=c;t.lineLimit=n;t.minimumScaleFactor=.42;return t;}
 function divider(st){const d=st.addStack();d.size=new Size(0,1);d.backgroundColor=new Color('#FFFFFF',.05);}
 function decodeEntities(s){return String(s||'').replace(/&amp;/gi,'&').replace(/&nbsp;/gi,' ').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'");}
 function stripHTML(s){return decodeEntities(String(s||'').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ')).replace(/\s+/g,' ').trim();}
@@ -91,13 +92,13 @@ function dateOnly(d){const f=new DateFormatter();f.locale='ja_JP';f.timeZone='As
 function dateText(D){if(D.timeTba)return`${D.displayDate||dateOnly(D.startAt)} ・ 時刻未定`;const f=new DateFormatter();f.locale='ja_JP';f.timeZone='Asia/Tokyo';f.dateFormat="M/d (E) HH:mm 'JST'";return f.string(new Date(D.startAt));}
 function countdown(D){if(D.timeTba)return'時刻未定';const q=new Date(D.startAt)-Date.now();if(q<=0)return D.nextPending?'確認中':'開催中';const m=Math.floor(q/60000),days=Math.floor(m/1440),h=Math.floor((m%1440)/60),mm=m%60;if(days>0)return`${days}日 ${h}時間`;if(h>0)return`${h}時間 ${mm}分`;return`${mm}分`;}
 function division(s){const v=String(s||'');if(/FEATHER|フェザー/i.test(v))return/タイトル|TITLE/i.test(v)?'フェザー級タイトル戦':'フェザー級';if(/BANTAM|バンタム/i.test(v))return/スーパー|SUPER/i.test(v)?'スーパー・バンタム級':'バンタム級';if(/STRAW|ストロー/i.test(v))return'ストロー級';if(/WELTER|ウェルター/i.test(v))return'ウェルター級';if(/LIGHT|ライト/i.test(v))return'ライト級';return v.length>25?v.slice(0,24)+'…':v;}
-function supportFont(s){const n=[...String(s||'')].length;return n>13?8.25:n>10?8.6:9.0;}
+function supportFont(s){const n=[...String(s||'')].length;return n>13?8.7:n>10?9.2:9.8;}
 function supportRow(w,row){const s=w.addStack();s.centerAlignContent();const l=s.addStack();l.size=new Size(65,0);tx(l,row.label,7.1,new Color(S.accent),'bold');s.addSpacer(4);const a=s.addStack();a.size=new Size(116,0);tx(a,row.a,supportFont(row.a),new Color(C.text),'semibold');s.addSpacer(4);tx(s,'VS',7.1,new Color(S.accent),'bold');s.addSpacer(4);const b=s.addStack();b.size=new Size(116,0);const bt=tx(b,row.b,supportFont(row.b),new Color(C.text),'semibold');bt.rightAlignText();}
 
 const D=await loadData(),ctx=await heroContext(D),w=new ListWidget();w.setPadding(10,14,8,14);
 if(ctx.poster)w.backgroundImage=posterBg(ctx.poster);else if(ctx.a.image||ctx.b.image)w.backgroundImage=heroBg(ctx.a.image,ctx.b.image);else w.backgroundGradient=gradient();
 const h=w.addStack();h.centerAlignContent();const hl=h.addStack();hl.layoutVertically();tx(hl,S.label,20,new Color(C.text),'black');hl.addSpacer(2);const meta=hl.addStack();tx(meta,dateText(D),8.1,new Color(C.sub),'semibold');meta.addSpacer(5);tx(meta,'·',7,new Color(C.muted));meta.addSpacer(5);tx(meta,shortLoc(D.location),8.1,new Color(C.sub),'semibold');h.addSpacer();const hr=h.addStack();hr.layoutVertically();const lab=hr.addStack();lab.addSpacer();tx(lab,D.timeTba?'開催':'開催まで',6.2,new Color(C.muted),'bold');hr.addSpacer(1);const cd=hr.addStack();cd.addSpacer();tx(cd,countdown(D),12.8,new Color(C.text),'black');
-if(D.cardTba){w.addSpacer(19);const center=w.addStack();center.layoutVertically();const title=tx(center,D.nextPending?'次大会情報を確認中':'対戦カード発表待ち',13.7,new Color(C.text),'black');title.centerAlignText();center.addSpacer(5);const sub=tx(center,stripHTML(D.name||D.main.context),8.0,new Color(S.accent),'semibold');sub.centerAlignText();w.addSpacer(10);divider(w);w.addSpacer(7);const foot=w.addStack();foot.addSpacer();tx(foot,'公式更新を自動反映',6.8,new Color(C.muted),'semibold');foot.addSpacer();}else{w.addSpacer(Math.max(7,V.gap-7));const main=w.addStack();main.centerAlignContent();const k1Inset=KEY==='k1'?10:0;if(k1Inset)main.addSpacer(k1Inset);const aBox=main.addStack();aBox.layoutVertically();aBox.size=new Size(140,36);if(KEY==='k1')aBox.size=new Size(130,36);aBox.addSpacer();const an=tx(aBox,ctx.a.name,V.mainSize,new Color(C.text),'black',2);an.centerAlignText();aBox.addSpacer();main.addSpacer();const centerBox=main.addStack();centerBox.layoutVertically();centerBox.size=new Size(44,36);centerBox.addSpacer();const mt=tx(centerBox,'MAIN EVENT',6.1,new Color(S.accent),'bold');mt.centerAlignText();centerBox.addSpacer(1);const v=tx(centerBox,'VS',15.2,new Color(S.accent),'black');v.centerAlignText();centerBox.addSpacer();main.addSpacer();const bBox=main.addStack();bBox.layoutVertically();bBox.size=new Size(140,36);if(KEY==='k1')bBox.size=new Size(130,36);bBox.addSpacer();const bn=tx(bBox,ctx.b.name,V.mainSize,new Color(C.text),'black',2);bn.centerAlignText();bBox.addSpacer();if(k1Inset)main.addSpacer(k1Inset);w.addSpacer(3);const dv=tx(w,division(D.main.context),V.division,new Color('#BBC2CB'),'semibold');dv.centerAlignText();w.addSpacer(KEY==='k1'?7:5);divider(w);w.addSpacer(KEY==='boxing'?6:4);if(D.support?.length){D.support.slice(0,2).forEach((r,i)=>{supportRow(w,r);if(i<Math.min(2,D.support.length)-1)w.addSpacer(4);});}else{const empty=w.addStack();empty.addSpacer();tx(empty,KEY==='boxing'?'UNDERCARD 発表待ち':'追加カード発表待ち',6.8,new Color(C.muted),'semibold');empty.addSpacer();}}
+if(D.cardTba){w.addSpacer(19);const center=w.addStack();center.layoutVertically();const title=tx(center,D.nextPending?'次大会情報を確認中':'対戦カード発表待ち',13.7,new Color(C.text),'black');title.centerAlignText();center.addSpacer(5);const sub=tx(center,stripHTML(D.name||D.main.context),8.0,new Color(S.accent),'semibold');sub.centerAlignText();w.addSpacer(10);divider(w);w.addSpacer(7);const foot=w.addStack();foot.addSpacer();tx(foot,'公式更新を自動反映',6.8,new Color(C.muted),'semibold');foot.addSpacer();}else{w.addSpacer(Math.max(7,V.gap-7));const main=w.addStack();main.centerAlignContent();const k1Inset=KEY==='k1'?10:0;if(k1Inset)main.addSpacer(k1Inset);const aBox=main.addStack();aBox.layoutVertically();aBox.size=new Size(140,36);if(KEY==='k1')aBox.size=new Size(130,36);aBox.addSpacer();const an=tx(aBox,ctx.a.name,V.mainSize,new Color(C.text),'black',2);an.centerAlignText();aBox.addSpacer();main.addSpacer();const centerBox=main.addStack();centerBox.layoutVertically();centerBox.size=new Size(44,36);centerBox.addSpacer();const mt=tx(centerBox,'MAIN EVENT',6.1,new Color(S.accent),'bold');mt.centerAlignText();centerBox.addSpacer(1);const v=tx(centerBox,'VS',15.2,new Color(S.accent),'black');v.centerAlignText();centerBox.addSpacer();main.addSpacer();const bBox=main.addStack();bBox.layoutVertically();bBox.size=new Size(140,36);if(KEY==='k1')bBox.size=new Size(130,36);bBox.addSpacer();const bn=tx(bBox,ctx.b.name,V.mainSize,new Color(C.text),'black',2);bn.centerAlignText();bBox.addSpacer();if(k1Inset)main.addSpacer(k1Inset);w.addSpacer(3);const dv=tx(w,division(D.main.context),V.division,new Color('#C5CBD3'),'semibold');dv.centerAlignText();w.addSpacer(KEY==='k1'?7:5);divider(w);w.addSpacer(KEY==='boxing'?6:4);if(D.support?.length){D.support.slice(0,2).forEach((r,i)=>{supportRow(w,r);if(i<Math.min(2,D.support.length)-1)w.addSpacer(4);});}else{const empty=w.addStack();empty.addSpacer();tx(empty,KEY==='boxing'?'UNDERCARD 発表待ち':'追加カード発表待ち',6.8,new Color(C.muted),'semibold');empty.addSpacer();}}
 w.url=D.source||S.listing;w.refreshAfterDate=new Date(Date.now()+30*60*1000);
 if(config.runsInWidget)Script.setWidget(w);else await w.presentMedium();
 Script.complete();
