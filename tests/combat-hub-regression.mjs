@@ -68,16 +68,15 @@ has(/mainSize:13\.6/, 'Main fighter font emphasis missing for short-name layouts
 has(/aBox\.size=new Size\(140,36\)/, 'Left main fighter box lost fixed height');
 has(/centerBox\.size=new Size\(44,36\)/, 'Main center column lost fixed height');
 has(/bBox\.size=new Size\(140,36\)/, 'Right main fighter box lost fixed height');
-has(/aBox\.addSpacer\(\);const aName=mainDisplayName\(ctx\.a\.name\),an=/, 'Left main fighter is not vertically centered');
-has(/bBox\.addSpacer\(\);const bName=mainDisplayName\(ctx\.b\.name\),bn=/, 'Right main fighter is not vertically centered');
-has(/an\.centerAlignText\(\)/, 'Left main fighter is not horizontally centered');
-has(/bn\.centerAlignText\(\)/, 'Right main fighter is not horizontally centered');
+has(/aBox\.addSpacer\(\);renderMainName\(aBox,ctx\.a\.name\);aBox\.addSpacer\(\)/, 'Left main fighter is not vertically centered');
+has(/bBox\.addSpacer\(\);renderMainName\(bBox,ctx\.b\.name\);bBox\.addSpacer\(\)/, 'Right main fighter is not vertically centered');
+has(/function renderMainName\(box,name\)\{[^}]*t\.centerAlignText\(\)/, 'Main fighter text is not horizontally centered');
 
 const renderMarker = 'const D=await loadData(),ctx=await heroContext(D),w=new ListWidget();';
 assert.ok(src.includes(renderMarker), 'Runtime instrumentation marker changed');
 const instrumented = src.replace(
   renderMarker,
-  `globalThis.__combatInternals={absoluteURL,validOrgName,normalizeOneCompositeEvent,strictNextEvent,jsonLdEvents,links,metaImage,heroContext,eventPoster,loadData};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
+  `globalThis.__combatInternals={absoluteURL,validOrgName,normalizeOneCompositeEvent,strictNextEvent,jsonLdEvents,links,metaImage,heroContext,eventPoster,loadData,mainNameParts};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
 );
 
 function makeFileManager() {
@@ -201,6 +200,13 @@ async function runLoader({ runsInWidget, now, remoteResponses = {}, cacheSource 
   assert.equal(api.absoluteURL('../images/poster.jpg', 'https://www.onefc.com/events/next-card/'), 'https://www.onefc.com/events/images/poster.jpg');
   assert.equal(api.absoluteURL('?view=card', 'https://www.onefc.com/events/next-card/'), 'https://www.onefc.com/events/next-card/?view=card');
   assert.equal(api.absoluteURL('#main', 'https://www.onefc.com/events/next-card/?view=card'), 'https://www.onefc.com/events/next-card/?view=card#main');
+}
+
+// RIZIN long main-event names must split into complete lines rather than truncate.
+{
+  const { api } = await boot('RIZIN');
+  assert.deepEqual(Array.from(api.mainNameParts('ラジャブアリ・シェイドゥラエフ')), ['ラジャブアリ・', 'シェイドゥラエフ']);
+  assert.deepEqual(Array.from(api.mainNameParts('AJ・マッキー')), ['AJ・マッキー']);
 }
 
 // ONE composite pages expose the earlier Inner Circle start. Normalize the primary Friday Fights display only once.
