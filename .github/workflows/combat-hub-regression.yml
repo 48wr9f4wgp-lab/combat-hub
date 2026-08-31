@@ -35,6 +35,8 @@ jobs:
         run: node --check tests/combat-hub-one-composite-regression.mjs
       - name: UFC roll-forward regression syntax check
         run: node --check tests/combat-hub-ufc-rollforward-regression.mjs
+      - name: K-1 layout regression syntax check
+        run: node --check tests/combat-hub-k1-layout-regression.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
       - name: COMBAT HUB cache performance suite
@@ -43,3 +45,5 @@ jobs:
         run: node tests/combat-hub-one-composite-regression.mjs
       - name: COMBAT HUB UFC roll-forward suite
         run: node tests/combat-hub-ufc-rollforward-regression.mjs
+      - name: COMBAT HUB K-1 layout suite
+        run: node tests/combat-hub-k1-layout-regression.mjs
