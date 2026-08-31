@@ -68,8 +68,8 @@ has(/mainSize:13\.6/, 'Main fighter font emphasis missing for short-name layouts
 has(/aBox\.size=new Size\(140,36\)/, 'Left main fighter box lost fixed height');
 has(/centerBox\.size=new Size\(44,36\)/, 'Main center column lost fixed height');
 has(/bBox\.size=new Size\(140,36\)/, 'Right main fighter box lost fixed height');
-has(/aBox\.addSpacer\(\);const an=/, 'Left main fighter is not vertically centered');
-has(/bBox\.addSpacer\(\);const bn=/, 'Right main fighter is not vertically centered');
+has(/aBox\.addSpacer\(\);const aName=mainDisplayName\(ctx\.a\.name\),an=/, 'Left main fighter is not vertically centered');
+has(/bBox\.addSpacer\(\);const bName=mainDisplayName\(ctx\.b\.name\),bn=/, 'Right main fighter is not vertically centered');
 has(/an\.centerAlignText\(\)/, 'Left main fighter is not horizontally centered');
 has(/bn\.centerAlignText\(\)/, 'Right main fighter is not horizontally centered');
 

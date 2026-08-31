@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const src = fs.readFileSync('combat-hub.js', 'utf8');
 
-assert.match(src, /const VERSION='7\.7\.5-github'/, 'Expected readability runtime v7.7.5');
+assert.match(src, /const VERSION='7\.7\.6-github'/, 'Expected final visual runtime v7.7.6');
 assert.match(src, /k1:\{heroShade:\.60,posterShade:\.46,headerShade:\.10,mainShade:\.11,footShade:\.17,veil:\.055,gap:15,mainSize:13\.6,division:7\.3\}/, 'K-1 main row must retain the verified v7.7.4 geometry');
 assert.match(src, /const k1Inset=KEY==='k1'\?10:0;if\(k1Inset\)main\.addSpacer\(k1Inset\)/, 'K-1 symmetric outer inset missing');
 assert.match(src, /aBox\.size=new Size\(140,36\);if\(KEY==='k1'\)aBox\.size=new Size\(130,36\)/, 'K-1 left fighter box optical inset missing');
