@@ -10,7 +10,7 @@ function has(re, msg) {
 }
 
 // Production shape / transport guard
-has(/const VERSION='7\.7\.\d+-github'/, 'Expected v7.7 reliability runtime');
+has(/const VERSION='7\.8\.\d+-github'/, 'Expected v7.8 audited runtime');
 has(/UFC:'ufc'/, 'UFC parameter missing');
 has(/RIZIN:'rizin'/, 'RIZIN parameter missing');
 has(/ONE:'one'/, 'ONE parameter missing');
@@ -29,18 +29,24 @@ assert.equal(/tackle-fit/i.test(loaderSrc), false, 'Loader must not depend on Ta
 const expected = {
   ufc: "2026-09-06T04:00:00+09:00",
   rizin: "2026-09-10T16:00:00+09:00",
-  one: "2026-08-28T20:30:00+09:00",
+  one: "2026-09-04T22:30:00+09:00",
   k1: "2026-09-12T12:00:00+09:00",
 };
 for (const [key, iso] of Object.entries(expected)) {
   assert.ok(src.includes(`${key}:{startAt:'${iso}'`), `${key} snapshot startAt drifted: ${iso}`);
 }
+assert.ok(src.includes("name:'ONE Friday Fights 169'"), 'ONE current event name stale');
+assert.ok(src.includes("main:{a:'Petmuangsri Torfunfarm',b:'Gregor Thom',context:'フライ級ムエタイ'}"), 'ONE current main card stale');
+assert.ok(src.includes("main:{a:'ジョナス・サルシチャ',b:'ゾーラ・アカピャン',context:'-70kg世界最強決定トーナメント開幕戦'}"), 'K-1 current main event stale');
 
 // Boxing deliberately has timeTba=true; exact clock must not be presented as confirmed.
 has(/boxing:\{startAt:'2026-09-12T12:00:00-07:00',[^\n]*timeTba:true/, 'BOXING must remain time-TBA');
 
 // Roll-forward safety.
 has(/function currentLocked\(snap\)\{const end=new Date\(snap\.startAt\)\.getTime\(\)\+12\*3600000;return Date\.now\(\)<end;\}/, '12h current-event lock guard missing');
+has(/async function refreshLockedCurrent\(snap\)/, 'Safe locked-current refresh missing');
+has(/combat-hub-current-\$\{KEY\}\.json/, 'Current-event refresh cache missing');
+has(/pairs=html\?currentPagePairs\(html\):\[\]/, 'ONE-capable detail card parser missing');
 has(/new Date\(snap\.startAt\)\.getTime\(\)\+6\*3600000/, 'next-event lower-bound guard missing');
 has(/Date\.now\(\)\+180\*86400000/, 'next-event search horizon changed unexpectedly');
 has(/jsonLdEvents\(listing,S\.listing\)\.map\(normalizeOneCompositeEvent\)\.filter\(eligible\)/, 'listing candidates must be normalized and eligibility-filtered before traversal decision');
@@ -76,7 +82,7 @@ const renderMarker = 'const D=await loadData(),ctx=await heroContext(D),w=new Li
 assert.ok(src.includes(renderMarker), 'Runtime instrumentation marker changed');
 const instrumented = src.replace(
   renderMarker,
-  `globalThis.__combatInternals={absoluteURL,validOrgName,normalizeOneCompositeEvent,strictNextEvent,jsonLdEvents,links,metaImage,heroContext,eventPoster,loadData,mainNameParts};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
+  `globalThis.__combatInternals={absoluteURL,validOrgName,normalizeOneCompositeEvent,strictNextEvent,jsonLdEvents,links,metaImage,heroContext,eventPoster,loadData,mainNameParts,currentPagePairs,sameFight};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
 );
 
 function makeFileManager() {
@@ -207,6 +213,18 @@ async function runLoader({ runsInWidget, now, remoteResponses = {}, cacheSource 
   const { api } = await boot('RIZIN');
   assert.deepEqual(Array.from(api.mainNameParts('ラジャブアリ・シェイドゥラエフ')), ['ラジャブアリ・', 'シェイドゥラエフ']);
   assert.deepEqual(Array.from(api.mainNameParts('AJ・マッキー')), ['AJ・マッキー']);
+}
+
+// ONE official event DOM exposes fighter names in title attributes inside tr.vs rows.
+{
+  const { api } = await boot('ONE');
+  const html = '<tr class="vs"><td><a title="Petmuangsri Torfunfarm">Petmuangsri Torfunfarm</a></td><th>VS</th><td><a title="Gregor Thom">Gregor Thom</a></td></tr><tr><td>Thailand</td><th>Country</th><td>Scotland</td></tr><tr class="vs"><td><a title="Khunponnoi Sor Sommai">Khunponnoi Sor Sommai</a></td><th>VS</th><td><a title="Sunvo Torfunfarm">Sunvo Torfunfarm</a></td></tr>';
+  const pairs = api.currentPagePairs(html);
+  assert.deepEqual(Array.from(pairs, p => ({ a: p.a, b: p.b })), [
+    { a: 'Petmuangsri Torfunfarm', b: 'Gregor Thom' },
+    { a: 'Khunponnoi Sor Sommai', b: 'Sunvo Torfunfarm' },
+  ]);
+  assert.equal(api.sameFight(pairs[0].a, pairs[0].b, 'Petmuangsri Torfunfarm', 'Gregor Thom'), true);
 }
 
 // ONE composite pages expose the earlier Inner Circle start. Normalize the primary Friday Fights display only once.

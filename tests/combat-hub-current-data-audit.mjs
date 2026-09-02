@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const src=fs.readFileSync('combat-hub.js','utf8');
+const preview=fs.readFileSync('combat-hub-preview-loader.js','utf8');
+assert.match(src,/const VERSION='7\.8\.0-github'/);
+assert.match(src,/one:\{startAt:'2026-09-04T22:30:00\+09:00'[^\n]*name:'ONE Friday Fights 169'[^\n]*Petmuangsri Torfunfarm[^\n]*Gregor Thom/);
+assert.doesNotMatch(src,/one:\{startAt:'2026-08-28T20:30:00\+09:00'/);
+assert.match(src,/k1:\{startAt:'2026-09-12T12:00:00\+09:00'[^\n]*ジョナス・サルシチャ[^\n]*ゾーラ・アカピャン/);
+assert.doesNotMatch(src,/k1:\{startAt:'2026-09-12T12:00:00\+09:00'[^\n]*main:\{a:'金子晃大',b:'璃明武'/);
+assert.match(src,/function currentPagePairs\(html\)/);
+assert.match(src,/String\(html\)\.split\('<tr class=\"vs\">'\)/);
+assert.match(src,/async function refreshLockedCurrent\(snap\)/);
+assert.match(src,/sameFight\(pairs\[0\]\.a,pairs\[0\]\.b,snap\.main\.a,snap\.main\.b\)/);
+assert.doesNotMatch(preview,/chatgpt\/reliability-v7\.7/);
+assert.match(preview,/combat-hub\/main\/combat-hub\.js/);
+console.log('COMBAT HUB current-data audit regression: OK');

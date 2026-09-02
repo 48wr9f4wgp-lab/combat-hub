@@ -23,7 +23,7 @@ The Loader keeps an isolated v4 runtime cache inside Scriptable and falls back t
 
 - `combat-hub-loader.js` — canonical Scriptable Loader
 - `combat-hub.js` — production Scriptable runtime
-- `tests/combat-hub-regression.mjs` — regression guards
+- `tests/*.mjs` — execution, cache, roll-forward, layout, typography, and current-data audit guards
 - `.github/workflows/combat-hub-regression.yml` — syntax + regression CI
 
 ## Test
@@ -31,17 +31,17 @@ The Loader keeps an isolated v4 runtime cache inside Scriptable and falls back t
 ```bash
 node --check combat-hub.js
 node --check combat-hub-loader.js
-node --check tests/combat-hub-regression.mjs
-node tests/combat-hub-regression.mjs
+for f in tests/*.mjs; do node --check "$f"; done
+for f in tests/*.mjs; do node "$f"; done
 ```
 
 ## Data sources
 
-The script reads public event/profile pages for UFC, RIZIN, ONE, Ring Magazine, and K-1 and keeps bounded local caches inside Scriptable.
+The script reads public official/primary event and profile pages for UFC, RIZIN, ONE, Ring Magazine, and K-1. Trusted current snapshots are combined with confidence-gated official-page refreshes and bounded Scriptable caches; uncertain cards/times remain explicitly TBA.
 
 ## Repository boundary
 
 COMBAT HUB is maintained independently from `tackle-fit`.
 Tackle Fit HTML/PWA/Pages assets and repositories are not runtime dependencies of this project.
 
-The final migration gate is physical-device verification after switching the iPhone Scriptable script to the canonical Loader above.
+`main` is the personal production baseline. Runtime changes still require physical-device verification after CI. `friends-stable` is separate and is not promoted implicitly.

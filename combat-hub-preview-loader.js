@@ -1,20 +1,19 @@
-// COMBAT HUB v7.7 Preview Loader
-// Branch-only physical-device verification channel.
-// Do not use this as the production home-screen Loader.
+// COMBAT HUB Preview Loader — compatibility helper
+// Canonical production setup remains combat-hub-loader.js. This helper follows main to avoid stale branch previews.
 
 (async()=>{
-const LOADER_VERSION='7.7-preview-1';
-const MIN_RUNTIME=[7,7,0];
+const LOADER_VERSION='7.8-preview-main';
+const MIN_RUNTIME=[7,8,0];
 const WIDGET_CACHE_TTL=10*60*1000;
 const REMOTES=[
-  'https://raw.githubusercontent.com/48wr9f4wgp-lab/combat-hub/chatgpt/reliability-v7.7/combat-hub.js',
-  'https://github.com/48wr9f4wgp-lab/combat-hub/raw/refs/heads/chatgpt/reliability-v7.7/combat-hub.js'
+  'https://raw.githubusercontent.com/48wr9f4wgp-lab/combat-hub/main/combat-hub.js',
+  'https://github.com/48wr9f4wgp-lab/combat-hub/raw/refs/heads/main/combat-hub.js'
 ];
 
 const fm=FileManager.local();
 const doc=fm.documentsDirectory();
-const cachePath=fm.joinPath(doc,'combat-hub-runtime-v7.7-preview.js');
-const metaPath=fm.joinPath(doc,'combat-hub-runtime-v7.7-preview-meta.json');
+const cachePath=fm.joinPath(doc,'combat-hub-runtime-v7.8-preview-main.js');
+const metaPath=fm.joinPath(doc,'combat-hub-runtime-v7.8-preview-main-meta.json');
 
 function parseVersion(source){
   const m=String(source||'').match(/const\s+VERSION\s*=\s*['\"](\d+)\.(\d+)\.(\d+)(?:-[^'\"]*)?['\"]/);
@@ -104,7 +103,7 @@ if(config.runsInWidget&&cached&&cacheAge<WIDGET_CACHE_TTL){
 }
 
 if(!selected||!validRuntime(selected)){
-  throw new Error('COMBAT HUB Preview: v7.7本体を取得できませんでした');
+  throw new Error('COMBAT HUB Preview: main本体を取得できませんでした');
 }
 
 await eval(selected);
