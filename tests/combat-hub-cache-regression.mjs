@@ -8,7 +8,9 @@ const src = fs.readFileSync('combat-hub.js', 'utf8');
 assert.match(src, /combat-meta-\$\{ns\}-\$\{safeKey\(url\)\}\.json/, 'event metadata cache namespace missing');
 assert.match(src, /combat-profile-\$\{kind\}-\$\{safeKey\(url\)\}\.json/, 'fighter metadata cache namespace missing');
 assert.match(src, /now-Number\(cached\.savedAt\)<12\*3600000/, 'fighter metadata TTL must remain 12h');
-assert.match(src, /cachedMetaImageURL\(snap\.source,`\$\{KEY\}-event`,4\*3600000\)/, 'locked-event metadata cache must remain 4h');
+assert.match(src, /cachedMetaImageURL\(current\.source,`\$\{KEY\}-event`,4\*3600000\)/, 'locked-event metadata fallback cache must remain 4h');
+assert.match(src, /combat-hub-current-\$\{KEY\}\.json/, 'locked-current data cache missing');
+assert.match(src, /now-Number\(cached\.savedAt\)<2\*3600000/, 'locked-current refresh TTL must remain 2h');
 
 const renderMarker = 'const D=await loadData(),ctx=await heroContext(D),w=new ListWidget();';
 assert.ok(src.includes(renderMarker), 'Runtime instrumentation marker changed');
@@ -168,19 +170,18 @@ function stringRequests(requests) {
   assert.equal(requests.filter(r => r.kind === 'image').length, 0, 'Cached event image should survive metadata refresh failure');
 }
 
-// A locked current event should reuse fresh event metadata instead of refetching its event HTML.
+// A locked current event should reuse a fresh confidence-gated current-data cache with zero network work.
 {
-  const source = 'https://www.onefc.com/events/one-friday-fights-168/';
-  const imageURL = 'https://img.example/one-168.jpg';
-  const now = Date.parse('2026-08-27T12:00:00+09:00');
+  const imageURL = 'https://img.example/one-169.jpg';
+  const now = Date.parse('2026-09-02T12:00:00+09:00');
   const { api, fm, requests } = await boot('ONE', { now });
-  const metaPath = `/docs/combat-meta-one-event-${api.safeKey(source)}.json`;
-  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 60_000, imageURL }));
+  const currentPath = '/docs/combat-hub-current-one.json';
+  fm.api.writeString(currentPath, JSON.stringify({ savedAt: now - 60_000, data: { posterURL: imageURL } }));
 
   const data = await api.loadData();
   assert.equal(data.posterURL, imageURL);
   assert.equal(data.lockedCurrent, true);
-  assert.equal(stringRequests(requests).length, 0, 'Locked current event with fresh metadata should avoid event HTML network work');
+  assert.equal(stringRequests(requests).length, 0, 'Fresh locked-current cache should avoid event HTML network work');
 }
 
-console.log('COMBAT HUB v7.7 cache performance checks: OK');
+console.log('COMBAT HUB v7.8 cache performance checks: OK');

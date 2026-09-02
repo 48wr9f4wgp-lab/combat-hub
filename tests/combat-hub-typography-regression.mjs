@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const src = fs.readFileSync('combat-hub.js', 'utf8');
 
-assert.match(src, /const VERSION='7\.7\.7-github'/, 'Expected final visual runtime v7.7.7');
+assert.match(src, /const VERSION='7\.8\.0-github'/, 'Expected audited runtime v7.8.0');
 assert.match(src, /function tx\(st,s,z,c,w='regular',n=1\)/, 'tx signature changed unexpectedly');
 assert.match(src, /t\.font=fnt\(typeSize\(z\),w\)/, 'Typography scaling must be centralized in tx()');
 assert.match(src, /if\(z===20\)return 20\.5/, 'Organization label scale missing');
