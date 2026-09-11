@@ -1,0 +1,37 @@
+name: Large Widget Prototype Runner
+
+on:
+  push:
+    branches:
+      - feature/large-widget-v7.9.0
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feature/large-widget-v7.9.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Apply prototype
+        run: python3 .github/scripts/apply_large_widget.py
+      - name: Run full regression suite
+        run: |
+          node --check combat-hub.js
+          node --check combat-hub-loader.js
+          node --check combat-hub-large-preview-loader.js
+          for f in tests/*.mjs; do node --check "$f"; done
+          for f in tests/*.mjs; do node "$f"; done
+      - name: Commit prototype
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add combat-hub.js combat-hub-large-preview-loader.js tests HANDOFF_CODEX.md
+          git commit -m "feat: add large widget prototype v7.9.0"
+          git push origin HEAD:feature/large-widget-v7.9.0
