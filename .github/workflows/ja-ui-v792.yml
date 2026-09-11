@@ -62,6 +62,12 @@ jobs:
           extra="\nassert.match(src, /function jpCardLabel\\(label\\)/, 'Japanese card-label mapper missing');\nassert.match(src, /'メインイベント'/, 'Japanese main-event label missing');\nassert.match(src, /'次大会'/, 'Japanese next-event label missing');\nassert.match(src, /'前座カード発表待ち'/, 'Japanese undercard fallback missing');\n"
           if 'Japanese card-label mapper missing' not in q: q += extra
           t.write_text(q)
+
+          r=Path('tests/combat-hub-regression.mjs')
+          q=r.read_text()
+          q=q.replace("'MAIN EVENT',6\\.1,new Color\\(S\\.accent\\),'bold'", "'メインイベント',6\\.1,new Color\\(S\\.accent\\),'bold'")
+          q=q.replace("MAIN EVENT emphasis label missing", "Japanese main-event emphasis label missing")
+          r.write_text(q)
           PY
       - name: Run syntax and regression suite
         run: |
@@ -71,6 +77,6 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add combat-hub.js tests/combat-hub-current-data-audit.mjs tests/combat-hub-large-regression.mjs
+          git add combat-hub.js tests/combat-hub-current-data-audit.mjs tests/combat-hub-large-regression.mjs tests/combat-hub-regression.mjs
           git commit -m 'feat: localize combat hub UI to Japanese' || exit 0
           git push origin HEAD:chatgpt/ja-ui-v7.9.2
