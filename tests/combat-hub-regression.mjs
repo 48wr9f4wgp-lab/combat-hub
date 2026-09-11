@@ -74,7 +74,7 @@ has(/if\(cached\?\.data\)return \{\.\.\.normalizeOneCompositeEvent\(cached\.data
 has(/KEY==='k1'\?370:360/, 'K-1 left hero overlap fix missing');
 has(/KEY==='k1'\?350:365/, 'K-1 right hero overlap fix missing');
 has(/softBand\(/, 'soft background banding missing');
-has(/'メインイベント',6\.1,new Color\(S\.accent\),'bold'/, 'Japanese main-event emphasis label missing');
+has(/'メイン',6\.8,new Color\(S\.accent\),'bold'/, 'Japanese main label missing');
 has(/'VS',15\.2,new Color\(S\.accent\),'black'/, 'Main VS emphasis regressed');
 has(/mainSize:13\.4/, 'Main fighter font emphasis missing');
 has(/mainSize:13\.6/, 'Main fighter font emphasis missing for short-name layouts');
