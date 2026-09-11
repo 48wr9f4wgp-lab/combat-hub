@@ -27,20 +27,27 @@ assert.equal(/tackle-fit/i.test(loaderSrc), false, 'Loader must not depend on Ta
 
 // Current locked-event truth set. These are hard guards until each event passes.
 const expected = {
-  ufc: "2026-09-06T04:00:00+09:00",
-  rizin: "2026-09-10T16:00:00+09:00",
-  one: "2026-09-04T22:30:00+09:00",
+  ufc: "2026-09-13T06:00:00+09:00",
+  rizin: "2026-10-03T14:00:00+09:00",
+  one: "2026-09-11T22:30:00+09:00",
+  boxing: "2026-09-13T09:00:00+09:00",
   k1: "2026-09-12T12:00:00+09:00",
 };
 for (const [key, iso] of Object.entries(expected)) {
   assert.ok(src.includes(`${key}:{startAt:'${iso}'`), `${key} snapshot startAt drifted: ${iso}`);
 }
-assert.ok(src.includes("name:'ONE Friday Fights 169'"), 'ONE current event name stale');
-assert.ok(src.includes("main:{a:'Petmuangsri Torfunfarm',b:'Gregor Thom',context:'フライ級ムエタイ'}"), 'ONE current main card stale');
+assert.ok(src.includes("name:'Noche UFC'"), 'UFC current event name stale');
+assert.ok(src.includes("main:{a:'Jean Silva',b:'Jose Miguel Delgado',context:'FEATHERWEIGHT'}"), 'UFC current main card stale');
+assert.ok(src.includes("name:'RIZIN LANDMARK 16 in NAGASAKI'"), 'RIZIN current event name stale');
+assert.ok(src.includes("main:{a:'堀江圭功',b:'宇佐美正パトリック',context:'RIZIN MMA 71kg'}"), 'RIZIN current main card stale');
+assert.ok(src.includes("name:'ONE Friday Fights 170'"), 'ONE current event name stale');
+assert.ok(src.includes("main:{a:'Yodlekpet Or Atchariya',b:'Pompet Pongsuphan PK',context:'フライ級ムエタイ'}"), 'ONE current main card stale');
+assert.ok(src.includes("main:{a:'Ryan Garcia',b:'Conor Benn',context:'WBC ウェルター級タイトル戦'}"), 'BOXING current main card stale');
 assert.ok(src.includes("main:{a:'ジョナス・サルシチャ',b:'ゾーラ・アカピャン',context:'-70kg世界最強決定トーナメント開幕戦'}"), 'K-1 current main event stale');
 
-// Boxing deliberately has timeTba=true; exact clock must not be presented as confirmed.
-has(/boxing:\{startAt:'2026-09-12T12:00:00-07:00',[^\n]*timeTba:true/, 'BOXING must remain time-TBA');
+// BOXING exact main-card clock is confirmed in the current trusted snapshot.
+has(/boxing:\{startAt:'2026-09-13T09:00:00\+09:00',[^\n]*name:'Garcia vs Benn'/, 'BOXING confirmed start time missing');
+assert.equal(/boxing:\{[^\n]*timeTba:true/.test(src), false, 'BOXING must not regress to time-TBA while this trusted snapshot is current');
 
 // Roll-forward safety.
 has(/function currentLocked\(snap\)\{const end=new Date\(snap\.startAt\)\.getTime\(\)\+12\*3600000;return Date\.now\(\)<end;\}/, '12h current-event lock guard missing');
@@ -418,4 +425,4 @@ for (const parameter of ['UFC', 'RIZIN']) {
   assert.equal(r.fm.strings.get(r.cachePath), rollback, 'Emergency rollback did not replace newer cache');
 }
 
-console.log('COMBAT HUB v7.7 regression checks: OK');
+console.log('COMBAT HUB v7.8 regression checks: OK');
