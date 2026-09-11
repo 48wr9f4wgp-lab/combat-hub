@@ -17,3 +17,7 @@ assert.match(src, /centerBox\.size=new Size\(44,36\)/);
 assert.match(src, /bBox\.size=new Size\(140,36\)/);
 assert.match(src, /await w\.presentMedium\(\)/);
 console.log('COMBAT HUB large widget regression: OK');
+
+assert.match(src, /strictNextEvent\(base\)/, 'Large next-event deep fallback missing');
+assert.match(src, /'FEATURED CARD'/, 'Large featured-card section missing');
+assert.match(src, /OFFICIAL DATA  ·  AUTO REFRESH/, 'Large footer missing');
