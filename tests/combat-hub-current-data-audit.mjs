@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src=fs.readFileSync('combat-hub.js','utf8');
 const preview=fs.readFileSync('combat-hub-preview-loader.js','utf8');
-assert.match(src,/const VERSION='7\.9\.(?:0|1)-github'/);
+assert.match(src,/const VERSION='7\.9\.1-github'/);
 assert.match(src,/ufc:\{startAt:'2026-09-13T06:00:00\+09:00'[^\n]*name:'Noche UFC'[^\n]*Jean Silva[^\n]*Jose Miguel Delgado/);
 assert.match(src,/rizin:\{startAt:'2026-10-03T14:00:00\+09:00'[^\n]*name:'RIZIN LANDMARK 16 in NAGASAKI'[^\n]*堀江圭功[^\n]*宇佐美正パトリック/);
 assert.match(src,/one:\{startAt:'2026-09-11T22:30:00\+09:00'[^\n]*name:'ONE Friday Fights 170'[^\n]*Yodlekpet Or Atchariya[^\n]*Pompet Pongsuphan PK/);
