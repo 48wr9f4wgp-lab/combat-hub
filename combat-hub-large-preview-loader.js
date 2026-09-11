@@ -1,6 +1,6 @@
 // COMBAT HUB Large Preview Loader — deterministic device QA
 (async()=>{
-const BUILD='bab13c0825c7ba2bcaeb1e658536b4e1cc06fa2b';
+const BUILD='bd78a70f180a0a24304d6a563978c6bd6691349f';
 const URL=`https://raw.githubusercontent.com/48wr9f4wgp-lab/combat-hub/${BUILD}/combat-hub.js`;
 const r=new Request(URL+'?cb='+Date.now());
 r.timeoutInterval=12;
