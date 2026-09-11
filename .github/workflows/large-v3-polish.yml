@@ -1,0 +1,106 @@
+name: Large V3 Polish
+
+on:
+  push:
+    branches: [main]
+    paths: [.large-v3-trigger]
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.x'
+      - name: Apply Large V3 polish
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('combat-hub.js')
+          s=p.read_text()
+
+          s=s.replace("// v7.9.0-github — large widget prototype", "// v7.9.1-github — Large V3 visual/data polish")
+          s=s.replace("const VERSION='7.9.0-github';", "const VERSION='7.9.1-github';")
+
+          old="  ufc:{startAt:'2026-09-13T06:00:00+09:00',location:'グレンデール',name:'Noche UFC',main:{a:'Jean Silva',b:'Jose Miguel Delgado',context:'FEATHERWEIGHT'},support:[{label:'CO-MAIN',a:'Brandon Moreno',b:'Joseph Morales'},{label:'FEATURED',a:'Manon Fiorot',b:'Alexa Grasso'}],source:'https://www.ufc.com/event/ufc-fight-night-september-12-2026'},"
+          new="  ufc:{startAt:'2026-09-13T06:00:00+09:00',location:'グレンデール',name:'Noche UFC',main:{a:'Jean Silva',b:'Jose Miguel Delgado',context:'FEATHERWEIGHT'},support:[{label:'CO-MAIN',a:'Brandon Moreno',b:'Joseph Morales'},{label:'MAIN CARD',a:'Tommy McMillen',b:'Marwan Rahiki'},{label:'MAIN CARD',a:'Manon Fiorot',b:'Alexa Grasso'},{label:'MAIN CARD',a:'Waldo Cortes Acosta',b:'Curtis Blaydes'},{label:'MAIN CARD',a:'David Martinez',b:'Dan Ige'}],source:'https://www.ufc.com/event/ufc-fight-night-september-12-2026'},"
+          if old not in s: raise SystemExit('UFC snapshot anchor missing')
+          s=s.replace(old,new,1)
+
+          anchor="\nconst fm=FileManager.local(),DOC=fm.documentsDirectory();"
+          next_snapshot="""
+const NEXT_SNAPSHOT={
+  ufc:{startAt:'2026-09-20T10:00:00+09:00',location:'ロサンゼルス',name:'Crypto.com UFC 331: Van vs Pantoja 2',source:'https://jp.ufc.com/event/cryptocom-ufc-331',timeTba:false}
+};
+"""
+          if 'const NEXT_SNAPSHOT=' not in s:
+            if anchor not in s: raise SystemExit('NEXT snapshot insert anchor missing')
+            s=s.replace(anchor,next_snapshot+anchor,1)
+
+          a=s.index('async function loadLargeNext(base){')
+          b=s.index('\n\n\nconst KNOWN_UFC',a)
+          repl="""function trustedLargeNext(base){const n=NEXT_SNAPSHOT[KEY];if(!n)return null;const t=new Date(n.startAt).getTime(),baseT=new Date(base.startAt).getTime();if(!Number.isFinite(t)||!Number.isFinite(baseT)||t<=baseT+6*3600000||t<Date.now()-12*3600000)return null;return normalizeOneCompositeEvent({...n});}
+async function loadLargeNext(base){const path=cacheFile(`combat-hub-large-next-${KEY}.json`),cached=readJSON(path),now=Date.now();if(cached?.data&&now-Number(cached.savedAt)<6*3600000)return normalizeOneCompositeEvent(cached.data);try{const listing=await reqText(S.listing,7),min=new Date(base.startAt).getTime()+6*3600000,max=now+180*86400000,eligible=e=>{const t=new Date(e.startAt).getTime();return Number.isFinite(t)&&t>min&&t<max&&validOrgName(e.name);};let candidates=jsonLdEvents(listing,S.listing).map(normalizeOneCompositeEvent).filter(eligible);if(KEY==='ufc')candidates.push(...ufcListingEvents(listing,S.listing,min,max).filter(eligible));candidates=candidates.sort((a,b)=>new Date(a.startAt)-new Date(b.startAt));if(!candidates.length){const deep=await strictNextEvent(base);if(deep){const data={name:stripHTML(deep.name)||S.label,startAt:deep.startAt,location:shortLoc(deep.location||''),source:deep.source||S.listing,timeTba:!!deep.timeTba};writeJSON(path,{savedAt:now,data});return data;}const trusted=trustedLargeNext(base);if(trusted){writeJSON(path,{savedAt:now,data:trusted});return trusted;}return cached?.data?normalizeOneCompositeEvent(cached.data):null;}const ev=candidates[0],data={name:stripHTML(ev.name)||S.label,startAt:ev.startAt,location:shortLoc(ev.location||''),source:ev.source||S.listing,timeTba:false};writeJSON(path,{savedAt:now,data});return data;}catch(_){return trustedLargeNext(base)||(cached?.data?normalizeOneCompositeEvent(cached.data):null);}}
+"""
+          s=s[:a]+repl+s[b:]
+
+          # If live page parsing only finds part of the support card, retain verified snapshot rows as fill.
+          old_refresh="data={...data,main:{...snap.main,a:pairs[0].a,b:pairs[0].b},support:pairs.slice(1,5).map((p,i)=>({label:i?'FEATURED':'CO-MAIN',a:p.a,b:p.b})),cardTba:false};"
+          new_refresh="const parsed=pairs.slice(1,5).map((p,i)=>({label:i?'MAIN CARD':'CO-MAIN',a:p.a,b:p.b})),seen=new Set(parsed.map(r=>`${r.a}|${r.b}`));for(const r of (snap.support||[])){if(parsed.length>=5)break;const k=`${r.a}|${r.b}`;if(!seen.has(k)){seen.add(k);parsed.push(r);}}data={...data,main:{...snap.main,a:pairs[0].a,b:pairs[0].b},support:parsed,cardTba:false};"
+          if old_refresh not in s: raise SystemExit('refresh support anchor missing')
+          s=s.replace(old_refresh,new_refresh,1)
+
+          # Remove accidental duplicate one-line Large helper definitions from prior migration.
+          lines=s.splitlines()
+          out=[]
+          seen_helpers=set()
+          for line in lines:
+            key=None
+            if line.startswith('function largeFightRow(box,row){'): key='largeFightRow'
+            elif line.startswith('function largeDashLabel(box,text){'): key='largeDashLabel'
+            if key and key in seen_helpers: continue
+            if key: seen_helpers.add(key)
+            out.append(line)
+          s='\n'.join(out)+'\n'
+
+          # Smooth the hero-to-dashboard fade; V2's coarse strips were visibly banded on-device.
+          oldfade="for(let i=0;i<14;i++){const a=.08+i*.065;c.setFillColor(new Color('#050609',Math.min(.98,a)));c.fillRect(new Rect(0,330+i*14,720,22));}"
+          newfade="for(let i=0;i<34;i++){const p=i/33,a=.055+Math.pow(p,1.35)*.93;c.setFillColor(new Color('#050609',Math.min(.985,a)));c.fillRect(new Rect(0,326+i*6,720,8));}"
+          if oldfade not in s: raise SystemExit('fade anchor missing')
+          s=s.replace(oldfade,newfade,1)
+
+          s=s.replace("largeDashLabel(card,'FEATURED CARD');", "largeDashLabel(card,'FIGHT CARD');",1)
+          s=s.replace("const nn=tx(nextBox,stripHTML(next.name||'NEXT EVENT'),10.0,new Color(C.text),'bold',2);nn.minimumScaleFactor=.58;", "const nn=tx(nextBox,stripHTML(next.name||'NEXT EVENT'),9.4,new Color(C.text),'bold',3);nn.minimumScaleFactor=.60;",1)
+
+          p.write_text(s)
+
+          t=Path('tests/combat-hub-large-regression.mjs')
+          q=t.read_text()
+          q=q.replace("/FEATURED CARD/", "/FIGHT CARD/")
+          extra="""
+assert.match(src, /const NEXT_SNAPSHOT=/, 'Trusted next-event fallback missing');
+assert.match(src, /Crypto\.com UFC 331: Van vs Pantoja 2/, 'Verified UFC next-event snapshot missing');
+assert.match(src, /function trustedLargeNext\(base\)/, 'Large trusted-next fallback helper missing');
+assert.match(src, /for\(let i=0;i<34;i\+\+\)/, 'Large smooth hero fade missing');
+assert.equal((src.match(/function largeFightRow\(box,row\)\{/g)||[]).length,1,'Large fight-row helper duplicated');
+"""
+          if 'Trusted next-event fallback missing' not in q:q+=extra
+          t.write_text(q)
+          PY
+      - name: Run syntax and regression suite
+        run: |
+          node --check combat-hub.js
+          for f in tests/*.mjs; do node "$f"; done
+      - name: Commit V3 to main
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add combat-hub.js tests/combat-hub-large-regression.mjs
+          git commit -m 'fix: polish Large dashboard and restore verified next event' || exit 0
+          git push origin HEAD:main
