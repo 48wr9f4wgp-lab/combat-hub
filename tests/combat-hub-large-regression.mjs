@@ -19,4 +19,10 @@ assert.match(src, /await w\.presentMedium\(\)/);
 assert.match(src, /strictNextEvent\(base\)/, 'Large next-event deep fallback missing');
 assert.match(src, /'FEATURED CARD'/, 'Large featured-card section missing');
 assert.match(src, /OFFICIAL DATA  ·  AUTO REFRESH/, 'Large footer missing');
+
+assert.match(src, /function largePortraitSlot\(image,side\)/, 'Large portrait slot crop missing');
+assert.match(src, /new Rect\(14,8,314,370\)/, 'Large left portrait slot missing');
+assert.match(src, /new Rect\(392,8,314,370\)/, 'Large right portrait slot missing');
+assert.doesNotMatch(src, /function largeImageRect\(/, 'Legacy overlapping Large portrait renderer remains');
+
 console.log('COMBAT HUB large widget regression: OK');
