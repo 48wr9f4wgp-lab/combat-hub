@@ -26,3 +26,9 @@ assert.match(src, /card\.size=new Size\(202,132\)/, 'Large fight-card pane geome
 assert.match(src, /nextBox\.size=new Size\(110,132\)/, 'Large next-event pane geometry missing');
 assert.match(src, /badge\.backgroundColor=new Color\(S\.accent,\.13\)/, 'Large status pill missing');
 console.log('COMBAT HUB large widget regression: OK');
+
+assert.match(src, /const NEXT_SNAPSHOT=/, 'Trusted next-event fallback missing');
+assert.match(src, /Crypto\.com UFC 331: Van vs Pantoja 2/, 'Verified UFC next-event snapshot missing');
+assert.match(src, /function trustedLargeNext\(base\)/, 'Large trusted-next fallback helper missing');
+assert.match(src, /for\(let i=0;i<34;i\+\+\)/, 'Large smooth hero fade missing');
+assert.equal((src.match(/function largeFightRow\(box,row\)\{/g)||[]).length,1,'Large fight-row helper duplicated');
