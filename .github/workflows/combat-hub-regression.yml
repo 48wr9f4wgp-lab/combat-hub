@@ -27,6 +27,8 @@ jobs:
         run: node --check combat-hub-loader.js
       - name: Preview Loader syntax check
         run: node --check combat-hub-preview-loader.js
+      - name: Large Preview Loader syntax check
+        run: node --check combat-hub-large-preview-loader.js
       - name: Regression-suite syntax check
         run: node --check tests/combat-hub-regression.mjs
       - name: Cache regression syntax check
@@ -41,6 +43,8 @@ jobs:
         run: node --check tests/combat-hub-typography-regression.mjs
       - name: Current-data audit regression syntax check
         run: node --check tests/combat-hub-current-data-audit.mjs
+      - name: Large widget regression syntax check
+        run: node --check tests/combat-hub-large-regression.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
       - name: COMBAT HUB cache performance suite
@@ -55,3 +59,5 @@ jobs:
         run: node tests/combat-hub-typography-regression.mjs
       - name: COMBAT HUB current-data audit suite
         run: node tests/combat-hub-current-data-audit.mjs
+      - name: COMBAT HUB Large widget suite
+        run: node tests/combat-hub-large-regression.mjs
