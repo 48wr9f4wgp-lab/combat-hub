@@ -1,15 +1,21 @@
 # COMBAT HUB — Codex Handoff Ledger
 
-Updated: 2026-09-11 JST
+Updated: 2026-09-12 JST
 
 ## Canonical state
 - Repository: `48wr9f4wgp-lab/combat-hub`
 - Production branch: `main`
 - Canonical Scriptable route: `combat-hub-loader.js` → `main/combat-hub.js`
-- Audited runtime line: `7.8.1-github`
+- Audited runtime line: `7.8.2-github`
 - Parameters: UFC / RIZIN / ONE / BOXING / K1
 - COMBAT HUB is independent from Tackle Fit.
 - `friends-stable` is intentionally isolated and must not be promoted without explicit user approval.
+
+## 2026-09-12 device QA hotfix
+Physical iPhone screenshots exposed two production-quality defects after v7.8.1 promotion:
+1. Noche UFC rendered the gradient fallback because the current main-event fighters were not in `KNOWN_UFC`; v7.8.2 adds official UFC profile routes for Jean Silva and Jose Miguel Delgado so split fighter hero imagery can resolve.
+2. The 12h data safety lock incorrectly doubled as the visible `開催中` window; v7.8.2 keeps the 12h roll-forward lock but changes the UI to `終了` after 6h and uses a status label after start.
+3. K-1 / BOXING / RIZIN screenshots passed device layout QA; ONE card refresh also proved the confidence-gated live card overlay works.
 
 ## 2026-09-11 live-data audit
 Official/primary-source re-audit refreshed the trusted fallback baseline without changing the verified visual system:
