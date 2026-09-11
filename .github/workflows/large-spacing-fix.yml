@@ -1,0 +1,54 @@
+name: Large Widget Spacing Fix
+
+on:
+  push:
+    branches: [feature/large-widget-v7.9.0]
+    paths: [.large-spacing-fix-trigger]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feature/large-widget-v7.9.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.x'
+      - name: Apply portrait slot separation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('combat-hub.js')
+          s=p.read_text()
+          old="function largeImageRect(image,x,width,side){const H=370;if(!image?.size)return new Rect(x,8,width,H);const iw=image.size.width,ih=image.size.height,scale=Math.max(width/iw,H/ih),dw=iw*scale,dh=ih*scale,bias=side==='left'?.04:.96;return new Rect(x+(width-dw)*bias,8+(392-dh)/2-4,dw,dh);}"
+          new="function largePortraitSlot(image,side){const W=314,H=370,c=new DrawContext();c.size=new Size(W,H);c.opaque=false;c.respectScreenScale=false;if(!image?.size)return c.getImage();const iw=image.size.width,ih=image.size.height,scale=Math.max(W/iw,H/ih),dw=iw*scale,dh=ih*scale,overflow=Math.max(0,dw-W),shift=side==='left'?-overflow*.18:overflow*.18,x=(W-dw)/2+shift,y=(H-dh)/2-4;c.drawImageInRect(image,new Rect(x,y,dw,dh));return c.getImage();}"
+          if old not in s: raise SystemExit('largeImageRect anchor missing')
+          s=s.replace(old,new,1)
+          old2="}else{if(ctx.a.image)c.drawImageInRect(ctx.a.image,largeImageRect(ctx.a.image,0,350,'left'));if(ctx.b.image)c.drawImageInRect(ctx.b.image,largeImageRect(ctx.b.image,370,350,'right'));}"
+          new2="}else{if(ctx.a.image)c.drawImageInRect(largePortraitSlot(ctx.a.image,'left'),new Rect(14,8,314,370));if(ctx.b.image)c.drawImageInRect(largePortraitSlot(ctx.b.image,'right'),new Rect(392,8,314,370));}"
+          if old2 not in s: raise SystemExit('largeBackground portrait anchor missing')
+          s=s.replace(old2,new2,1)
+          p.write_text(s)
+
+          t=Path('tests/combat-hub-large-regression.mjs')
+          q=t.read_text()
+          additions="\nassert.match(src, /function largePortraitSlot\\(image,side\\)/, 'Large portrait slot crop missing');\nassert.match(src, /new Rect\\(14,8,314,370\\)/, 'Large left portrait slot missing');\nassert.match(src, /new Rect\\(392,8,314,370\\)/, 'Large right portrait slot missing');\nassert.doesNotMatch(src, /function largeImageRect\\(/, 'Legacy overlapping Large portrait renderer remains');\n"
+          if 'Large portrait slot crop missing' not in q:
+              q=q.replace("console.log('COMBAT HUB large widget regression: OK');",additions+"\nconsole.log('COMBAT HUB large widget regression: OK');")
+          t.write_text(q)
+          PY
+      - name: Test
+        run: |
+          node --check combat-hub.js
+          for f in tests/*.mjs; do node "$f"; done
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add combat-hub.js tests/combat-hub-large-regression.mjs
+          git commit -m 'fix: separate Large fighter portraits' || exit 0
+          git push origin HEAD:feature/large-widget-v7.9.0
