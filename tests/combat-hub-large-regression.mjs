@@ -29,3 +29,8 @@ assert.match(src, /function largeFightRow\(box,row\)/, 'Large dashboard fight ro
 assert.match(src, /card\.size=new Size\(202,132\)/, 'Large fight-card pane geometry missing');
 assert.match(src, /nextBox\.size=new Size\(110,132\)/, 'Large next-event pane geometry missing');
 assert.match(src, /badge\.backgroundColor=new Color\(S\.accent,\.13\)/, 'Large status pill missing');
+
+assert.match(src, /function largeFightRow\(box,row\)/, 'Large dashboard fight rows missing');
+assert.match(src, /card\.size=new Size\(202,132\)/, 'Large fight-card pane geometry missing');
+assert.match(src, /nextBox\.size=new Size\(110,132\)/, 'Large next-event pane geometry missing');
+assert.match(src, /badge\.backgroundColor=new Color\(S\.accent,\.13\)/, 'Large status pill missing');
