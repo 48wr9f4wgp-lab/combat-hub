@@ -10,7 +10,7 @@ function has(re, msg) {
 }
 
 // Production shape / transport guard
-has(/const VERSION='7\.8\.\d+-github'/, 'Expected v7.8 audited runtime');
+has(/const VERSION='7\.9\.\d+-github'/, 'Expected v7.9 audited runtime');
 has(/UFC:'ufc'/, 'UFC parameter missing');
 has(/RIZIN:'rizin'/, 'RIZIN parameter missing');
 has(/ONE:'one'/, 'ONE parameter missing');

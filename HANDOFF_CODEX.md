@@ -6,10 +6,13 @@ Updated: 2026-09-12 JST
 - Repository: `48wr9f4wgp-lab/combat-hub`
 - Production branch: `main`
 - Canonical Scriptable route: `combat-hub-loader.js` → `main/combat-hub.js`
-- Audited runtime line: `7.8.2-github`
+- Audited runtime line: `7.9.0-github` (feature branch prototype; main remains v7.8.2 until device approval)
 - Parameters: UFC / RIZIN / ONE / BOXING / K1
 - COMBAT HUB is independent from Tackle Fit.
 - `friends-stable` is intentionally isolated and must not be promoted without explicit user approval.
+
+## 2026-09-12 Large Widget prototype
+Feature branch `feature/large-widget-v7.9.0` adds a Large-only renderer while preserving the verified Medium renderer. The upper area carries event identity and the main event; the lower dark panel carries up to four support bouts and a lightweight NEXT EVENT summary from the official listing. Large next-event lookup uses a separate 6h cache and avoids detail-page traversal. `combat-hub-large-preview-loader.js` is preview-only and must not be promoted as a production loader.
 
 ## 2026-09-12 device QA hotfix
 Physical iPhone screenshots exposed two production-quality defects after v7.8.1 promotion:
