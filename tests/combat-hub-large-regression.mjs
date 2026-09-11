@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.9\.(?:0|1)-github'/);
+assert.match(src, /const VERSION='7\.9\.1-github'/);
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
@@ -16,7 +16,7 @@ assert.match(src, /center\.size=new Size\(44,46\)/);
 assert.match(src, /bBox\.size=new Size\(132,46\)/);
 assert.match(src, /await w\.presentMedium\(\)/);
 assert.match(src, /strictNextEvent\(base\)/, 'Large next-event deep fallback missing');
-assert.match(src, /'(?:FEATURED|FIGHT) CARD'/, 'Large fight-card section missing');
+assert.match(src, /'FIGHT CARD'/, 'Large fight-card section missing');
 assert.match(src, /function largePortraitSlot\(image,side\)/, 'Large portrait slot crop missing');
 assert.match(src, /new Rect\(18,0,300,440\)/, 'Large left portrait slot missing');
 assert.match(src, /new Rect\(402,0,300,440\)/, 'Large right portrait slot missing');
@@ -25,10 +25,9 @@ assert.match(src, /function largeFightRow\(box,row\)/, 'Large dashboard fight ro
 assert.match(src, /card\.size=new Size\(202,132\)/, 'Large fight-card pane geometry missing');
 assert.match(src, /nextBox\.size=new Size\(110,132\)/, 'Large next-event pane geometry missing');
 assert.match(src, /badge\.backgroundColor=new Color\(S\.accent,\.13\)/, 'Large status pill missing');
-console.log('COMBAT HUB large widget regression: OK');
-
 assert.match(src, /const NEXT_SNAPSHOT=/, 'Trusted next-event fallback missing');
 assert.match(src, /Crypto\.com UFC 331: Van vs Pantoja 2/, 'Verified UFC next-event snapshot missing');
 assert.match(src, /function trustedLargeNext\(base\)/, 'Large trusted-next fallback helper missing');
 assert.match(src, /for\(let i=0;i<34;i\+\+\)/, 'Large smooth hero fade missing');
 assert.equal((src.match(/function largeFightRow\(box,row\)\{/g)||[]).length,1,'Large fight-row helper duplicated');
+console.log('COMBAT HUB large widget regression: OK');
