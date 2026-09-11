@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: combat-hub-${{ github.workflow }}-${{ github.ref }}
@@ -21,46 +21,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24.x'
-      - name: Apply deterministic Large QA patch
-        if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('combat-hub.js')
-          s=p.read_text()
-          if 'const VERIFIED_NEXT=' not in s:
-              anchor='\nconst fm=FileManager.local(),DOC=fm.documentsDirectory();'
-              if anchor not in s: raise SystemExit('VERIFIED_NEXT anchor missing')
-              block="""
-const VERIFIED_NEXT={
-  ufc:{startAt:'2026-09-20T10:00:00+09:00',location:'ロサンゼルス',name:'Crypto.com UFC 331: Van vs Pantoja 2',main:{a:'Joshua Van',b:'Alexandre Pantoja',context:'Flyweight Title Bout'},support:[{label:'CO-MAIN',a:'Arman Tsarukyan',b:'Mauricio Ruffy'}],source:'https://www.ufc.com/event/cryptocom-ufc-331',timeTba:false}
-};
-"""
-              s=s.replace(anchor,'\n'+block+anchor,1)
-
-          deep_tail="if(deep&&eligible(deep)){const data={name:stripHTML(deep.name)||S.label,startAt:deep.startAt,location:shortLoc(deep.location||''),source:deep.source||S.listing,timeTba:!!deep.timeTba};writeJSON(path,{savedAt:now,data});return data;}return cached?.data?normalizeOneCompositeEvent(cached.data):null;"
-          verified_tail="if(deep&&eligible(deep)){const data={name:stripHTML(deep.name)||S.label,startAt:deep.startAt,location:shortLoc(deep.location||''),source:deep.source||S.listing,timeTba:!!deep.timeTba};writeJSON(path,{savedAt:now,data});return data;}const verified=VERIFIED_NEXT[KEY];if(verified&&eligible(verified)){const data={name:verified.name,startAt:verified.startAt,location:verified.location,source:verified.source,timeTba:!!verified.timeTba};writeJSON(path,{savedAt:now,data});return data;}return cached?.data?normalizeOneCompositeEvent(cached.data):null;"
-          if deep_tail in s:
-              s=s.replace(deep_tail,verified_tail)
-          elif 'const verified=VERIFIED_NEXT[KEY];if(verified&&eligible(verified))' not in s:
-              raise SystemExit('Large next-event deep fallback anchor missing')
-
-          load_tail="const live=await strictNextEvent(snap);if(live){writeJSON(path,{savedAt:now,data:live});return live;}if(cached?.data)return {...normalizeOneCompositeEvent(cached.data),stale:true};"
-          verified_load="const live=await strictNextEvent(snap);if(live){writeJSON(path,{savedAt:now,data:live});return live;}const verified=VERIFIED_NEXT[KEY],vt=verified?new Date(verified.startAt).getTime():NaN;if(verified&&Number.isFinite(vt)&&vt>new Date(snap.startAt).getTime()+6*3600000&&vt<now+180*86400000){const v={...snap,...verified,cardTba:!verified.main,nextPending:false,displayDate:null,live:false};writeJSON(path,{savedAt:now,data:v});return v;}if(cached?.data)return {...normalizeOneCompositeEvent(cached.data),stale:true};"
-          if load_tail in s:
-              s=s.replace(load_tail,verified_load,1)
-          elif 'vt=verified?new Date(verified.startAt).getTime():NaN' not in s:
-              raise SystemExit('loadData verified fallback anchor missing')
-          p.write_text(s)
-
-          t=Path('tests/combat-hub-large-regression.mjs').read_text()
-          marker="console.log('COMBAT HUB large widget regression: OK');"
-          if 'Verified next-event fallback missing' not in t:
-              extra="assert.match(src, /const VERIFIED_NEXT=/, 'Verified next-event fallback missing');\nassert.match(src, /Crypto\\.com UFC 331: Van vs Pantoja 2/, 'Verified UFC 331 fallback missing');\n\n"
-              if marker not in t: raise SystemExit('Large regression marker missing')
-              t=t.replace(marker,extra+marker)
-          Path('tests/combat-hub-large-regression.mjs').write_text(t)
-          PY
       - name: Runtime syntax check
         run: node --check combat-hub.js
       - name: Production Loader syntax check
@@ -69,19 +29,35 @@ const VERIFIED_NEXT={
         run: node --check combat-hub-preview-loader.js
       - name: Large Preview Loader syntax check
         run: node --check combat-hub-large-preview-loader.js
-      - name: Full regression suite
-        run: |
-          for f in tests/*.mjs; do
-            echo "==> $f"
-            node --check "$f"
-            node "$f"
-          done
-      - name: Commit Large QA patch
-        if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add combat-hub.js tests/combat-hub-large-regression.mjs
-          git diff --cached --quiet && exit 0
-          git commit -m 'fix: pin verified UFC next event for Large QA'
-          git push origin HEAD:feature/large-widget-v7.9.0
+      - name: Regression-suite syntax check
+        run: node --check tests/combat-hub-regression.mjs
+      - name: Cache regression syntax check
+        run: node --check tests/combat-hub-cache-regression.mjs
+      - name: ONE composite-time regression syntax check
+        run: node --check tests/combat-hub-one-composite-regression.mjs
+      - name: UFC roll-forward regression syntax check
+        run: node --check tests/combat-hub-ufc-rollforward-regression.mjs
+      - name: K-1 layout regression syntax check
+        run: node --check tests/combat-hub-k1-layout-regression.mjs
+      - name: Typography regression syntax check
+        run: node --check tests/combat-hub-typography-regression.mjs
+      - name: Current-data audit regression syntax check
+        run: node --check tests/combat-hub-current-data-audit.mjs
+      - name: Large widget regression syntax check
+        run: node --check tests/combat-hub-large-regression.mjs
+      - name: COMBAT HUB regression suite
+        run: node tests/combat-hub-regression.mjs
+      - name: COMBAT HUB cache performance suite
+        run: node tests/combat-hub-cache-regression.mjs
+      - name: COMBAT HUB ONE composite-time suite
+        run: node tests/combat-hub-one-composite-regression.mjs
+      - name: COMBAT HUB UFC roll-forward suite
+        run: node tests/combat-hub-ufc-rollforward-regression.mjs
+      - name: COMBAT HUB K-1 layout suite
+        run: node tests/combat-hub-k1-layout-regression.mjs
+      - name: COMBAT HUB typography suite
+        run: node tests/combat-hub-typography-regression.mjs
+      - name: COMBAT HUB current-data audit suite
+        run: node tests/combat-hub-current-data-audit.mjs
+      - name: COMBAT HUB Large widget suite
+        run: node tests/combat-hub-large-regression.mjs
