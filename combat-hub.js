@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.11.2-github — Large V5.2 readability pass
+// v7.11.3-github — Japanese display completion
 
 (async()=>{
-const VERSION='7.11.2-github';
+const VERSION='7.11.3-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -18,7 +18,7 @@ const SERIES={
   ufc:{label:'UFC',accent:'#F23B35',listing:'https://www.ufc.com/events',detail:/\/event\//i},
   rizin:{label:'RIZIN',accent:'#5CE68A',listing:'https://jp.rizinff.com/',detail:/\/_ct\//i},
   one:{label:'ONE',accent:'#F4D54A',listing:'https://www.onefc.com/events/',detail:/\/events\//i},
-  boxing:{label:'BOXING',accent:'#4BA3FF',listing:'https://www.ringmagazine.com/events',detail:/(?:\/events\/|\/news\/)/i},
+  boxing:{label:'ボクシング',accent:'#4BA3FF',listing:'https://www.ringmagazine.com/events',detail:/(?:\/events\/|\/news\/)/i},
   k1:{label:'K-1',accent:'#FF8C3A',listing:'https://www.k-1.co.jp/k-1wgp/schedule',detail:/\/schedule\/\d+/i}
 };
 const S=SERIES[KEY], C={text:'#F7F8FA',sub:'#D7DCE3',muted:'#9AA2AD'};
@@ -88,13 +88,18 @@ const JP_DISPLAY={
 'Xavier Gonzalez':'チャビエル・ゴンザレス','Thway Lin Htet':'スイ・リン・テート',
 'Dabdam Por Tor Tor Thongtawee':'ダブダム','Petsangwan Sor Samarngarment':'ペットサンワン',
 'Ryan Garcia':'ライアン・ガルシア','Conor Benn':'コナー・ベン',
-'Jai Opetaia':'ジェイ・オペタイア','Noel Mikaelian':'ノエル・ミカエリアン'
+'Jai Opetaia':'ジェイ・オペタイア','Noel Mikaelian':'ノエル・ミカエリアン',
+'Nadaka':'吉成名高','Nadaka Yoshinari':'吉成名高',
+'Har Ling Om':'ハー・リン・オム','Ling Om':'ハー・リン・オム',
+'Yuya Wakamatsu':'若松佑弥','Willie van Rooyen':'ウィリー・ファン・ローエン',
+'Shimon Yoshinari':'士門','Suablack Tor Pran49':'スーブラック','Suablack':'スーブラック',
+'Hyu':'陽勇','Hyuma Hitachi':'常陸飛雄馬'
 };
 function jpDisplay(v){const raw=stripHTML(v);return JP_DISPLAY[raw]||raw;}
 function sanitizeFighter(s){let v=cleanName(s);if(KEY==='ufc'){v=v.replace(/^UFC Fight Night:\s*/i,'').replace(/\s*\|\s*UFC.*$/i,'').trim();}return v;}
 function splitFight(s){const t=cleanName(s);const m=t.match(/^(.{2,64}?)\s+(?:vs\.?|VS|対)\s+(.{2,64})$/i);return m?{a:sanitizeFighter(m[1]),b:sanitizeFighter(m[2])}:null;}
 function fightPairs(html){const out=[],seen=new Set();for(const m of html.matchAll(/<h[1-4][^>]*>([\s\S]*?)<\/h[1-4]>/gi)){const p=splitFight(m[1]);if(p&&p.a.length<50&&p.b.length<50){const k=p.a+'|'+p.b;if(!seen.has(k)){seen.add(k);out.push(p);}}}if(!out.length){const title=(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1];const p=splitFight(title||'');if(p)out.push(p);}return out.slice(0,6);}
-function shortLoc(s){const v=String(s||'');if(/Shanghai|Pudong|China|上海/i.test(v))return'上海';if(/Osaka|大阪/i.test(v))return'大阪';if(/Bangkok|Lumpinee|バンコク|ルンピニー/i.test(v))return'バンコク';if(/Paris|パリ/i.test(v))return'パリ';if(/Las Vegas|ラスベガス/i.test(v))return'ラスベガス';if(/代々木|Yoyogi/i.test(v))return'東京・代々木第二';if(/Tokyo|東京/i.test(v))return'東京';return v.length>14?v.slice(0,13)+'…':v;}
+function shortLoc(s){const v=String(s||'');if(/Shanghai|Pudong|China|上海/i.test(v))return'上海';if(/Osaka|大阪/i.test(v))return'大阪';if(/Bangkok|Lumpinee|バンコク|ルンピニー/i.test(v))return'バンコク';if(/Paris|パリ/i.test(v))return'パリ';if(/Las Vegas|ラスベガス/i.test(v))return'ラスベガス';if(/Yokohama Buntai|Yokohama BUNTAI|横浜BUNTAI|Yokohama|横浜/i.test(v))return'横浜BUNTAI';if(/代々木|Yoyogi/i.test(v))return'東京・代々木第二';if(/Tokyo|東京/i.test(v))return'東京';return v.length>14?v.slice(0,13)+'…':v;}
 function validOrgName(name){const n=String(name||'');if(KEY==='ufc')return/UFC/i.test(n);if(KEY==='rizin')return/RIZIN/i.test(n);if(KEY==='one')return/ONE/i.test(n);if(KEY==='k1')return/K-1/i.test(n);if(KEY==='boxing')return/(?:\bvs\.?\b|boxing|fight|title|championship|対)/i.test(n);return false;}
 function normalizeOneCompositeEvent(ev){if(KEY!=='one'||!ev)return ev;const originalName=stripHTML(ev.name||''),m=originalName.match(/ONE Friday Fights\s+\d+/i);if(!m||!/The Inner Circle\s+\d+/i.test(originalName))return ev;const t=new Date(ev.startAt).getTime();if(!Number.isFinite(t))return{...ev,name:m[0],compositeName:originalName,oneComposite:true};const j=new Date(t+9*3600000),jh=j.getUTCHours(),jm=j.getUTCMinutes(),startAt=jh===20&&jm===30?new Date(t+2*3600000).toISOString():ev.startAt;return{...ev,name:m[0],startAt,compositeName:originalName,oneComposite:true};}
 function ufcCardTime(raw,min,max){const MONTH={JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11},ZONE={UTC:0,GMT:0,EDT:-4,EST:-5,CDT:-5,CST:-6,MDT:-6,MST:-7,PDT:-7,PST:-8,BST:1,CET:1,CEST:2,JST:9};const s=decodeEntities(String(raw||'')).replace(/\s+/g,' ').trim(),m=s.match(/(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat),?\s+([A-Za-z]{3})\s+(\d{1,2})\s*\/\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*([A-Z]{2,5})/i);if(!m)return null;const mo=MONTH[m[1].toUpperCase()],off=ZONE[m[6].toUpperCase()];if(mo==null||off==null)return null;let h=Number(m[3])%12;if(m[5].toUpperCase()==='PM')h+=12;const day=Number(m[2]),mi=Number(m[4]),ref=new Date(Number.isFinite(min)?min:Date.now()).getUTCFullYear(),hits=[];for(const y of [ref-1,ref,ref+1]){const t=Date.UTC(y,mo,day,h,mi)-off*3600000;if((!Number.isFinite(min)||t>min)&&(!Number.isFinite(max)||t<max))hits.push(t);}return hits.length?new Date(Math.min(...hits)).toISOString():null;}
