@@ -45,6 +45,8 @@ jobs:
         run: node --check tests/combat-hub-current-data-audit.mjs
       - name: Large widget regression syntax check
         run: node --check tests/combat-hub-large-regression.mjs
+      - name: Japanese display regression syntax check
+        run: node --check tests/combat-hub-japanese-display.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
       - name: COMBAT HUB cache performance suite
@@ -61,3 +63,5 @@ jobs:
         run: node tests/combat-hub-current-data-audit.mjs
       - name: COMBAT HUB Large widget suite
         run: node tests/combat-hub-large-regression.mjs
+      - name: COMBAT HUB Japanese display suite
+        run: node tests/combat-hub-japanese-display.mjs
