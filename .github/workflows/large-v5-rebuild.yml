@@ -1,0 +1,42 @@
+name: Large V5 Rebuild
+
+on:
+  push:
+    branches:
+      - chatgpt/large-v5-rebuild
+
+jobs:
+  build:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Apply Large V5 rebuild
+        run: python3 .github/scripts/apply-large-v5.py
+      - name: Runtime syntax check
+        run: node --check combat-hub.js
+      - name: Full regression suite
+        run: |
+          node tests/combat-hub-regression.mjs
+          node tests/combat-hub-cache-regression.mjs
+          node tests/combat-hub-one-composite-regression.mjs
+          node tests/combat-hub-ufc-rollforward-regression.mjs
+          node tests/combat-hub-k1-layout-regression.mjs
+          node tests/combat-hub-typography-regression.mjs
+          node tests/combat-hub-current-data-audit.mjs
+          node tests/combat-hub-large-regression.mjs
+          node tests/combat-hub-japanese-display.mjs
+      - name: Commit Large V5
+        run: |
+          if ! git diff --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add combat-hub.js tests/combat-hub-large-regression.mjs
+            git commit -m 'feat: rebuild Large V5 layout'
+            git push
+          fi
