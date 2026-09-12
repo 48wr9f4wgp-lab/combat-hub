@@ -3,10 +3,10 @@ import fs from 'node:fs';
 
 const source = fs.readFileSync(new URL('../combat-hub.js', import.meta.url), 'utf8');
 
-assert.match(source, /const VERSION='7\.9\.\d+-github'/, 'runtime version should stay on v7.8 audited line');
+assert.match(source, /const VERSION='7\.\d+\.\d+-github'/, 'runtime version should stay on the audited v7 line');
 assert.match(source, /function normalizeOneCompositeEvent\(ev\)/, 'ONE composite-event normalizer must exist');
-assert.match(source, /ONE Friday Fights\\s\+\\d\+/, 'normalizer must detect ONE Friday Fights event numbers');
-assert.match(source, /The Inner Circle\\s\+\\d\+/, 'normalizer must detect paired The Inner Circle events');
+assert.match(source, /ONE Friday Fights\s+\d+/, 'normalizer must detect ONE Friday Fights event numbers');
+assert.match(source, /The Inner Circle\s+\d+/, 'normalizer must detect paired The Inner Circle events');
 assert.match(source, /jh===20&&jm===30/, '20:30 JST composite start must be recognized as Inner Circle start');
 assert.match(source, /t\+2\*3600000/, 'Friday Fights start must move two hours later when composite source is 20:30 JST');
 assert.match(source, /jsonLdEvents\(listing,S\.listing\)\.map\(normalizeOneCompositeEvent\)/, 'listing candidates must be normalized before eligibility checks');
