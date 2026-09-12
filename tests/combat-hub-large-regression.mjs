@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.9\.4-github'/);
+assert.match(src, /const VERSION='7\.10\.0-github'/);
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
 assert.match(src, /async function refreshLockedCurrent\(snap\)/);
 assert.match(src, /function largeBackground\(ctx\)/);
-assert.match(src, /function renderLarge\(w,D,ctx,next\)/);
+assert.match(src, /function renderLarge\(w,D,ctx,next,nextPoster\)/);
 assert.match(src, /\(D\.support\|\|\[\]\)\.slice\(0,4\)/);
 assert.match(src, /await w\.presentLarge\(\)/);
 assert.match(src, /w\.setPadding\(14,16,12,16\)/);
@@ -22,9 +22,9 @@ assert.match(src, /new Rect\(18,0,300,520\)/, 'Large left portrait slot missing'
 assert.match(src, /new Rect\(402,0,300,520\)/, 'Large right portrait slot missing');
 assert.doesNotMatch(src, /function largeImageRect\(/, 'Legacy overlapping Large portrait renderer remains');
 assert.match(src, /function largeFightRow\(box,row\)/, 'Large dashboard fight rows missing');
-assert.match(src, /card\.size=new Size\(202,132\)/, 'Large fight-card pane geometry missing');
-assert.match(src, /nextBox\.size=new Size\(110,132\)/, 'Large next-event pane geometry missing');
-assert.match(src, /badge\.backgroundColor=new Color\(S\.accent,\.13\)/, 'Large status pill missing');
+assert.match(src, /card\.size=new Size\(196,132\)/, 'Large fight-card pane geometry missing');
+assert.match(src, /nextBox\.size=new Size\(116,132\)/, 'Large next-event pane geometry missing');
+assert.match(src, /badge\.borderColor=new Color\(S\.accent,\.62\)/, 'Luxury countdown plate missing');
 assert.match(src, /const NEXT_SNAPSHOT=/, 'Trusted next-event fallback missing');
 assert.match(src, /Crypto\.com UFC 331: Van vs Pantoja 2/, 'Verified UFC next-event snapshot missing');
 assert.match(src, /function trustedLargeNext\(base\)/, 'Large trusted-next fallback helper missing');
@@ -36,3 +36,9 @@ assert.match(src, /function jpCardLabel\(label\)/, 'Japanese card-label mapper m
 assert.match(src, /'メイン'/, 'Japanese main-event label missing');
 assert.match(src, /'次大会'/, 'Japanese next-event label missing');
 assert.match(src, /'前座カード発表待ち'/, 'Japanese undercard fallback missing');
+
+assert.match(src,/function largeMiniPoster\(image\)/,'Large next-event poster treatment missing');
+assert.match(src,/NEXT_POSTER=IS_LARGE&&NEXT\?await eventPoster\(NEXT\):null/,'Large next poster loader missing');
+assert.match(src,/card\.borderColor=new Color\('#FFFFFF',\.11\)/,'Luxury fight-card glass border missing');
+assert.match(src,/nextBox\.borderColor=new Color\(S\.accent,\.24\)/,'Luxury next-card accent border missing');
+assert.match(src,/center\.borderColor=new Color\(S\.accent,\.30\)/,'Luxury VS plate missing');
