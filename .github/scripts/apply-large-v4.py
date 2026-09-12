@@ -29,7 +29,7 @@ for t in Path('tests').glob('*.mjs'):
     t.write_text(q)
 
 # Version guards should protect the v7 major line, not freeze minor releases.
-for name in ['tests/combat-hub-k1-layout-regression.mjs','tests/combat-hub-one-composite-regression.mjs','tests/combat-hub-regression.mjs']:
+for name in ['tests/combat-hub-k1-layout-regression.mjs','tests/combat-hub-one-composite-regression.mjs','tests/combat-hub-regression.mjs','tests/combat-hub-typography-regression.mjs']:
     t=Path(name)
     q=t.read_text()
     q=q.replace("/const VERSION='7\\.9\\.\\d+-github'/", "/const VERSION='7\\.\\d+\\.\\d+-github'/")
