@@ -8,5 +8,6 @@ assert.match(src,/mainNameParts\(jpDisplay\(name\)\)/);
 assert.match(src,/jpDisplay\(row\.a\)/);
 assert.match(src,/jpDisplay\(row\.b\)/);
 assert.match(src,/jpDisplay\(D\.name\|\|''\)/);
-assert.match(src,/jpDisplay\(next\.name\|\|'次大会'\)/);
+assert.match(src,/function largeNextTitle\(next\)/);
+assert.match(src,/jpDisplay\(next\?\.name\|\|'次大会'\)/);
 console.log('Japanese display regression OK');
