@@ -46,6 +46,14 @@ jobs:
           q=q.replace(old,new,1)
           q=q.replace("assert.match(src,/function largeNextTitle\\(next\\)/);", "assert.match(src,/function largeNextTitle\\(next\\)/);\nassert.match(src,/boxing:\\{label:'ボクシング'/);\nassert.ok(src.includes(\"return'横浜BUNTAI'\"),'Yokohama venue must be localized');",1)
           t.write_text(q)
+
+          l=Path('tests/combat-hub-large-regression.mjs')
+          r=l.read_text()
+          oldv="assert.match(src, /const VERSION='7\\.11\\.2-github'/);"
+          newv="assert.match(src, /const VERSION='7\\.11\\.3-github'/);"
+          if oldv not in r:
+              raise SystemExit('missing Large regression version target')
+          l.write_text(r.replace(oldv,newv,1))
           PY
       - name: Runtime syntax check
         run: node --check combat-hub.js
@@ -57,7 +65,7 @@ jobs:
           if ! git diff --quiet; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add combat-hub.js tests/combat-hub-japanese-display.mjs
+            git add combat-hub.js tests/combat-hub-japanese-display.mjs tests/combat-hub-large-regression.mjs
             git commit -m 'fix: complete Japanese display for ONE and boxing'
             git push
           fi
