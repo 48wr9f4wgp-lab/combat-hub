@@ -28,11 +28,15 @@ for t in Path('tests').glob('*.mjs'):
     q=t.read_text().replace("7\\.9\\.4-github","7\\.10\\.0-github")
     t.write_text(q)
 
-# K-1 layout contract protects geometry, not a minor-version family.
-t=Path('tests/combat-hub-k1-layout-regression.mjs')
-q=t.read_text()
-q=q.replace("/const VERSION='7\\.9\\.\\d+-github'/, 'Expected audited v7.9 runtime line'","/const VERSION='7\\.\\d+\\.\\d+-github'/, 'Expected audited v7 runtime line'")
-t.write_text(q)
+# Version guards should protect the v7 major line, not freeze minor releases.
+for name in ['tests/combat-hub-k1-layout-regression.mjs','tests/combat-hub-one-composite-regression.mjs','tests/combat-hub-regression.mjs']:
+    t=Path(name)
+    q=t.read_text()
+    q=q.replace("/const VERSION='7\\.9\\.\\d+-github'/", "/const VERSION='7\\.\\d+\\.\\d+-github'/")
+    q=q.replace('Expected audited v7.9 runtime line','Expected audited v7 runtime line')
+    q=q.replace('runtime version should stay on v7.8 audited line','runtime version should stay on the audited v7 line')
+    q=q.replace('Expected v7.9 audited runtime','Expected audited v7 runtime')
+    t.write_text(q)
 
 t=Path('tests/combat-hub-large-regression.mjs')
 q=t.read_text()
