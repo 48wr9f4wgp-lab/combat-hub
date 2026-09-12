@@ -21,7 +21,7 @@ assert.match(src, /C=\{text:'#F7F8FA',sub:'#D7DCE3',muted:'#9AA2AD'\}/, 'Readabi
 
 // Final visual polish guards.
 assert.match(src, /function mainNameParts\(s\)\{const v=String\(s\|\|''\);if\(KEY!=='rizin'\|\|\[\.\.\.v\]\.length<=12\)return\[v\];/, 'RIZIN long-name splitter missing');
-assert.match(src, /function renderMainName\(box,name\)\{const parts=mainNameParts\(name\);for\(const part of parts\)\{const t=tx\(box,part,V\.mainSize,new Color\(C\.text\),'black',1\);/, 'RIZIN complete-line renderer missing');
+assert.match(src, /function renderMainName\(box,name\)\{const parts=mainNameParts\(jpDisplay\(name\)\);for\(const part of parts\)\{const t=tx\(box,part,V\.mainSize,new Color\(C\.text\),'black',1\);/, 'Localized RIZIN complete-line renderer missing');
 assert.match(src, /if\(KEY==='rizin'&&parts\.length>1\)t\.minimumScaleFactor=\.86/, 'RIZIN multiline scale floor missing');
 assert.match(src, /function boxingCenterBand\(c\)\{if\(KEY!=='boxing'\)return;const bands=\[190,158,126,96,68\]/, 'BOXING center contrast band missing or too weak');
 assert.equal((src.match(/boxingCenterBand\(c\);softCenter/g) || []).length, 2, 'BOXING center contrast must apply to hero and poster backgrounds');

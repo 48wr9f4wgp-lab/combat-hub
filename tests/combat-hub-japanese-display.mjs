@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const src=fs.readFileSync(new URL('../combat-hub.js', import.meta.url),'utf8');
+assert.match(src,/const VERSION='7\.9\.4-github'/);
+assert.match(src,/const JP_DISPLAY=\{/);
+for(const s of ['ノーチェUFC','ジェアン・シウヴァ','ホセ・ミゲル・デルガド','ブランドン・モレノ','マノン・フィオロ','アレクサ・グラッソ','ONE フライデーファイツ 170','ヨードレックペット','ポンペット','ライアン・ガルシア','コナー・ベン','Crypto.com UFC 331：ヴァン vs パントージャ2']) assert.ok(src.includes(s),`missing Japanese alias: ${s}`);
+assert.match(src,/mainNameParts\(jpDisplay\(name\)\)/);
+assert.match(src,/jpDisplay\(row\.a\)/);
+assert.match(src,/jpDisplay\(row\.b\)/);
+assert.match(src,/jpDisplay\(D\.name\|\|''\)/);
+assert.match(src,/jpDisplay\(next\.name\|\|'次大会'\)/);
+console.log('Japanese display regression OK');
