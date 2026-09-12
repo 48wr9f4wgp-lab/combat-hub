@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.11\.1-github'/);
+assert.match(src, /const VERSION='7\.11\.2-github'/);
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
@@ -15,10 +15,10 @@ assert.match(src, /new Rect\(360,0,360,520\)/, 'V5.1 right portrait slot must me
 assert.match(src, /'メインイベント'/, 'V5 centered main-event tag missing');
 assert.match(src, /center\.size=new Size\(38,40\)/, 'V5 VS center column missing');
 assert.doesNotMatch(src, /center\.backgroundColor=/, 'V5 must not box the VS axis');
-assert.match(src, /dash\.size=new Size\(328,132\)/, 'V5.1 wider editorial rail missing');
-assert.match(src, /left\.size=new Size\(next\?180:212,112\)/, 'V5.1 adaptive fight-card pane missing');
-assert.match(src, /right\.size=new Size\(next\?117:85,112\)/, 'V5.1 adaptive next-event pane missing');
-assert.match(src, /rule\.size=new Size\(1,104\)/, 'V5 dashboard divider missing');
+assert.match(src, /dash\.size=new Size\(328,154\)/, 'V5.2 taller editorial rail missing');
+assert.match(src, /left\.size=new Size\(next\?184:224,134\)/, 'V5.2 readable fight-card pane missing');
+assert.match(src, /right\.size=new Size\(next\?111:71,134\)/, 'V5.2 readable next-event pane missing');
+assert.match(src, /rule\.size=new Size\(1,126\)/, 'V5.2 dashboard divider missing');
 assert.match(src, /function largeMiniPoster\(image\)/, 'V5 next-event poster treatment missing');
 assert.match(src, /function largeNextTitle\(next\)/, 'V5.1 compact next-event title helper missing');
 assert.match(src, /KEY==='rizin'\?\.68/, 'V5.1 RIZIN noise suppression missing');
@@ -31,4 +31,7 @@ assert.match(src, /await w\.presentMedium\(\)/, 'Medium rendering path must rema
 assert.match(src, /function jpCardLabel\(label\)/, 'Japanese card-label mapper missing');
 assert.match(src, /'対戦カード'/, 'Japanese fight-card label missing');
 assert.match(src, /'次大会'/, 'Japanese next-event label missing');
-console.log('COMBAT HUB Large V5 regression: OK');
+assert.match(src, /jpCardLabel\(row\.label\),7\.0/, 'V5.2 card-label typography missing');
+assert.match(src, /jpDisplay\(row\.a\),8\.4/, 'V5.2 fighter-name typography missing');
+assert.match(src, /largeNextTitle\(next\),9\.6/, 'V5.2 next-event title typography missing');
+console.log('COMBAT HUB Large V5.2 regression: OK');
