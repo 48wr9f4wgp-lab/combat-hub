@@ -28,10 +28,18 @@ for t in Path('tests').glob('*.mjs'):
     q=t.read_text().replace("7\\.9\\.4-github","7\\.10\\.0-github")
     t.write_text(q)
 
+# K-1 layout contract protects geometry, not a minor-version family.
+t=Path('tests/combat-hub-k1-layout-regression.mjs')
+q=t.read_text()
+q=q.replace("/const VERSION='7\\.9\\.\\d+-github'/, 'Expected audited v7.9 runtime line'","/const VERSION='7\\.\\d+\\.\\d+-github'/, 'Expected audited v7 runtime line'")
+t.write_text(q)
+
 t=Path('tests/combat-hub-large-regression.mjs')
 q=t.read_text()
+q=q.replace("/function renderLarge\\(w,D,ctx,next\\)/","/function renderLarge\\(w,D,ctx,next,nextPoster\\)/")
 q=q.replace("/card\\.size=new Size\\(202,132\\)/","/card\\.size=new Size\\(196,132\\)/")
 q=q.replace("/nextBox\\.size=new Size\\(110,132\\)/","/nextBox\\.size=new Size\\(116,132\\)/")
-q=q.replace("/badge\\.backgroundColor=new Color\\(S\\.accent,\\.13\\)/, 'Large status pill missing'","/badge\\.borderColor=new Color\\(S\\.accent,\\.62\\)/, 'Luxury countdown plate missing'")
+q=q.replace("/badge\\.backgroundColor=new Color\\(S\\.accent,\\.13\\)/","/badge\\.borderColor=new Color\\(S\\.accent,\\.62\\)/")
+q=q.replace("'Large status pill missing'","'Luxury countdown plate missing'")
 q += "\nassert.match(src,/function largeMiniPoster\\(image\\)/,'Large next-event poster treatment missing');\nassert.match(src,/NEXT_POSTER=IS_LARGE&&NEXT\\?await eventPoster\\(NEXT\\):null/,'Large next poster loader missing');\nassert.match(src,/card\\.borderColor=new Color\\('#FFFFFF',\\.11\\)/,'Luxury fight-card glass border missing');\nassert.match(src,/nextBox\\.borderColor=new Color\\(S\\.accent,\\.24\\)/,'Luxury next-card accent border missing');\nassert.match(src,/center\\.borderColor=new Color\\(S\\.accent,\\.30\\)/,'Luxury VS plate missing');\n"
 t.write_text(q)
