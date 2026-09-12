@@ -1,0 +1,81 @@
+name: Large V5.1 Polish
+
+on:
+  push:
+    branches:
+      - chatgpt/large-v5-1-polish
+
+jobs:
+  polish:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Apply screenshot-driven Large V5.1 polish
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('combat-hub.js')
+          s=p.read_text()
+
+          def rep(old,new,label):
+              global s
+              if old not in s:
+                  raise SystemExit(f'missing replacement target: {label}')
+              s=s.replace(old,new,1)
+
+          rep('// v7.11.0-github — Large V5 editorial rebuild','// v7.11.1-github — Large V5.1 screenshot polish','version comment')
+          rep("const VERSION='7.11.0-github';","const VERSION='7.11.1-github';",'version')
+          rep('function largePortraitSlot(image,side){const W=348,H=520','function largePortraitSlot(image,side){const W=360,H=520','portrait width')
+          rep("if(ctx.a.image)c.drawImageInRect(largePortraitSlot(ctx.a.image,'left'),new Rect(0,0,348,520));if(ctx.b.image)c.drawImageInRect(largePortraitSlot(ctx.b.image,'right'),new Rect(372,0,348,520));","if(ctx.a.image)c.drawImageInRect(largePortraitSlot(ctx.a.image,'left'),new Rect(0,0,360,520));if(ctx.b.image)c.drawImageInRect(largePortraitSlot(ctx.b.image,'right'),new Rect(360,0,360,520));",'remove portrait center gap')
+          rep("const veil=KEY==='one'?.38:KEY==='k1'?.46:KEY==='rizin'?.58:.44;","const veil=KEY==='one'?.38:KEY==='k1'?.48:KEY==='rizin'?.68:.44;",'organization hero veil')
+          rep("function largeFightRow(st,row){const r=st.addStack();r.centerAlignContent();const lab=r.addStack();lab.size=new Size(34,0);const lt=tx(lab,jpCardLabel(row.label),6.0,new Color(S.accent),'bold');lt.minimumScaleFactor=.52;r.addSpacer(2);const aa=r.addStack();aa.size=new Size(54,0);const at=tx(aa,jpDisplay(row.a),6.9,new Color(C.text),'semibold');at.minimumScaleFactor=.44;r.addSpacer(2);tx(r,'VS',5.8,new Color(S.accent),'bold');r.addSpacer(2);const bb=r.addStack();bb.size=new Size(54,0);const bt=tx(bb,jpDisplay(row.b),6.9,new Color(C.text),'semibold');bt.minimumScaleFactor=.44;bt.rightAlignText();}","function largeFightRow(st,row){const r=st.addStack();r.centerAlignContent();const lab=r.addStack();lab.size=new Size(35,0);const lt=tx(lab,jpCardLabel(row.label),6.3,new Color(S.accent),'bold');lt.minimumScaleFactor=.58;r.addSpacer(2);const aa=r.addStack();aa.size=new Size(57,0);const at=tx(aa,jpDisplay(row.a),7.3,new Color(C.text),'semibold');at.minimumScaleFactor=.52;r.addSpacer(2);tx(r,'VS',6.0,new Color(S.accent),'bold');r.addSpacer(2);const bb=r.addStack();bb.size=new Size(57,0);const bt=tx(bb,jpDisplay(row.b),7.3,new Color(C.text),'semibold');bt.minimumScaleFactor=.52;bt.rightAlignText();}",'fight row readability')
+          rep("function largeNextMeta(next){if(!next)return'';","function largeNextTitle(next){return jpDisplay(next?.name||'次大会').replace(/^Crypto\\.com\\s+/i,'');}\nfunction largeNextMeta(next){if(!next)return'';",'compact next event title')
+          rep('dash.size=new Size(320,132)','dash.size=new Size(328,132)','rail width')
+          rep('dash.setPadding(10,11,10,11)','dash.setPadding(10,8,10,8)','rail padding')
+          rep('left.size=new Size(176,112)','left.size=new Size(next?180:212,112)','adaptive fight pane')
+          rep("dash.addSpacer(8);const rule=dash.addStack();rule.size=new Size(1,104);rule.backgroundColor=new Color('#FFFFFF',.075);dash.addSpacer(8);","dash.addSpacer(6);const rule=dash.addStack();rule.size=new Size(1,104);rule.backgroundColor=new Color('#FFFFFF',.075);dash.addSpacer(6);",'rail separator spacing')
+          rep('right.size=new Size(105,112)','right.size=new Size(next?117:85,112)','adaptive next pane')
+          rep("const nn=tx(right,jpDisplay(next.name||'次大会'),8.4,new Color(C.text),'bold',3);nn.minimumScaleFactor=.58;right.addSpacer(5);tx(right,largeNextMeta(next),6.2,new Color(C.sub),'semibold',2);","const nn=tx(right,largeNextTitle(next),8.5,new Color(C.text),'bold',2);nn.minimumScaleFactor=.62;right.addSpacer(5);tx(right,largeNextMeta(next),6.4,new Color(C.sub),'semibold',2);",'next event readability')
+
+          p.write_text(s)
+
+          t=Path('tests/combat-hub-large-regression.mjs')
+          q=t.read_text()
+          q=q.replace("assert.match(src, /const VERSION='7\\.11\\.0-github'/);","assert.match(src, /const VERSION='7\\.11\\.1-github'/);")
+          q=q.replace("assert.match(src, /new Rect\\(0,0,348,520\\)/, 'V5 left portrait slot missing');","assert.match(src, /new Rect\\(0,0,360,520\\)/, 'V5.1 left portrait slot missing');")
+          q=q.replace("assert.match(src, /new Rect\\(372,0,348,520\\)/, 'V5 right portrait slot missing');","assert.match(src, /new Rect\\(360,0,360,520\\)/, 'V5.1 right portrait slot must meet center with no black gap');")
+          q=q.replace("assert.match(src, /dash\\.size=new Size\\(320,132\\)/, 'V5 unified editorial rail missing');","assert.match(src, /dash\\.size=new Size\\(328,132\\)/, 'V5.1 wider editorial rail missing');")
+          q=q.replace("assert.match(src, /left\\.size=new Size\\(176,112\\)/, 'V5 fight-card pane missing');","assert.match(src, /left\\.size=new Size\\(next\\?180:212,112\\)/, 'V5.1 adaptive fight-card pane missing');")
+          q=q.replace("assert.match(src, /right\\.size=new Size\\(105,112\\)/, 'V5 next-event pane missing');","assert.match(src, /right\\.size=new Size\\(next\\?117:85,112\\)/, 'V5.1 adaptive next-event pane missing');")
+          q=q.replace("assert.match(src, /function largeMiniPoster\\(image\\)/, 'V5 next-event poster treatment missing');","assert.match(src, /function largeMiniPoster\\(image\\)/, 'V5 next-event poster treatment missing');\nassert.match(src, /function largeNextTitle\\(next\\)/, 'V5.1 compact next-event title helper missing');\nassert.match(src, /KEY==='rizin'\\?\\.68/, 'V5.1 RIZIN noise suppression missing');")
+          t.write_text(q)
+          PY
+      - name: Runtime syntax check
+        run: node --check combat-hub.js
+      - name: Full regression suite
+        run: |
+          node tests/combat-hub-regression.mjs
+          node tests/combat-hub-cache-regression.mjs
+          node tests/combat-hub-one-composite-regression.mjs
+          node tests/combat-hub-ufc-rollforward-regression.mjs
+          node tests/combat-hub-k1-layout-regression.mjs
+          node tests/combat-hub-typography-regression.mjs
+          node tests/combat-hub-current-data-audit.mjs
+          node tests/combat-hub-large-regression.mjs
+          node tests/combat-hub-japanese-display.mjs
+      - name: Commit V5.1 polish
+        run: |
+          if ! git diff --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add combat-hub.js tests/combat-hub-large-regression.mjs
+            git commit -m 'fix: polish Large V5.1 from iPhone QA'
+            git push
+          fi
