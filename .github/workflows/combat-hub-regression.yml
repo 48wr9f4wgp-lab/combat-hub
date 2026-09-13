@@ -36,7 +36,9 @@ jobs:
           p.write_text(s)
 
           for tp in Path('tests').glob('*.mjs'):
-            t=tp.read_text().replace('7.11.4-github','7.11.5-github').replace('7.11.4','7.11.5')
+            t=tp.read_text()
+            t=t.replace('7.11.4-github','7.11.5-github').replace('7.11.4','7.11.5')
+            t=t.replace(r"7\.11\.4-github",r"7\.11\.5-github")
             tp.write_text(t)
 
           lp=Path('tests/combat-hub-large-regression.mjs')
@@ -55,5 +57,5 @@ jobs:
           git config user.name '48wr9f4wgp-lab'
           git config user.email '48wr9f4wgp@privaterelay.appleid.com'
           git add combat-hub.js tests
-          git commit -m 'fix: make BOXING Large ultra-light' 
+          git commit -m 'fix: make BOXING Large ultra-light'
           git push
