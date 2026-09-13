@@ -55,7 +55,7 @@ has(/async function refreshLockedCurrent\(snap\)/, 'Safe locked-current refresh 
 has(/combat-hub-current-\$\{KEY\}\.json/, 'Current-event refresh cache missing');
 has(/pairs=html\?currentPagePairs\(html\):\[\]/, 'ONE-capable detail card parser missing');
 has(/new Date\(snap\.startAt\)\.getTime\(\)\+6\*3600000/, 'next-event lower-bound guard missing');
-has(/Date\.now\(\)\+180\*86400000/, 'next-event search horizon changed unexpectedly');
+has(/(?:Date\.now\(\)|now)\+180\*86400000/, 'next-event search horizon changed unexpectedly');
 has(/jsonLdEvents\(listing,S\.listing\)\.map\(normalizeOneCompositeEvent\)\.filter\(eligible\)/, 'listing candidates must be normalized and eligibility-filtered before traversal decision');
 has(/if\(!candidates\.length\)\{for\(const u of links/, 'detail traversal fallback missing');
 
