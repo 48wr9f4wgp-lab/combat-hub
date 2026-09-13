@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.11\.7-github'/);
+assert.match(src, /const VERSION='7\.11\.8-github'/);
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
@@ -15,8 +15,8 @@ assert.match(src, /new Rect\(360,0,360,520\)/, 'V5.1 right portrait slot must me
 assert.match(src, /'メインイベント'/, 'V5 centered main-event tag missing');
 assert.match(src, /center\.size=new Size\(38,40\)/, 'V5 VS center column missing');
 assert.doesNotMatch(src, /center\.backgroundColor=/, 'V5 must not box the VS axis');
-assert.match(src, /dash\.size=new Size\(328,154\)/, 'V5.2 taller editorial rail missing');
-assert.match(src, /left\.size=new Size\(next\?184:224,134\)/, 'V5.2 readable fight-card pane missing');
+assert.match(src, /dashHeight=compactBoxing\?118:154/, 'BOXING adaptive rail height missing');
+assert.match(src, /left\.size=new Size\(compactBoxing\?308:\(next\?184:224\),dashHeight-20\)/, 'BOXING adaptive full-width fight pane missing');
 assert.match(src, /right\.size=new Size\(next\?111:71,134\)/, 'V5.2 readable next-event pane missing');
 assert.match(src, /rule\.size=new Size\(1,126\)/, 'V5.2 dashboard divider missing');
 assert.match(src, /function largeMiniPoster\(image\)/, 'V5 next-event poster treatment missing');
@@ -34,9 +34,12 @@ assert.match(src, /function jpCardLabel\(label\)/, 'Japanese card-label mapper m
 assert.match(src, /'対戦カード'/, 'Japanese fight-card label missing');
 assert.match(src, /'次大会'/, 'Japanese next-event label missing');
 assert.match(src, /jpCardLabel\(row\.label\),7\.0/, 'V5.2 card-label typography missing');
-assert.match(src, /jpDisplay\(row\.a\),8\.4/, 'V5.2 fighter-name typography missing');
+assert.match(src, /jpDisplay\(row\.a\),wide\?9\.3:8\.4/, 'V5.2 fighter-name typography missing');
 assert.match(src, /largeNextTitle\(next\),9\.6/, 'V5.2 next-event title typography missing');
+assert.match(src, /function largeFightRow\(st,row,wide=false\)/, 'BOXING wide fight-row mode missing');
+assert.match(src, /largeFightRow\(left,row,compactBoxing\)/, 'BOXING adaptive row call missing');
+assert.match(src, /'公式情報を確認中',7\.8/, 'BOXING compact next-status line missing');
 assert.match(src, /if\(KEY==='boxing'&&config\.widgetFamily==='large'\)return\{a:\{name:D\.main\.a,image:null\},b:\{name:D\.main\.b,image:null\},poster:await eventPoster\(D\),lightweight:true\};/, 'BOXING Large lightweight context must retain the current event poster');
 assert.match(src, /if\(BOXING_LARGE\)\{if\(ctx\.poster\)w\.backgroundImage=ctx\.poster;else w\.backgroundColor=new Color\('#020305'\);renderLarge\(w,D,ctx,NEXT,null\);\}/, 'BOXING Large must use direct poster background without DrawContext composition');
 assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Non-BOXING Large render fallback missing');
-console.log('COMBAT HUB Large V5.2 + BOXING poster-source regression: OK');
+console.log('COMBAT HUB Large V5.2 + BOXING adaptive-rail regression: OK');
