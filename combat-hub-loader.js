@@ -12,8 +12,10 @@ const REMOTES=[
 
 // Diagnostic guard: if this screen appears, the home-screen widget is definitely
 // executing the current Loader and the remaining fault is downstream of Loader routing.
-const param=String(args.widgetParameter||'').trim().toUpperCase().replace(/[\s_-]+/g,'');
-if(config.runsInWidget&&config.widgetFamily==='large'&&param==='BOXING'){
+const rawParam=(typeof args!=='undefined'&&args)?args.widgetParameter:'';
+const param=String(rawParam||'').trim().toUpperCase().replace(/[\s_-]+/g,'');
+const widgetFamily=(typeof config!=='undefined'&&config)?config.widgetFamily:'';
+if(typeof config!=='undefined'&&config.runsInWidget&&widgetFamily==='large'&&param==='BOXING'){
   const diag=new ListWidget();
   diag.setPadding(20,20,18,20);
   diag.backgroundColor=new Color('#08162A');
