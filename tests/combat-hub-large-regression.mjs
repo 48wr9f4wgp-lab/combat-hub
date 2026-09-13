@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.11\.6-github'/);
+assert.match(src, /const VERSION='7\.11\.7-github'/);
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
@@ -36,7 +36,7 @@ assert.match(src, /'次大会'/, 'Japanese next-event label missing');
 assert.match(src, /jpCardLabel\(row\.label\),7\.0/, 'V5.2 card-label typography missing');
 assert.match(src, /jpDisplay\(row\.a\),8\.4/, 'V5.2 fighter-name typography missing');
 assert.match(src, /largeNextTitle\(next\),9\.6/, 'V5.2 next-event title typography missing');
-assert.ok(src.includes("KEY==='boxing'&&config.widgetFamily==='large'"), 'BOXING Large must use lightweight context');
+assert.match(src, /if\(KEY==='boxing'&&config\.widgetFamily==='large'\)return\{a:\{name:D\.main\.a,image:null\},b:\{name:D\.main\.b,image:null\},poster:await eventPoster\(D\),lightweight:true\};/, 'BOXING Large lightweight context must retain the current event poster');
 assert.match(src, /if\(BOXING_LARGE\)\{if\(ctx\.poster\)w\.backgroundImage=ctx\.poster;else w\.backgroundColor=new Color\('#020305'\);renderLarge\(w,D,ctx,NEXT,null\);\}/, 'BOXING Large must use direct poster background without DrawContext composition');
 assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Non-BOXING Large render fallback missing');
-console.log('COMBAT HUB Large V5.2 + BOXING reliability regression: OK');
+console.log('COMBAT HUB Large V5.2 + BOXING poster-source regression: OK');
