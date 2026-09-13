@@ -1,0 +1,55 @@
+name: BOXING Large no deep discovery
+
+on:
+  push:
+    branches:
+      - chatgpt/boxing-large-no-deep-discovery-v7.12.2
+    paths:
+      - .github/workflows/boxing-large-no-deep-discovery.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt/boxing-large-no-deep-discovery-v7.12.2
+      - name: Patch runtime and regression
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('combat-hub.js')
+          s=p.read_text()
+          s=s.replace('// v7.12.1-github — BOXING rollover memory guard','// v7.12.2-github — BOXING Large no-deep-discovery guard',1)
+          s=s.replace("const VERSION='7.12.1-github';","const VERSION='7.12.2-github';",1)
+          old="const path=cacheFile(`combat-hub-next-${KEY}.json`),cached=readJSON(path),now=Date.now(),cachedData=cached?.data?normalizeOneCompositeEvent(cached.data):null;if(cachedData&&now-Number(cached.savedAt)<4*3600000&&rollforwardEligible(snap,cachedData,now))return cachedData;const live=await strictNextEvent(snap);"
+          new="const path=cacheFile(`combat-hub-next-${KEY}.json`),cached=readJSON(path),now=Date.now(),cachedData=cached?.data?normalizeOneCompositeEvent(cached.data):null;if(KEY==='boxing'&&config.widgetFamily==='large'){if(cachedData&&rollforwardEligible(snap,cachedData,now))return cachedData;return{...snap,startAt:new Date(now+24*3600000).toISOString(),location:'会場未定',name:'次大会',main:{a:'次大会',b:'確認中',context:S.label},support:[],cardTba:true,posterURL:null,timeTba:true,displayDate:'日程未定',nextPending:true,lightweightPending:true};}if(cachedData&&now-Number(cached.savedAt)<4*3600000&&rollforwardEligible(snap,cachedData,now))return cachedData;const live=await strictNextEvent(snap);"
+          assert old in s, 'loadData insertion target missing'
+          s=s.replace(old,new,1)
+          p.write_text(s)
+
+          t=Path('tests/combat-hub-large-regression.mjs')
+          q=t.read_text()
+          marker="assert.match(src, /const BOXING_LARGE=IS_LARGE&&KEY==='boxing'/, 'BOXING Large ultra-light gate missing');"
+          add=marker+"\nassert.match(src, /lightweightPending:true/, 'BOXING Large expired-event local fallback missing');\nassert.match(src, /if\\(KEY==='boxing'&&config\\.widgetFamily==='large'\\)\\{if\\(cachedData&&rollforwardEligible\\(snap,cachedData,now\\)\\)return cachedData;return\\{/, 'BOXING Large must short-circuit before live deep discovery');"
+          assert marker in q, 'large regression marker missing'
+          q=q.replace(marker,add,1)
+          t.write_text(q)
+          PY
+      - name: Syntax checks
+        run: |
+          node --check combat-hub.js
+          node --check tests/combat-hub-large-regression.mjs
+      - name: Focused regression
+        run: node tests/combat-hub-large-regression.mjs
+      - name: Commit patch
+        run: |
+          git config user.name "chatgpt-combat-hub"
+          git config user.email "actions@users.noreply.github.com"
+          git add combat-hub.js tests/combat-hub-large-regression.mjs
+          git commit -m "fix: short-circuit BOXING Large rollover discovery"
+          git push origin HEAD:chatgpt/boxing-large-no-deep-discovery-v7.12.2
