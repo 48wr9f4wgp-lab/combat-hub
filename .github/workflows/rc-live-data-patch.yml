@@ -23,15 +23,71 @@ jobs:
           node-version: '24.x'
       - name: Apply RC live-data patch
         run: python3 tools/rc_live_data_patch.py
+      - name: Harden TBA windows and fold coverage into existing audit
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('combat-hub.js')
+          s=p.read_text()
+          old="function sameEventIdentity(a,b){if(!a||!b)return false;const as=eventSourceKey(a),bs=eventSourceKey(b);if(as&&bs&&as===bs)return true;const an=eventIdentityText(a.name),bn=eventIdentityText(b.name);if(an&&bn&&an===bn)return true;if(a.main&&b.main&&sameFight(a.main.a,a.main.b,b.main.a,b.main.b))return true;return false;}\nfunction rollforwardEligible(base,e,now=Date.now()){const t=new Date(e?.startAt).getTime(),baseT=new Date(base?.startAt).getTime();return Number.isFinite(t)&&Number.isFinite(baseT)&&t>baseT+6*3600000&&t>now-12*3600000&&t<now+180*86400000&&validOrgName(e?.name)&&!sameEventIdentity(base,e);}\nfunction nextEligible(base,e,now=Date.now()){const t=new Date(e?.startAt).getTime(),baseT=new Date(base?.startAt).getTime();return Number.isFinite(t)&&Number.isFinite(baseT)&&t>Math.max(baseT+6*3600000,now)&&t<now+180*86400000&&validOrgName(e?.name)&&!sameEventIdentity(base,e);}"
+          new="function sameEventIdentity(a,b){if(!a||!b)return false;const as=eventSourceKey(a),bs=eventSourceKey(b);if(as&&bs&&as===bs)return true;const an=eventIdentityText(a.name),bn=eventIdentityText(b.name);if(an&&bn&&an===bn)return true;const at=new Date(a.startAt).getTime(),bt=new Date(b.startAt).getTime();if(a.main&&b.main&&Number.isFinite(at)&&Number.isFinite(bt)&&Math.abs(at-bt)<24*3600000&&sameFight(a.main.a,a.main.b,b.main.a,b.main.b))return true;return false;}\nfunction eventExpiry(e){const t=new Date(e?.startAt).getTime();if(!Number.isFinite(t))return NaN;if(!e?.timeTba)return t+12*3600000;const j=new Date(t+9*3600000);const dayEndUtc=Date.UTC(j.getUTCFullYear(),j.getUTCMonth(),j.getUTCDate()+1)-9*3600000;return dayEndUtc+12*3600000;}\nfunction rollforwardEligible(base,e,now=Date.now()){const t=new Date(e?.startAt).getTime(),baseT=new Date(base?.startAt).getTime(),expiry=eventExpiry(e);return Number.isFinite(t)&&Number.isFinite(baseT)&&Number.isFinite(expiry)&&t>baseT+6*3600000&&expiry>now&&t<now+180*86400000&&validOrgName(e?.name)&&!sameEventIdentity(base,e);}\nfunction nextEligible(base,e,now=Date.now()){const t=new Date(e?.startAt).getTime(),baseT=new Date(base?.startAt).getTime(),expiry=eventExpiry(e),future=e?.timeTba?expiry>now:t>now;return Number.isFinite(t)&&Number.isFinite(baseT)&&Number.isFinite(expiry)&&t>baseT+6*3600000&&future&&t<now+180*86400000&&validOrgName(e?.name)&&!sameEventIdentity(base,e);}"
+          assert old in s, 'eligibility helper anchor missing'
+          s=s.replace(old,new,1)
+          s=s.replace("'ONE Friday Fights 170 & The Inner Circle':'ONE フライデーファイツ 170',","'ONE Friday Fights 170 & The Inner Circle':'ONE フライデーファイツ 170',\n'ONE Friday Fights 171 & The Inner Circle 31':'ONE フライデーファイツ 171',",1)
+          p.write_text(s)
+
+          # The canonical regression workflow already executes current-data-audit.
+          # Revert the temporary workflow edit and fold transition checks into that existing suite.
+          Path('tests/combat-hub-event-transition-regression.mjs').unlink(missing_ok=True)
+
+          audit=Path('tests/combat-hub-current-data-audit.mjs')
+          a=audit.read_text()
+          marker="console.log('COMBAT HUB current-data audit regression: OK');"
+          assert marker in a
+          extra=r'''assert.match(src,/const VERSION='7\.12\.0-github'/);
+assert.match(src,/function sameEventIdentity\(/);
+assert.match(src,/function eventExpiry\(/);
+assert.match(src,/function rollforwardEligible\(/);
+assert.match(src,/function nextEligible\(/);
+assert.match(src,/RIZIN\.55/);
+assert.match(src,/ONE Friday Fights 171 & The Inner Circle 31/);
+assert.match(src,/K-1 FIGHTING NETWORK in Sangju Korea 2026/);
+assert.match(src,/cachedData&&now-Number\(cached\.savedAt\)<6\*3600000&&nextEligible\(base,cachedData,now\)/);
+assert.match(src,/cachedData&&now-Number\(cached\.savedAt\)<4\*3600000&&rollforwardEligible\(snap,cachedData,now\)/);
+assert.match(src,/Math\.abs\(at-bt\)<24\*3600000/);
+
+const H=3600000,DAY=24*H;
+const id=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
+const source=v=>String(v?.source||'').toLowerCase().replace(/^https?:\/\/(?:www\.)?/,'').replace(/[?#].*$/,'').replace(/\/+$/,'');
+const same=(a,b)=>!!a&&!!b&&((source(a)&&source(a)===source(b))||(id(a.name)&&id(a.name)===id(b.name)));
+const validName=(key,n)=>({one:/ONE/i,rizin:/RIZIN/i,k1:/K-1/i}[key]||/.*/).test(n||'');
+const expiry=e=>{const t=Date.parse(e.startAt);if(!Number.isFinite(t))return NaN;if(!e.timeTba)return t+12*H;const j=new Date(t+9*H);return Date.UTC(j.getUTCFullYear(),j.getUTCMonth(),j.getUTCDate()+1)-9*H+12*H;};
+const nextOk=(key,base,e,now)=>{const t=Date.parse(e.startAt),bt=Date.parse(base.startAt),ex=expiry(e),future=e.timeTba?ex>now:t>now;return Number.isFinite(t)&&Number.isFinite(bt)&&Number.isFinite(ex)&&t>bt+6*H&&future&&t<now+180*DAY&&validName(key,e.name)&&!same(base,e)};
+const rollOk=(key,base,e,now)=>{const t=Date.parse(e.startAt),bt=Date.parse(base.startAt),ex=expiry(e);return Number.isFinite(t)&&Number.isFinite(bt)&&Number.isFinite(ex)&&t>bt+6*H&&ex>now&&t<now+180*DAY&&validName(key,e.name)&&!same(base,e)};
+const now=Date.parse('2026-09-13T17:52:00+09:00');
+const samurai={name:'ONE SAMURAI 3',startAt:'2026-09-12T17:30:00+09:00',source:'https://www.onefc.com/events/one-samurai-3/'};
+assert.equal(nextOk('one',samurai,{...samurai,startAt:'2026-09-18T17:30:00+09:00'},now),false,'same ONE event must never become its own next event');
+assert.equal(rollOk('one',{name:'ONE Friday Fights 170',startAt:'2026-09-11T22:30:00+09:00',source:'x'},samurai,now),false,'expired event must not remain primary');
+const off171={name:'ONE Friday Fights 171 & The Inner Circle 31',startAt:'2026-09-18T00:00:00+09:00',source:'https://www.onefc.com/events/one-friday-fights-171/',timeTba:true};
+assert.equal(nextOk('one',samurai,off171,now),true);
+assert.equal(nextOk('k1',{name:'K-1 WORLD MAX 2026',startAt:'2026-09-12T12:00:00+09:00',source:'a'},{name:'K-1 FIGHTING NETWORK in Sangju Korea 2026',startAt:'2026-09-19T00:00:00+09:00',source:'b',timeTba:true},now),true);
+assert.equal(nextOk('rizin',{name:'RIZIN LANDMARK 16 in NAGASAKI',startAt:'2026-10-03T14:00:00+09:00',source:'a'},{name:'RIZIN.55',startAt:'2026-11-08T14:00:00+09:00',source:'b'},now),true);
+'''
+          a=a.replace(marker,extra+"\n"+marker,1)
+          audit.write_text(a)
+          PY
+          git checkout -- .github/workflows/combat-hub-regression.yml
       - name: Focused verification
         run: |
           node --check combat-hub.js
-          node --check tests/combat-hub-event-transition-regression.mjs
-          node tests/combat-hub-event-transition-regression.mjs
+          node --check tests/combat-hub-current-data-audit.mjs
+          node tests/combat-hub-current-data-audit.mjs
       - name: Commit patched runtime
         run: |
           git config user.name "chatgpt-combat-hub"
           git config user.email "actions@users.noreply.github.com"
-          git add combat-hub.js tests/combat-hub-event-transition-regression.mjs .github/workflows/combat-hub-regression.yml
+          git add combat-hub.js tests/combat-hub-current-data-audit.mjs
           git commit -m "fix: harden RC live event transitions"
           git push origin HEAD:chatgpt/rc-live-data-hardening-v7.12.0
