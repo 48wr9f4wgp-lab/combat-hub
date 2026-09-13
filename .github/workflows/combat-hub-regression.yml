@@ -27,24 +27,24 @@ jobs:
           s=s.replace('// v7.12.2-github — BOXING Large no-deep-discovery guard','// v7.12.3-github — BOXING Large emergency local safe mode',1)
           s=s.replace("const VERSION='7.12.2-github';","const VERSION='7.12.3-github';",1)
           marker="const V=VISUAL[KEY];"
-          safe="""const V=VISUAL[KEY];
-
-// Emergency local-only guard for BOXING Large after the locked event expired.
-// This intentionally executes before any cache/network/event discovery work.
-if(config.runsInWidget&&config.widgetFamily==='large'&&KEY==='boxing'&&Date.now()>=new Date('2026-09-13T21:00:00+09:00').getTime()){
-  const safe=new ListWidget();
-  safe.setPadding(18,18,16,18);
-  safe.backgroundColor=new Color('#050609');
-  const title=safe.addText('ボクシング');title.font=Font.blackSystemFont(22);title.textColor=new Color('#FFFFFF');
-  safe.addSpacer(6);
-  const state=safe.addText('次大会情報を確認中');state.font=Font.boldSystemFont(15);state.textColor=new Color('#4BA3FF');
-  safe.addSpacer(8);
-  const meta=safe.addText('日程未定 ・ 時刻未定');meta.font=Font.semiboldSystemFont(10);meta.textColor=new Color('#D7DCE3');
-  safe.addSpacer();
-  const note=safe.addText('公式情報の更新を待っています');note.font=Font.semiboldSystemFont(10);note.textColor=new Color('#9AA2AD');
-  safe.refreshAfterDate=new Date(Date.now()+30*60*1000);
-  Script.setWidget(safe);Script.complete();return;
-}"""
+          safe=(
+              "const V=VISUAL[KEY];\n\n"
+              "// Emergency local-only guard for BOXING Large after the locked event expired.\n"
+              "if(config.runsInWidget&&config.widgetFamily==='large'&&KEY==='boxing'&&Date.now()>=new Date('2026-09-13T21:00:00+09:00').getTime()){\n"
+              "  const safe=new ListWidget();\n"
+              "  safe.setPadding(18,18,16,18);\n"
+              "  safe.backgroundColor=new Color('#050609');\n"
+              "  const title=safe.addText('ボクシング');title.font=Font.blackSystemFont(22);title.textColor=new Color('#FFFFFF');\n"
+              "  safe.addSpacer(6);\n"
+              "  const state=safe.addText('次大会情報を確認中');state.font=Font.boldSystemFont(15);state.textColor=new Color('#4BA3FF');\n"
+              "  safe.addSpacer(8);\n"
+              "  const meta=safe.addText('日程未定 ・ 時刻未定');meta.font=Font.semiboldSystemFont(10);meta.textColor=new Color('#D7DCE3');\n"
+              "  safe.addSpacer();\n"
+              "  const note=safe.addText('公式情報の更新を待っています');note.font=Font.semiboldSystemFont(10);note.textColor=new Color('#9AA2AD');\n"
+              "  safe.refreshAfterDate=new Date(Date.now()+30*60*1000);\n"
+              "  Script.setWidget(safe);Script.complete();return;\n"
+              "}"
+          )
           assert s.count(marker)==1, 'visual marker mismatch'
           s=s.replace(marker,safe,1)
           p.write_text(s)
