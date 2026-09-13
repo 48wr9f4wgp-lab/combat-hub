@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '24.x'
       - name: Apply BOXING Large repair
-        if: github.event_name == 'push' && github.event.head_commit.message == 'chore: enable boxing large repair'
+        if: "github.event_name == 'push' && github.event.head_commit.message == 'chore enable boxing large repair'"
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -49,7 +49,7 @@ jobs:
             lp.write_text(t)
           PY
       - name: Commit BOXING Large repair
-        if: github.event_name == 'push' && github.event.head_commit.message == 'chore: enable boxing large repair'
+        if: "github.event_name == 'push' && github.event.head_commit.message == 'chore enable boxing large repair'"
         run: |
           git config user.name '48wr9f4wgp-lab'
           git config user.email '48wr9f4wgp@privaterelay.appleid.com'
