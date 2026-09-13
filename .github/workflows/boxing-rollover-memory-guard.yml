@@ -1,0 +1,46 @@
+name: BOXING rollover memory guard
+
+on:
+  push:
+    branches:
+      - chatgpt/boxing-rollover-memory-guard-v7.12.1
+    paths:
+      - .github/workflows/boxing-rollover-memory-guard.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt/boxing-rollover-memory-guard-v7.12.1
+      - name: Patch runtime
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('combat-hub.js')
+          s=p.read_text()
+          pairs=[
+            ("// v7.12.0-github — RC live-data transition hardening","// v7.12.1-github — BOXING rollover memory guard"),
+            ("const VERSION='7.12.0-github';","const VERSION='7.12.1-github';"),
+            ("if(KEY==='boxing'&&config.widgetFamily==='large')return{a:{name:D.main.a,image:null},b:{name:D.main.b,image:null},poster:await eventPoster(D),lightweight:true};","if(KEY==='boxing'&&config.widgetFamily==='large'){const safePoster=!!D.lockedCurrent||sameEventIdentity(D,SNAPSHOT.boxing);return{a:{name:D.main.a,image:null},b:{name:D.main.b,image:null},poster:safePoster?await eventPoster(D):null,lightweight:true};}"),
+            ("if(BOXING_LARGE){if(ctx.poster)w.backgroundImage=ctx.poster;else w.backgroundColor=new Color('#020305');renderLarge(w,D,ctx,NEXT,null);}","if(BOXING_LARGE){if(ctx.poster)w.backgroundImage=ctx.poster;else w.backgroundGradient=gradient();renderLarge(w,D,ctx,NEXT,null);}")
+          ]
+          for old,new in pairs:
+              assert s.count(old)==1, f'exact runtime target mismatch: {old[:80]}'
+              s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Runtime syntax check
+        run: node --check combat-hub.js
+      - name: Commit runtime guard
+        run: |
+          git config user.name "chatgpt-combat-hub"
+          git config user.email "actions@users.noreply.github.com"
+          git add combat-hub.js
+          git commit -m "fix: guard BOXING Large rollover poster memory"
+          git push origin HEAD:chatgpt/boxing-rollover-memory-guard-v7.12.1
