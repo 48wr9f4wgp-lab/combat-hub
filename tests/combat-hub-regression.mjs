@@ -67,8 +67,8 @@ has(/async function eventPoster\(D\)/, 'event-poster fallback helper missing');
 
 // Cache behavior must remain bounded and recoverable.
 has(/combat-hub-next-\$\{KEY\}\.json/, 'per-organization next-event cache missing');
-has(/now-cached\.savedAt<4\*3600000/, 'next-event cache TTL changed unexpectedly');
-has(/if\(cached\?\.data\)return \{\.\.\.normalizeOneCompositeEvent\(cached\.data\),stale:true\}/, 'stale-cache fallback missing');
+has(/now-Number\(cached\.savedAt\)<4\*3600000/, 'next-event cache TTL changed unexpectedly');
+has(/if\(cachedData&&rollforwardEligible\(snap,cachedData,now\)\)return \{\.\.\.cachedData,stale:true\}/, 'stale-cache fallback missing');
 
 // Visual regression guards: v7.7 reliability pass must not alter verified v7.6 layout.
 has(/KEY==='k1'\?370:360/, 'K-1 left hero overlap fix missing');
