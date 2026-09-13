@@ -35,3 +35,5 @@ assert.match(src, /jpCardLabel\(row\.label\),7\.0/, 'V5.2 card-label typography 
 assert.match(src, /jpDisplay\(row\.a\),8\.4/, 'V5.2 fighter-name typography missing');
 assert.match(src, /largeNextTitle\(next\),9\.6/, 'V5.2 next-event title typography missing');
 console.log('COMBAT HUB Large V5.2 regression: OK');
+
+if (!source.includes("KEY==='boxing'&&config.widgetFamily==='large'")) throw new Error('boxing Large must use lightweight context');
