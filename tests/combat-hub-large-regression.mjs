@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.11\.4-github'/);
+assert.match(src, /const VERSION='7\.11\.5-github'/);
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
@@ -22,7 +22,9 @@ assert.match(src, /rule\.size=new Size\(1,126\)/, 'V5.2 dashboard divider missin
 assert.match(src, /function largeMiniPoster\(image\)/, 'V5 next-event poster treatment missing');
 assert.match(src, /function largeNextTitle\(next\)/, 'V5.1 compact next-event title helper missing');
 assert.match(src, /KEY==='rizin'\?\.68/, 'V5.1 RIZIN noise suppression missing');
-assert.match(src, /NEXT_POSTER=IS_LARGE&&NEXT\?await eventPoster\(NEXT\):null/, 'Large next poster loader missing');
+assert.match(src, /const BOXING_LARGE=IS_LARGE&&KEY==='boxing'/, 'BOXING Large ultra-light gate missing');
+assert.match(src, /const NEXT=BOXING_LARGE\?null:\(IS_LARGE\?await loadLargeNext\(D\):null\)/, 'BOXING Large must skip next-event scraping');
+assert.match(src, /NEXT_POSTER=IS_LARGE&&NEXT&&!BOXING_LARGE\?await eventPoster\(NEXT\):null/, 'BOXING Large must skip next-event poster loading');
 assert.match(src, /const NEXT_SNAPSHOT=/, 'Trusted next-event fallback missing');
 assert.match(src, /function trustedLargeNext\(base\)/, 'Large trusted-next fallback helper missing');
 assert.match(src, /for\(let i=0;i<160;i\+\+\)/, 'V5 cinematic hero fade missing');
@@ -35,5 +37,6 @@ assert.match(src, /jpCardLabel\(row\.label\),7\.0/, 'V5.2 card-label typography 
 assert.match(src, /jpDisplay\(row\.a\),8\.4/, 'V5.2 fighter-name typography missing');
 assert.match(src, /largeNextTitle\(next\),9\.6/, 'V5.2 next-event title typography missing');
 assert.ok(src.includes("KEY==='boxing'&&config.widgetFamily==='large'"), 'BOXING Large must use lightweight context');
-assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Large render fallback missing');
+assert.match(src, /if\(BOXING_LARGE\)\{w\.backgroundColor=new Color\('#020305'\);renderLarge\(w,D,ctx,NEXT,null\);\}/, 'BOXING Large must bypass DrawContext background rendering');
+assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Non-BOXING Large render fallback missing');
 console.log('COMBAT HUB Large V5.2 + BOXING reliability regression: OK');
