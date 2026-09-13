@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - chatgpt/rc-live-data-hardening-v7.12.0
+    paths:
+      - .github/workflows/rc-live-data-patch.yml
 
 permissions:
   contents: write
 
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, '[rc-data-patched]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
