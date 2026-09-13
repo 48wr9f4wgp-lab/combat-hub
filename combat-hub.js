@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.12.2-github — BOXING Large no-deep-discovery guard
+// v7.12.3-github — BOXING Large emergency local safe mode
 
 (async()=>{
-const VERSION='7.12.2-github';
+const VERSION='7.12.3-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -31,6 +31,22 @@ const VISUAL={
   k1:{heroShade:.60,posterShade:.46,headerShade:.10,mainShade:.11,footShade:.17,veil:.055,gap:15,mainSize:13.6,division:7.3}
 };
 const V=VISUAL[KEY];
+
+// Emergency local-only guard for BOXING Large after the locked event expired.
+if(config.runsInWidget&&config.widgetFamily==='large'&&KEY==='boxing'&&Date.now()>=new Date('2026-09-13T21:00:00+09:00').getTime()){
+  const safe=new ListWidget();
+  safe.setPadding(18,18,16,18);
+  safe.backgroundColor=new Color('#050609');
+  const title=safe.addText('ボクシング');title.font=Font.blackSystemFont(22);title.textColor=new Color('#FFFFFF');
+  safe.addSpacer(6);
+  const state=safe.addText('次大会情報を確認中');state.font=Font.boldSystemFont(15);state.textColor=new Color('#4BA3FF');
+  safe.addSpacer(8);
+  const meta=safe.addText('日程未定 ・ 時刻未定');meta.font=Font.semiboldSystemFont(10);meta.textColor=new Color('#D7DCE3');
+  safe.addSpacer();
+  const note=safe.addText('公式情報の更新を待っています');note.font=Font.semiboldSystemFont(10);note.textColor=new Color('#9AA2AD');
+  safe.refreshAfterDate=new Date(Date.now()+30*60*1000);
+  Script.setWidget(safe);Script.complete();return;
+}
 
 const SNAPSHOT={
   ufc:{startAt:'2026-09-13T06:00:00+09:00',location:'グレンデール',name:'Noche UFC',main:{a:'Jean Silva',b:'Jose Miguel Delgado',context:'FEATHERWEIGHT'},support:[{label:'CO-MAIN',a:'Brandon Moreno',b:'Joseph Morales'},{label:'MAIN CARD',a:'Tommy McMillen',b:'Marwan Rahiki'},{label:'MAIN CARD',a:'Manon Fiorot',b:'Alexa Grasso'},{label:'MAIN CARD',a:'Waldo Cortes Acosta',b:'Curtis Blaydes'},{label:'MAIN CARD',a:'David Martinez',b:'Dan Ige'}],source:'https://www.ufc.com/event/ufc-fight-night-september-12-2026'},
