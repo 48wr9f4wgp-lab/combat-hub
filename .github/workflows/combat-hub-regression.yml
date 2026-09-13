@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: combat-hub-${{ github.workflow }}-${{ github.ref }}
@@ -21,6 +21,41 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24.x'
+      - name: Apply BOXING Large repair
+        if: github.event_name == 'push' && github.event.head_commit.message == 'chore: enable boxing large repair'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('combat-hub.js')
+          s=p.read_text()
+          s=s.replace("// v7.11.3-github — Japanese display completion", "// v7.11.4-github — Boxing Large reliability fix")
+          s=s.replace("const VERSION='7.11.3-github';", "const VERSION='7.11.4-github';")
+          old="if(KEY==='k1'&&KNOWN_K1[D.main.a]&&KNOWN_K1[D.main.b])return{a:await profileImage(KNOWN_K1[D.main.a],D.main.a,'k1'),b:await profileImage(KNOWN_K1[D.main.b],D.main.b,'k1'),poster:null};return{a:{name:D.main.a,image:null},b:{name:D.main.b,image:null},poster:await eventPoster(D)};}"
+          new="if(KEY==='k1'&&KNOWN_K1[D.main.a]&&KNOWN_K1[D.main.b])return{a:await profileImage(KNOWN_K1[D.main.a],D.main.a,'k1'),b:await profileImage(KNOWN_K1[D.main.b],D.main.b,'k1'),poster:null};if(KEY==='boxing'&&config.widgetFamily==='large')return{a:{name:D.main.a,image:null},b:{name:D.main.b,image:null},poster:null,lightweight:true};return{a:{name:D.main.a,image:null},b:{name:D.main.b,image:null},poster:await eventPoster(D)};}"
+          if old not in s: raise SystemExit('heroContext patch anchor missing')
+          s=s.replace(old,new)
+          old2="if(IS_LARGE){w.setPadding(14,16,12,16);w.backgroundImage=largeBackground(ctx);renderLarge(w,D,ctx,NEXT,NEXT_POSTER);}else{"
+          new2="if(IS_LARGE){w.setPadding(14,16,12,16);try{w.backgroundImage=largeBackground(ctx);renderLarge(w,D,ctx,NEXT,NEXT_POSTER);}catch(_){w.backgroundColor=new Color('#020305');renderLarge(w,D,{a:{name:D.main.a,image:null},b:{name:D.main.b,image:null},poster:null},NEXT,null);}}else{"
+          if old2 not in s: raise SystemExit('large render patch anchor missing')
+          s=s.replace(old2,new2)
+          p.write_text(s)
+          for tp in Path('tests').glob('*.mjs'):
+            t=tp.read_text().replace('7.11.3-github','7.11.4-github').replace('7.11.3','7.11.4')
+            tp.write_text(t)
+          lp=Path('tests/combat-hub-large-regression.mjs')
+          t=lp.read_text()
+          if "KEY==='boxing'&&config.widgetFamily==='large'" not in t:
+            t += "\nif (!source.includes(\"KEY==='boxing'&&config.widgetFamily==='large'\")) throw new Error('boxing Large must use lightweight context');\n"
+            lp.write_text(t)
+          PY
+      - name: Commit BOXING Large repair
+        if: github.event_name == 'push' && github.event.head_commit.message == 'chore: enable boxing large repair'
+        run: |
+          git config user.name '48wr9f4wgp-lab'
+          git config user.email '48wr9f4wgp@privaterelay.appleid.com'
+          git add combat-hub.js tests
+          git commit -m 'fix: stabilize BOXING Large rendering'
+          git push
       - name: Runtime syntax check
         run: node --check combat-hub.js
       - name: Production Loader syntax check
