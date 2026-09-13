@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.11\.3-github'/);
+assert.match(src, /const VERSION='7\.11\.4-github'/);
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
@@ -34,6 +34,6 @@ assert.match(src, /'次大会'/, 'Japanese next-event label missing');
 assert.match(src, /jpCardLabel\(row\.label\),7\.0/, 'V5.2 card-label typography missing');
 assert.match(src, /jpDisplay\(row\.a\),8\.4/, 'V5.2 fighter-name typography missing');
 assert.match(src, /largeNextTitle\(next\),9\.6/, 'V5.2 next-event title typography missing');
-console.log('COMBAT HUB Large V5.2 regression: OK');
-
-if (!source.includes("KEY==='boxing'&&config.widgetFamily==='large'")) throw new Error('boxing Large must use lightweight context');
+assert.ok(src.includes("KEY==='boxing'&&config.widgetFamily==='large'"), 'BOXING Large must use lightweight context');
+assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Large render fallback missing');
+console.log('COMBAT HUB Large V5.2 + BOXING reliability regression: OK');
