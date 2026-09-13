@@ -55,7 +55,7 @@ has(/async function refreshLockedCurrent\(snap\)/, 'Safe locked-current refresh 
 has(/combat-hub-current-\$\{KEY\}\.json/, 'Current-event refresh cache missing');
 has(/pairs=html\?currentPagePairs\(html\):\[\]/, 'ONE-capable detail card parser missing');
 has(/new Date\(snap\.startAt\)\.getTime\(\)\+6\*3600000/, 'next-event lower-bound guard missing');
-has(/Date\.now\(\)\+180\*86400000/, 'next-event search horizon changed unexpectedly');
+has(/(?:Date\.now\(\)|now)\+180\*86400000/, 'next-event search horizon changed unexpectedly');
 has(/jsonLdEvents\(listing,S\.listing\)\.map\(normalizeOneCompositeEvent\)\.filter\(eligible\)/, 'listing candidates must be normalized and eligibility-filtered before traversal decision');
 has(/if\(!candidates\.length\)\{for\(const u of links/, 'detail traversal fallback missing');
 
@@ -67,8 +67,8 @@ has(/async function eventPoster\(D\)/, 'event-poster fallback helper missing');
 
 // Cache behavior must remain bounded and recoverable.
 has(/combat-hub-next-\$\{KEY\}\.json/, 'per-organization next-event cache missing');
-has(/now-cached\.savedAt<4\*3600000/, 'next-event cache TTL changed unexpectedly');
-has(/if\(cached\?\.data\)return \{\.\.\.normalizeOneCompositeEvent\(cached\.data\),stale:true\}/, 'stale-cache fallback missing');
+has(/now-Number\(cached\.savedAt\)<4\*3600000/, 'next-event cache TTL changed unexpectedly');
+has(/if\(cachedData&&rollforwardEligible\(snap,cachedData,now\)\)return \{\.\.\.cachedData,stale:true\}/, 'stale-cache fallback missing');
 
 // Visual regression guards: v7.7 reliability pass must not alter verified v7.6 layout.
 has(/KEY==='k1'\?370:360/, 'K-1 left hero overlap fix missing');
@@ -355,7 +355,7 @@ for (const parameter of ['UFC', 'RIZIN']) {
   assert.equal(requests.filter(r => r.kind === 'string').length, 0, 'Fresh event cache should avoid network listing requests');
 }
 
-// Stale event cache remains a recovery path when live discovery fails.
+// Trusted official next snapshot must outrank stale cache when live discovery fails.
 {
   const now = Date.parse('2026-09-20T00:00:00+09:00');
   const { api, fm } = await boot('UFC', { now });
@@ -371,8 +371,8 @@ for (const parameter of ['UFC', 'RIZIN']) {
     },
   }));
   const data = await api.loadData();
-  assert.equal(data.name, 'UFC Stale Event');
-  assert.equal(data.stale, true, 'Stale cache fallback flag missing');
+  assert.equal(data.name, 'Crypto.com UFC 331: Van vs Pantoja 2');
+  assert.equal(data.trustedNext, true, 'Trusted next snapshot should outrank stale cache');
 }
 
 // Loader manual run: verified remote is fetched, cached, and executed exactly once.

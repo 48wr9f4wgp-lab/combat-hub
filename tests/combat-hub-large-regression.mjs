@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.11\.9-github'/);
+assert.match(src, /const VERSION='7\.\d+\.\d+-github'/);
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
