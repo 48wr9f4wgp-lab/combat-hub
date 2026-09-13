@@ -2,13 +2,33 @@
 // ScriptableにはこのLoaderだけを保存する。
 
 (async()=>{
-const LOADER_VERSION='4.0.0';
+const LOADER_VERSION='4.1.0';
 const MIN_RUNTIME=[7,6,0];
 const WIDGET_CACHE_TTL=30*60*1000;
 const REMOTES=[
   'https://raw.githubusercontent.com/48wr9f4wgp-lab/combat-hub/main/combat-hub.js',
   'https://github.com/48wr9f4wgp-lab/combat-hub/raw/refs/heads/main/combat-hub.js'
 ];
+
+// Diagnostic guard: if this screen appears, the home-screen widget is definitely
+// executing the current Loader and the remaining fault is downstream of Loader routing.
+const param=String(args.widgetParameter||'').trim().toUpperCase().replace(/[\s_-]+/g,'');
+if(config.runsInWidget&&config.widgetFamily==='large'&&param==='BOXING'){
+  const diag=new ListWidget();
+  diag.setPadding(20,20,18,20);
+  diag.backgroundColor=new Color('#08162A');
+  const title=diag.addText('COMBAT HUB');title.font=Font.blackSystemFont(24);title.textColor=new Color('#FFFFFF');
+  diag.addSpacer(8);
+  const ok=diag.addText('LOADER OK');ok.font=Font.blackSystemFont(30);ok.textColor=new Color('#4BA3FF');
+  diag.addSpacer(6);
+  const ver=diag.addText('Loader v4.1.0');ver.font=Font.boldSystemFont(13);ver.textColor=new Color('#D7DCE3');
+  diag.addSpacer(14);
+  const note=diag.addText('BOXING Large 直描画テスト');note.font=Font.semiboldSystemFont(12);note.textColor=new Color('#9AA2AD');
+  diag.addSpacer();
+  const foot=diag.addText('通信・キャッシュ・本体コード未使用');foot.font=Font.semiboldSystemFont(11);foot.textColor=new Color('#9AA2AD');
+  diag.refreshAfterDate=new Date(Date.now()+30*60*1000);
+  Script.setWidget(diag);Script.complete();return;
+}
 
 const fm=FileManager.local();
 const doc=fm.documentsDirectory();
