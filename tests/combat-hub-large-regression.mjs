@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.11\.8-github'/);
+assert.match(src, /const VERSION='7\.11\.9-github'/);
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
@@ -39,7 +39,11 @@ assert.match(src, /largeNextTitle\(next\),9\.6/, 'V5.2 next-event title typograp
 assert.match(src, /function largeFightRow\(st,row,wide=false\)/, 'BOXING wide fight-row mode missing');
 assert.match(src, /largeFightRow\(left,row,compactBoxing\)/, 'BOXING adaptive row call missing');
 assert.match(src, /'公式情報を確認中',7\.8/, 'BOXING compact next-status line missing');
+assert.match(src, /if\(KEY!=='boxing'\)\{const sl=status\.addStack\(\)/, 'BOXING Large status label should be suppressed');
+assert.match(src, /badge\.cornerRadius=KEY==='boxing'\?11:9/, 'BOXING Large premium countdown radius missing');
+assert.match(src, /badge\.setPadding\(KEY==='boxing'\?5:4,KEY==='boxing'\?10:8,KEY==='boxing'\?5:4,KEY==='boxing'\?10:8\)/, 'BOXING Large premium countdown padding missing');
+assert.match(src, /w\.addSpacer\(D\.cardTba\?30:\(KEY==='boxing'\?34:40\)\)/, 'BOXING Large final hero spacing missing');
 assert.match(src, /if\(KEY==='boxing'&&config\.widgetFamily==='large'\)return\{a:\{name:D\.main\.a,image:null\},b:\{name:D\.main\.b,image:null\},poster:await eventPoster\(D\),lightweight:true\};/, 'BOXING Large lightweight context must retain the current event poster');
 assert.match(src, /if\(BOXING_LARGE\)\{if\(ctx\.poster\)w\.backgroundImage=ctx\.poster;else w\.backgroundColor=new Color\('#020305'\);renderLarge\(w,D,ctx,NEXT,null\);\}/, 'BOXING Large must use direct poster background without DrawContext composition');
 assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Non-BOXING Large render fallback missing');
-console.log('COMBAT HUB Large V5.2 + BOXING adaptive-rail regression: OK');
+console.log('COMBAT HUB Large V5.2 + BOXING final-polish regression: OK');
