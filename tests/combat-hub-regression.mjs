@@ -355,7 +355,7 @@ for (const parameter of ['UFC', 'RIZIN']) {
   assert.equal(requests.filter(r => r.kind === 'string').length, 0, 'Fresh event cache should avoid network listing requests');
 }
 
-// Stale event cache remains a recovery path when live discovery fails.
+// Trusted official next snapshot must outrank stale cache when live discovery fails.
 {
   const now = Date.parse('2026-09-20T00:00:00+09:00');
   const { api, fm } = await boot('UFC', { now });
@@ -371,8 +371,8 @@ for (const parameter of ['UFC', 'RIZIN']) {
     },
   }));
   const data = await api.loadData();
-  assert.equal(data.name, 'UFC Stale Event');
-  assert.equal(data.stale, true, 'Stale cache fallback flag missing');
+  assert.equal(data.name, 'Crypto.com UFC 331: Van vs Pantoja 2');
+  assert.equal(data.trustedNext, true, 'Trusted next snapshot should outrank stale cache');
 }
 
 // Loader manual run: verified remote is fetched, cached, and executed exactly once.
