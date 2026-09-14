@@ -68,6 +68,15 @@ jobs:
               raise SystemExit('K-1 regression shade marker missing')
           k=k.replace(old,new,1)
           p.write_text(k)
+
+          p=Path('tests/combat-hub-large-regression.mjs')
+          lg=p.read_text()
+          old="assert.match(src, /const VERSION='7\\.17\\.0-github'/);"
+          new="assert.match(src, /const VERSION='7\\.\\d+\\.\\d+-github'/);"
+          if old not in lg:
+              raise SystemExit('Large regression version marker missing')
+          lg=lg.replace(old,new,1)
+          p.write_text(lg)
           PY
       - name: Full verification
         run: |
@@ -99,6 +108,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add combat-hub.js HANDOFF.md tests/combat-hub-typography-regression.mjs tests/combat-hub-k1-layout-regression.mjs
+          git add combat-hub.js HANDOFF.md tests/combat-hub-typography-regression.mjs tests/combat-hub-k1-layout-regression.mjs tests/combat-hub-large-regression.mjs
           git commit -m "style: improve K-1 Medium background contrast"
           git push origin HEAD:chatgpt/k1-medium-contrast-v7171
