@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.17.0-github**
+- Runtime: **v7.17.1-github**
 - Runtime PR: **#45 — Ring official-events parser**
 - Runtime merge commit: `cb6358396a5493b98f1a7c486d17fba957aa92a4`
 - Main Regression after PR #45: **#486 success**
@@ -149,6 +149,12 @@ Large now uses one shared geometry and typography system across UFC / RIZIN / ON
 
 Physical iPhone visual confirmation for v7.15.0 is still required before calling this pass complete.
 
+
+## 6B. K-1 Medium contrast polish in v7.17.1
+
+- Physical iPhone review after Medium unification showed K-1 background art competing with text more than the other organizations.
+- K-1 Medium-only shared background rendering now uses stronger hero/poster darkness (`heroShade .66`, `posterShade .52`).
+- Medium geometry, typography, status hierarchy, Large geometry, BOXING cache-only safety, Loader, and friends-stable are unchanged.
 
 ## 6A. Medium UI architecture in v7.17.0
 

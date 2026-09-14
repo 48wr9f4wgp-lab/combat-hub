@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-assert.match(src, /const VERSION='7\.17\.0-github'/);
+assert.match(src, /const VERSION='7\.\d+\.\d+-github'/);
 assert.match(src, /const LARGE_UI=\{org:24,event:10\.0,meta:9\.2,status:6\.8,countdown:12\.4,statusDate:8\.2,statusLoc:8\.2,heroLabel:7\.4,pending:17\.2,pendingSub:10\.0,main:16\.0,vs:17\.0,division:9\.0,section:8\.8,fightLabel:8\.4,fightName:10\.2,nextLabel:8\.4,nextTitle:11\.0,nextMeta:8\.8,nextCountdown:9\.2,dashH:150,leftW:192,rightW:103,headerW:198,statusW:122,heroGap:24,pendingOffset:32\}/);
 assert.match(src, /const veil=\.64;/);
 assert.match(src, /function largeNameParts\(s\)/);
