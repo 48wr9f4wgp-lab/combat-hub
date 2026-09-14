@@ -10,18 +10,15 @@ permissions:
 
 jobs:
   apply:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           ref: chatgpt/large-readability-pass
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
       - name: Apply focused Large visual pass
+        shell: bash
         run: |
-          python - <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
           p=Path('combat-hub.js')
           s=p.read_text()
@@ -52,7 +49,6 @@ function renderLarge(w,D,ctx,next,nextPoster){
   const status=h.addStack();status.layoutVertically();
   if(KEY!=='boxing'){const sl=status.addStack();sl.addSpacer();tx(sl,statusLabel(D),6.8,new Color(C.muted),'bold');status.addSpacer(3);}
   const badge=status.addStack();badge.backgroundColor=new Color('#05070B',KEY==='boxing'?.78:.70);badge.cornerRadius=11;badge.borderWidth=.7;badge.borderColor=new Color(S.accent,.36);badge.setPadding(5,10,5,10);tx(badge,countdown(D),12.4,new Color(C.text),'black');
-
   w.addSpacer(pending?20:(KEY==='boxing'?24:27));
   if(pending){
     const center=w.addStack();center.layoutVertically();
@@ -71,7 +67,6 @@ function renderLarge(w,D,ctx,next,nextPoster){
     w.addSpacer(5);
     const dv=tx(w,division(D.main.context),9.0,new Color('#D8DCE2'),'semibold');dv.centerAlignText();
   }
-
   w.addSpacer();
   const rows=(D.support||[]).slice(0,2),compactBoxing=KEY==='boxing'&&!next&&rows.length<=1,dashHeight=compactBoxing?122:142;
   const dash=w.addStack();dash.size=new Size(328,dashHeight);dash.backgroundColor=new Color('#05070B',.91);dash.cornerRadius=16;dash.borderWidth=.8;dash.borderColor=new Color('#FFFFFF',.11);dash.setPadding(10,10,10,10);
@@ -97,10 +92,10 @@ function renderLarge(w,D,ctx,next,nextPoster){
           s=s[:start]+block+'\n'+s[end:]
           p.write_text(s)
           PY
-      - name: Remove one-shot workflow
-        run: rm .github/workflows/zz-large-readability-pass.yml
       - name: Commit visual pass
+        shell: bash
         run: |
+          rm .github/workflows/zz-large-readability-pass.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add combat-hub.js .github/workflows/zz-large-readability-pass.yml
