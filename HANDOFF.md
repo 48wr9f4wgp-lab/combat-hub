@@ -32,9 +32,9 @@ Target quality:
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
 - Runtime: **v7.19.1-github**
-- Runtime PR: **#45 — Ring official-events parser**
-- Runtime merge commit: `cb6358396a5493b98f1a7c486d17fba957aa92a4`
-- Main Regression after PR #45: **#486 success**
+- Latest runtime-changing PR: **#56 — harden multi-event transition timeline**
+- Runtime merge commit: `d9d44577e60861893694b5e1ee4a5a10aee9233b`
+- Main Regression after runtime PR #56: **#595 success**
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -294,6 +294,8 @@ Canonical CI checks include:
 - Large widget behavior
 - Japanese display
 - event transition behavior
+- deterministic five-series transition timeline QA
+- end-to-end `loadData()` / `loadLargeNext()` transition integration with shared-cache simulation
 
 v7.14.0 adds regression contracts confirming:
 
@@ -307,7 +309,7 @@ v7.14.0 adds regression contracts confirming:
 PR #45 Regression **#485 success**.
 Merge-to-main Regression **#486 success**.
 
-## 10. Immediate next task — one minimal v7.14.0 device check
+## 10. Historical v7.14.0 device-check note
 
 Do **not** repeat all five organizations or the old Medium/Large QA loop.
 
@@ -329,6 +331,16 @@ A valid result is:
 Only send a screenshot / investigate further if the display becomes abnormal or if a verified future event appears and needs truth-checking.
 
 Do not call live future-event ingestion fully proven until Ring official `/events` advances and a real future event is actually written/read through the verified cache on device.
+
+## 10A. Current QA status / next empirical checks
+
+Automated transition coverage now exercises all five organizations through sequential current/next promotion, including BOXING manual-prefetch -> verified-cache-only Widget behavior and K-1 date-only/time-TBA rollover.
+
+No additional visual churn or repeated five-organization screenshot loop is required for this logic-only pass. The remaining useful real-device checks are event-driven:
+
+- observe the next real organization rollover after an event completes and confirm the expected current/next pair appears without manual cache surgery
+- when Ring `/events` publishes a genuine future BOXING event, run BOXING manually once and confirm the verified event is then consumed by the home-screen Widget without blanking
+- investigate only if runtime audit fields, event identity, countdown, or display state diverge from the official source
 
 ## 11. Known debt / risks
 
