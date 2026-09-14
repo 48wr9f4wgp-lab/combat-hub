@@ -10,7 +10,7 @@ assert.match(src, /combat-profile-\$\{kind\}-\$\{safeKey\(url\)\}\.json/, 'fight
 assert.match(src, /now-Number\(cached\.savedAt\)<12\*3600000/, 'fighter metadata TTL must remain 12h');
 assert.match(src, /cachedMetaImageURL\(current\.source,`\$\{KEY\}-event`,4\*3600000\)/, 'locked-event metadata fallback cache must remain 4h');
 assert.match(src, /combat-hub-current-\$\{KEY\}\.json/, 'locked-current data cache missing');
-assert.match(src, /now-Number\(cached\.savedAt\)<2\*3600000/, 'locked-current refresh TTL must remain 2h');
+assert.match(src, /refreshTtl=\(KEY==='rizin'\|\|KEY==='one'\)\?30\*60\*1000:2\*3600000/, 'locked-current refresh TTL must be 30m for RIZIN/ONE and 2h otherwise');
 
 const renderMarker = 'const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudit(D,ctx);const w=new ListWidget();';
 assert.ok(src.includes(renderMarker), 'Runtime instrumentation marker changed');

@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.17.1-github**
+- Runtime: **v7.18.0-github**
 - Runtime PR: **#45 — Ring official-events parser**
 - Runtime merge commit: `cb6358396a5493b98f1a7c486d17fba957aa92a4`
 - Main Regression after PR #45: **#486 success**
@@ -163,6 +163,16 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - Pending and confirmed states share the same header geometry. Organization differences are limited to data, accent color, and available background art.
 - K-1 no longer has a bespoke Medium optical inset; fighter slots, VS axis, support rows, and typography use shared MEDIUM_UI tokens.
 - Large v7.16.1 geometry and BOXING verified-cache-only safety are unchanged.
+
+## 6C. RIZIN / ONE known-event card freshness in v7.18.0
+
+- Medium/Large visual geometry is frozen; this pass changes data freshness only.
+- Discovery of a new event remains cached for up to four hours to avoid repeated heavy listing/deep discovery work.
+- Once RIZIN or ONE has a known eligible event source, its official event-detail page is refreshed every 30 minutes to pick up card changes without repeating full event discovery.
+- Snapshot-locked RIZIN/ONE current events use the same 30-minute detail refresh cadence; other organizations keep the existing two-hour locked-current cache.
+- A successful detail refresh updates main/support cards and poster metadata while preserving the event identity/time/location already validated by roll-forward logic.
+- If detail refresh fails or yields no card pairs, the last known valid cached event/card is preserved.
+- BOXING verified-cache-only Widget safety, Loader v4.2.0, Large v7.16.1 geometry, Medium v7.17.x geometry, and friends-stable are unchanged.
 
 ## 7. BOXING architecture in v7.14.0
 
@@ -375,7 +385,7 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `7.14.0-github`
+- runtime `7.18.0-github`
 - Loader `4.2.0`
 - runtime merge commit `cb6358396a5493b98f1a7c486d17fba957aa92a4`
 - main Regression `#486 success`
