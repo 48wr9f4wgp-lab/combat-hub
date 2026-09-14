@@ -1,0 +1,87 @@
+name: Apply BOXING Ring parser
+on:
+  push:
+    branches: [chatgpt/boxing-ring-parser]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt/boxing-ring-parser
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.x'
+      - name: Apply Ring-specific parser
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path('combat-hub.js')
+          s=p.read_text()
+          s=s.replace('// v7.13.1-github — Large lower-panel readability polish; BOXING cache-only path preserved','// v7.14.0-github — Ring official-events parser; BOXING cache-only widget path preserved')
+          s=s.replace("const VERSION='7.13.1-github';","const VERSION='7.14.0-github';")
+          marker='function ufcDetailName(html){'
+          assert marker in s
+          block=r'''function ringUsDst(y,mo,day){const marchSecond=8+((7-new Date(Date.UTC(y,2,8)).getUTCDay())%7),novFirst=1+((7-new Date(Date.UTC(y,10,1)).getUTCDay())%7);if(mo<2||mo>10)return false;if(mo>2&&mo<10)return true;if(mo===2)return day>=marchSecond;return day<novFirst;}
+function ringSiteOffsetHours(zone,y,mo,day){const z=String(zone||'ET').toUpperCase();if(z==='EDT')return-4;if(z==='EST'||z==='ET')return ringUsDst(y,mo,day)?-4:-5;if(z==='PDT')return-7;if(z==='PST'||z==='PT')return ringUsDst(y,mo,day)?-7:-8;if(z==='CDT')return-5;if(z==='CST'||z==='CT')return ringUsDst(y,mo,day)?-5:-6;if(z==='MDT')return-6;if(z==='MST'||z==='MT')return ringUsDst(y,mo,day)?-6:-7;if(z==='BST')return 1;if(z==='JST')return 9;return 0;}
+function ringListingTime(mon,day,hour,minute,ampm,zone,now=Date.now()){const MONTH={JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11},mo=MONTH[String(mon||'').slice(0,3).toUpperCase()];if(mo==null)return null;let h=Number(hour)%12;if(String(ampm).toUpperCase()==='PM')h+=12;const ref=new Date(now).getUTCFullYear(),hits=[];for(const y of [ref-1,ref,ref+1]){const off=ringSiteOffsetHours(zone,y,mo,Number(day)),t=Date.UTC(y,mo,Number(day),h,Number(minute))-off*3600000;if(t>now-200*86400000&&t<now+400*86400000)hits.push(t);}if(!hits.length)return null;hits.sort((a,b)=>Math.abs(a-now)-Math.abs(b-now));return new Date(hits[0]).toISOString();}
+function ringSlugName(source){const slug=((String(source||'').match(/\/events\/([^/?#]+)/i)||[])[1]||'').replace(/-[A-Za-z0-9]{16,}$/,'').replace(/-/g,' ').trim();return slug.replace(/\bvs\b/i,'vs');}
+function ringListingEvents(html,base,now=Date.now()){if(KEY!=='boxing'||!html)return[];const out=[],seen=new Set(),re=/<a\b[^>]*href=["']([^"']*\/events\/[^"'#?]+)["'][^>]*>([\s\S]*?)<\/a>/gi;for(const m of String(html).matchAll(re)){const source=absoluteURL(m[1],base);if(!source||seen.has(source))continue;const text=stripHTML(m[2]).replace(/\s+/g,' ').trim(),dm=text.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2})\b/i),tm=text.match(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\s*(EST|EDT|ET|PST|PDT|PT|CST|CDT|CT|MST|MDT|MT|BST|GMT|UTC|JST)\b/i);if(!dm||!tm)continue;const startAt=ringListingTime(dm[1],dm[2],tm[1],tm[2],tm[3],tm[4],now);if(!startAt)continue;let location=text.replace(dm[0],' ').replace(tm[0],' ').replace(/\s+/g,' ').trim();const after=String(html).slice((m.index||0)+m[0].length,(m.index||0)+m[0].length+3500),label=(after.match(/aria-label=["']View event details for ([^"']+)["']/i)||[])[1],name=cleanName(label||ringSlugName(source));if(!name||!/(?:\bvs\.?\b|\bversus\b|対)/i.test(name))continue;seen.add(source);out.push({name,startAt,location:shortLoc(location),source,timeTba:false,ringOfficial:true});}return out;}
+function ringDetailMain(html){if(KEY!=='boxing'||!html)return null;const flight=String(html).replace(/\\u0026/gi,'&').replace(/\\"/g,'"'),m=flight.match(/"mainFight":\{[\s\S]{0,20000}?"tagLine":"([^"]*)"[\s\S]{0,30000}?"fighterA":\{[\s\S]{0,12000}?"name":"([^"]+)"[\s\S]{0,30000}?"fighterB":\{[\s\S]{0,12000}?"name":"([^"]+)"/);if(!m)return null;return{a:cleanName(m[2]),b:cleanName(m[3]),context:stripHTML(m[1]||'')};}
+function ringDetailPairs(html){const m=ringDetailMain(html);return m?[{a:m.a,b:m.b}]:[];}
+'''
+          s=s.replace(marker,block+marker)
+          old="function currentPagePairs(html){if(!html)return[];if(KEY==='one'){"
+          new="function currentPagePairs(html){if(!html)return[];if(KEY==='boxing'){const ring=ringDetailPairs(html);if(ring.length)return ring;}if(KEY==='one'){"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="if(KEY==='ufc')candidates.push(...ufcListingEvents(listing,S.listing,Math.max(new Date(snap.startAt).getTime()+6*3600000,now-12*3600000),now+180*86400000).filter(eligible));const uniq=new Map();"
+          new="if(KEY==='ufc')candidates.push(...ufcListingEvents(listing,S.listing,Math.max(new Date(snap.startAt).getTime()+6*3600000,now-12*3600000),now+180*86400000).filter(eligible));if(KEY==='boxing')candidates.push(...ringListingEvents(listing,S.listing,now).filter(eligible));const uniq=new Map();"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="const detailName=html?ufcDetailName(html):'',detailLoc=html?ufcDetailLocation(html):'',pairs=html?currentPagePairs(html):[];const fallbackMain={a:'対戦カード',b:'発表待ち',context:ev.name};const main=pairs.length?{a:pairs[0].a,b:pairs[0].b,context:''}:fallbackMain;"
+          new="const detailName=html?ufcDetailName(html):'',detailLoc=html?ufcDetailLocation(html):'',ringMain=KEY==='boxing'&&html?ringDetailMain(html):null,pairs=html?currentPagePairs(html):[];const fallbackMain={a:'対戦カード',b:'発表待ち',context:ev.name};const main=pairs.length?{a:pairs[0].a,b:pairs[0].b,context:ringMain?.context||''}:fallbackMain;"
+          assert old in s
+          s=s.replace(old,new,1)
+          p.write_text(s)
+
+          # Keep the visual regression pinned to the current runtime version.
+          lp=Path('tests/combat-hub-large-regression.mjs')
+          ls=lp.read_text().replace("7\\.13\\.1-github","7\\.14\\.0-github")
+          lp.write_text(ls)
+
+          ep=Path('tests/combat-hub-event-transition-regression.mjs')
+          es=ep.read_text()
+          anchor="assert.match(src,/cachedData&&now-Number\\(cached\\.savedAt\\)<6\\*3600000&&nextEligible\\(base,cachedData,now\\)/);\n"
+          assert anchor in es
+          additions=r'''assert.match(src,/function ringListingEvents\(html,base,now=Date\.now\(\)\)/,'Ring official listing parser missing');
+assert.match(src,/function ringDetailMain\(html\)/,'Ring event-detail parser missing');
+assert.match(src,/if\(KEY==='boxing'\)candidates\.push\(\.\.\.ringListingEvents\(listing,S\.listing,now\)\.filter\(eligible\)\)/,'Ring candidates must enter strictNextEvent');
+assert.match(src,/if\(KEY==='boxing'\)\{const ring=ringDetailPairs\(html\);if\(ring\.length\)return ring;\}/,'BOXING detail cards must use Ring parser first');
+assert.match(src,/verifiedBy:'strictNextEvent'/,'BOXING verified-cache marker must remain');
+assert.match(src,/if\(KEY==='boxing'&&config\.runsInWidget\)/,'BOXING widget cache-only gate must remain');
+'''
+          es=es.replace(anchor,anchor+additions)
+          ep.write_text(es)
+          PY
+          rm -f .github/workflows/apply-boxing-ring-parser.yml
+      - name: Syntax and regression
+        run: |
+          node --check combat-hub.js
+          node --check tests/combat-hub-large-regression.mjs
+          node --check tests/combat-hub-event-transition-regression.mjs
+          node tests/combat-hub-large-regression.mjs
+          node tests/combat-hub-event-transition-regression.mjs
+          node tests/combat-hub-regression.mjs
+          node tests/combat-hub-cache-regression.mjs
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name "48wr9f4wgp-lab"
+          git config user.email "48wr9f4wgp@privaterelay.appleid.com"
+          git add combat-hub.js tests/combat-hub-large-regression.mjs tests/combat-hub-event-transition-regression.mjs .github/workflows/apply-boxing-ring-parser.yml
+          git commit -m "feat: parse official Ring boxing events"
+          git push origin HEAD:chatgpt/boxing-ring-parser
