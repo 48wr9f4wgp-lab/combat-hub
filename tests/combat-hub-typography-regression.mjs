@@ -25,13 +25,19 @@ assert.match(src, /function renderMainName\(box,name\)\{const parts=mainNamePart
 assert.match(src, /if\(KEY==='rizin'&&parts\.length>1\)t\.minimumScaleFactor=\.86/, 'RIZIN multiline scale floor missing');
 assert.match(src, /function boxingCenterBand\(c\)\{if\(KEY!=='boxing'\)return;const bands=\[190,158,126,96,68\]/, 'BOXING center contrast band missing or too weak');
 assert.equal((src.match(/boxingCenterBand\(c\);softCenter/g) || []).length, 2, 'BOXING center contrast must apply to hero and poster backgrounds');
-assert.match(src, /const footColor=KEY==='one'\?new Color\('#E0E4EA',\.82\):new Color\(C\.muted\)/, 'ONE footer contrast polish missing');
 
-// Geometry remains frozen: final visual pass must not move the verified card structure.
-assert.match(src, /aBox\.size=new Size\(140,36\)/);
-assert.match(src, /centerBox\.size=new Size\(44,36\)/);
-assert.match(src, /bBox\.size=new Size\(140,36\)/);
-assert.match(src, /const k1Inset=KEY==='k1'\?10:0/);
-assert.match(src, /w\.addSpacer\(KEY==='k1'\?7:5\);divider\(w\)/);
+// Medium v7.17.0 uses one geometry and type scale across all organizations.
+assert.match(src, /const MEDIUM_UI=\{org:20\.5,event:8\.8,status:6\.7,countdown:13\.1,statusDate:7\.5,statusLoc:7\.5,heroGap:12,pending:14\.4,pendingSub:7\.5,main:14\.3,mainLabel:7\.5,vs:15\.2,division:8\.0,supportLabel:7\.5,supportName:8\.8,headerW:205,statusW:105\}/);
+assert.match(src, /function renderMedium\(w,D,ctx\)/);
+assert.match(src, /hl\.size=new Size\(MEDIUM_UI\.headerW,0\)/);
+assert.match(src, /status\.size=new Size\(MEDIUM_UI\.statusW,0\)/);
+assert.match(src, /mediumRightText\(status,largeStatusHeading\(D\),MEDIUM_UI\.status/);
+assert.match(src, /mediumRightText\(status,largeStatusDate\(D\),MEDIUM_UI\.statusDate/);
+assert.match(src, /mediumRightText\(status,largeStatusLocation\(D\),MEDIUM_UI\.statusLoc/);
+assert.match(src, /renderMediumMainName\(aBox,ctx\.a\.name\)/);
+assert.match(src, /renderMediumMainName\(bBox,ctx\.b\.name\)/);
+assert.match(src, /mediumSupportRow\(w,row\)/);
+assert.doesNotMatch(src, /const k1Inset=KEY==='k1'\?10:0/);
+assert.doesNotMatch(src, /tx\(meta,dateText\(D\),8\.1/);
 
 console.log('COMBAT HUB typography regression: OK');
