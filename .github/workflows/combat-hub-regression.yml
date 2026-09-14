@@ -59,6 +59,15 @@ jobs:
                   raise SystemExit('typography anchor missing')
               t=t.replace(anchor,"// K-1 Medium contrast polish must remain visual-only and preserve shared geometry.\n"+guard+"\n"+anchor,1)
           p.write_text(t)
+
+          p=Path('tests/combat-hub-k1-layout-regression.mjs')
+          k=p.read_text()
+          old="assert.match(src, /k1:\\{heroShade:\\.60,posterShade:\\.46,headerShade:\\.10,mainShade:\\.11,footShade:\\.17,veil:\\.055,gap:15,mainSize:13\\.6,division:7\\.3\\}/, 'K-1 main row must retain the verified v7.7.4 geometry');"
+          new="assert.match(src, /k1:\\{heroShade:\\.66,posterShade:\\.52,headerShade:\\.10,mainShade:\\.11,footShade:\\.17,veil:\\.055,gap:15,mainSize:13\\.6,division:7\\.3\\}/, 'K-1 Medium contrast tokens regressed');"
+          if old not in k:
+              raise SystemExit('K-1 regression shade marker missing')
+          k=k.replace(old,new,1)
+          p.write_text(k)
           PY
       - name: Full verification
         run: |
@@ -90,6 +99,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add combat-hub.js HANDOFF.md tests/combat-hub-typography-regression.mjs
+          git add combat-hub.js HANDOFF.md tests/combat-hub-typography-regression.mjs tests/combat-hub-k1-layout-regression.mjs
           git commit -m "style: improve K-1 Medium background contrast"
           git push origin HEAD:chatgpt/k1-medium-contrast-v7171
