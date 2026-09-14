@@ -5,6 +5,9 @@ const src=fs.readFileSync('combat-hub.js','utf8');
 assert.match(src,/const VERSION='7\.\d+\.\d+-github'/);
 assert.match(src,/function sameEventIdentity\(/);
 assert.match(src,/function rollforwardEligible\(/);
+assert.match(src,/function currentGraceMs\(e\)\{return e\?\.timeTba\?36\*3600000:12\*3600000;\}/,'time-TBA current grace helper missing');
+assert.match(src,/currentGraceMs\(snap\)/,'currentLocked must use time-aware grace');
+assert.match(src,/t>now-currentGraceMs\(e\)/,'rollforward eligibility must use time-aware grace');
 assert.match(src,/function nextEligible\(/);
 assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000/,'RIZIN/ONE known-event refresh cadence missing');
 assert.match(src,/refreshTtl=\(KEY==='rizin'\|\|KEY==='one'\)\?30\*60\*1000:2\*3600000/,'snapshot-locked RIZIN/ONE cards must refresh every 30 minutes');
@@ -30,7 +33,7 @@ const source=v=>String(v?.source||'').toLowerCase().replace(/^https?:\/\/(?:www\
 const same=(a,b)=>!!a&&!!b&&((source(a)&&source(a)===source(b))||(id(a.name)&&id(a.name)===id(b.name)));
 const validName=(key,n)=>({one:/ONE/i,rizin:/RIZIN/i,k1:/K-1/i}[key]||/.*/).test(n||'');
 const nextOk=(key,base,e,now)=>{const t=Date.parse(e.startAt),bt=Date.parse(base.startAt);return Number.isFinite(t)&&Number.isFinite(bt)&&t>Math.max(bt+6*H,now)&&t<now+180*D&&validName(key,e.name)&&!same(base,e)};
-const rollOk=(key,base,e,now)=>{const t=Date.parse(e.startAt),bt=Date.parse(base.startAt);return Number.isFinite(t)&&Number.isFinite(bt)&&t>bt+6*H&&t>now-12*H&&t<now+180*D&&validName(key,e.name)&&!same(base,e)};
+const rollOk=(key,base,e,now)=>{const t=Date.parse(e.startAt),bt=Date.parse(base.startAt),grace=e?.timeTba?36*H:12*H;return Number.isFinite(t)&&Number.isFinite(bt)&&t>bt+6*H&&t>now-grace&&t<now+180*D&&validName(key,e.name)&&!same(base,e)};
 
 const now=Date.parse('2026-09-13T17:52:00+09:00');
 const samurai={name:'ONE SAMURAI 3',startAt:'2026-09-12T17:30:00+09:00',source:'https://www.onefc.com/events/one-samurai-3/'};
@@ -40,6 +43,14 @@ assert.equal(rollOk('one',{name:'ONE Friday Fights 170',startAt:'2026-09-11T22:3
 const off171={name:'ONE Friday Fights 171 & The Inner Circle 31',startAt:'2026-09-18T00:00:00+09:00',source:'https://www.onefc.com/events/one-friday-fights-171/'};
 assert.equal(rollOk('one',{name:'ONE Friday Fights 170',startAt:'2026-09-11T22:30:00+09:00',source:'x'},off171,now),true);
 assert.equal(nextOk('one',samurai,off171,now),true);
+const tbaBase={name:'K-1 WORLD MAX 2026',startAt:'2026-09-12T12:00:00+09:00',source:'a'};
+const tbaEvent={name:'K-1 FIGHTING NETWORK in Sangju Korea 2026',startAt:'2026-09-19T00:00:00+09:00',source:'b',timeTba:true};
+assert.equal(rollOk('k1',tbaBase,tbaEvent,Date.parse('2026-09-19T18:00:00+09:00')),true,'time-TBA event must remain current through the event date');
+assert.equal(rollOk('k1',tbaBase,tbaEvent,Date.parse('2026-09-20T13:00:00+09:00')),false,'time-TBA grace must eventually expire after 36h');
+const exactEvent={name:'K-1 TEST EVENT',startAt:'2026-09-19T10:00:00+09:00',source:'c',timeTba:false};
+assert.equal(rollOk('k1',tbaBase,exactEvent,Date.parse('2026-09-19T21:30:00+09:00')),true,'exact-time event must retain the existing 12h grace');
+assert.equal(rollOk('k1',tbaBase,exactEvent,Date.parse('2026-09-19T22:30:00+09:00')),false,'exact-time event must expire after 12h');
+
 const k1={name:'K-1 WORLD MAX 2026',startAt:'2026-09-12T12:00:00+09:00',source:'a'};
 assert.equal(nextOk('k1',k1,{name:'K-1 FIGHTING NETWORK in Sangju Korea 2026',startAt:'2026-09-19T00:00:00+09:00',source:'b'},now),true);
 const r16={name:'RIZIN LANDMARK 16 in NAGASAKI',startAt:'2026-10-03T14:00:00+09:00',source:'a'};
