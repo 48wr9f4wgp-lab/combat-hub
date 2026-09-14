@@ -50,7 +50,8 @@ has(/boxing:\{startAt:'2026-09-13T09:00:00\+09:00',[^\n]*name:'Garcia vs Benn'/,
 assert.equal(/boxing:\{[^\n]*timeTba:true/.test(src), false, 'BOXING must not regress to time-TBA while this trusted snapshot is current');
 
 // Roll-forward safety.
-has(/function currentLocked\(snap\)\{const end=new Date\(snap\.startAt\)\.getTime\(\)\+12\*3600000;return Date\.now\(\)<end;\}/, '12h current-event lock guard missing');
+has(/function currentGraceMs\(e\)\{return e\?\.timeTba\?36\*3600000:12\*3600000;\}/, 'time-aware current-event grace missing');
+has(/function currentLocked\(snap\)\{const end=new Date\(snap\.startAt\)\.getTime\(\)\+currentGraceMs\(snap\);return Date\.now\(\)<end;\}/, 'time-aware current-event lock guard missing');
 has(/async function refreshLockedCurrent\(snap\)/, 'Safe locked-current refresh missing');
 has(/combat-hub-current-\$\{KEY\}\.json/, 'Current-event refresh cache missing');
 has(/pairs=html\?currentPagePairs\(html\):\[\]/, 'ONE-capable detail card parser missing');
