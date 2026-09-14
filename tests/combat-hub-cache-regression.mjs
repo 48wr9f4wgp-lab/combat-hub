@@ -12,7 +12,7 @@ assert.match(src, /cachedMetaImageURL\(current\.source,`\$\{KEY\}-event`,4\*3600
 assert.match(src, /combat-hub-current-\$\{KEY\}\.json/, 'locked-current data cache missing');
 assert.match(src, /now-Number\(cached\.savedAt\)<2\*3600000/, 'locked-current refresh TTL must remain 2h');
 
-const renderMarker = 'const D=await loadData(),ctx=await heroContext(D),w=new ListWidget();';
+const renderMarker = 'const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudit(D,ctx);const w=new ListWidget();';
 assert.ok(src.includes(renderMarker), 'Runtime instrumentation marker changed');
 const instrumented = src.replace(
   renderMarker,
