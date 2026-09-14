@@ -43,7 +43,7 @@ function makeFileManager() {
   };
 }
 
-async function boot(parameter, { now, textResponses = {}, imageResponses = {} } = {}) {
+async function boot(parameter, { now, textResponses = {}, imageResponses = {}, runsInWidget = true } = {}) {
   const fixedNow = now ?? Date.parse('2026-08-27T12:00:00+09:00');
   const fm = makeFileManager();
   const requests = [];
@@ -78,7 +78,7 @@ async function boot(parameter, { now, textResponses = {}, imageResponses = {} } 
   const context = {
     __TEST_ONLY__: true,
     args: { widgetParameter: parameter },
-    config: { runsInWidget: true },
+    config: { runsInWidget },
     FileManager: { local: () => fm.api },
     Request,
     Date: TestDate,
@@ -182,6 +182,43 @@ function stringRequests(requests) {
   assert.equal(data.posterURL, imageURL);
   assert.equal(data.lockedCurrent, true);
   assert.equal(stringRequests(requests).length, 0, 'Fresh locked-current cache should avoid event HTML network work');
+}
+
+
+// BOXING widget mode must ignore legacy/unverified next-event cache and perform zero discovery network work.
+{
+  const now=Date.parse('2026-09-14T16:00:00+09:00');
+  const future={name:'Alpha vs Beta Championship',startAt:'2026-09-20T10:00:00+09:00',location:'Las Vegas',source:'https://www.ringmagazine.com/events/alpha-vs-beta',main:{a:'Alpha',b:'Beta',context:'TITLE FIGHT'},support:[],cardTba:false,posterURL:null};
+  const {api,fm,requests}=await boot('BOXING',{now});
+  const path='/docs/combat-hub-next-boxing.json';
+  fm.api.writeString(path,JSON.stringify({savedAt:now-60_000,data:future}));
+  const pending=await api.loadData();
+  assert.equal(pending.nextPending,true,'Unverified BOXING cache must not reach widget output');
+  assert.equal(pending.cacheVerified,false);
+  assert.equal(stringRequests(requests).length,0,'BOXING widget must not deep-discover when cache is unverified');
+  fm.api.writeString(path,JSON.stringify({savedAt:now-60_000,verifiedAt:now-60_000,verifiedBy:'strictNextEvent',data:future}));
+  const verified=await api.loadData();
+  assert.equal(verified.name,future.name);
+  assert.equal(verified.cacheVerified,true);
+  assert.equal(verified.prefetched,true);
+  assert.equal(stringRequests(requests).length,0,'BOXING widget verified-cache path must remain network-free');
+}
+
+// Manual BOXING execution should discover from Ring, validate, and persist a verified next-event cache.
+{
+  const now=Date.parse('2026-09-14T16:00:00+09:00');
+  const listing='https://www.ringmagazine.com/events';
+  const event='https://www.ringmagazine.com/events/alpha-vs-beta';
+  const listingHtml=`<script type="application/ld+json">${JSON.stringify({'@type':'Event',name:'Alpha vs Beta Championship',startDate:'2026-09-20T10:00:00+09:00',location:{name:'Las Vegas'},url:event})}</script>`;
+  const detailHtml='<title>Alpha vs Beta</title><meta property="og:image" content="https://img.example/alpha-beta.jpg">';
+  const {api,fm}=await boot('BOXING',{now,runsInWidget:false,textResponses:{[listing]:listingHtml,[event]:detailHtml}});
+  const data=await api.loadData();
+  assert.equal(data.cacheVerified,true,'Manual BOXING run should return verified prefetched data');
+  assert.equal(data.prefetched,true);
+  const saved=JSON.parse(fm.api.readString('/docs/combat-hub-next-boxing.json'));
+  assert.equal(saved.verifiedBy,'strictNextEvent');
+  assert.equal(saved.verifiedAt,now);
+  assert.equal(saved.data.source,event);
 }
 
 console.log('COMBAT HUB v7.8 cache performance checks: OK');
