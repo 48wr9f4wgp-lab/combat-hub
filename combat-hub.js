@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.15.0-github — unified Large layout/typography across organizations; BOXING cache-only path preserved
+// v7.15.1-github — Large header alignment/pending balance polish; BOXING cache-only path preserved
 
 (async()=>{
-const VERSION='7.15.0-github';
+const VERSION='7.15.1-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -31,7 +31,7 @@ const VISUAL={
   k1:{heroShade:.60,posterShade:.46,headerShade:.10,mainShade:.11,footShade:.17,veil:.055,gap:15,mainSize:13.6,division:7.3}
 };
 const V=VISUAL[KEY];
-const LARGE_UI={org:24,event:10.0,meta:9.2,status:6.8,countdown:12.4,heroLabel:7.4,pending:17.2,pendingSub:10.0,main:16.0,vs:17.0,division:9.0,section:8.8,fightLabel:8.4,fightName:10.2,nextLabel:8.4,nextTitle:11.0,nextMeta:8.8,nextCountdown:9.2,dashH:150,leftW:192,rightW:103};
+const LARGE_UI={org:24,event:10.0,meta:9.2,status:6.8,countdown:12.4,heroLabel:7.4,pending:17.2,pendingSub:10.0,main:16.0,vs:17.0,division:9.0,section:8.8,fightLabel:8.4,fightName:10.2,nextLabel:8.4,nextTitle:11.0,nextMeta:8.8,nextCountdown:9.2,dashH:150,leftW:192,rightW:103,headerW:218,statusW:102};
 
 const SNAPSHOT={
   ufc:{startAt:'2026-09-13T06:00:00+09:00',location:'グレンデール',name:'Noche UFC',main:{a:'Jean Silva',b:'Jose Miguel Delgado',context:'FEATHERWEIGHT'},support:[{label:'CO-MAIN',a:'Brandon Moreno',b:'Joseph Morales'},{label:'MAIN CARD',a:'Tommy McMillen',b:'Marwan Rahiki'},{label:'MAIN CARD',a:'Manon Fiorot',b:'Alexa Grasso'},{label:'MAIN CARD',a:'Waldo Cortes Acosta',b:'Curtis Blaydes'},{label:'MAIN CARD',a:'David Martinez',b:'Dan Ige'}],source:'https://www.ufc.com/event/ufc-fight-night-september-12-2026'},
@@ -191,22 +191,23 @@ function largeSlotName(name){return largeNameParts(jpDisplay(name)).join('\n');}
 function renderLargeMainName(box,name){const parts=largeNameParts(jpDisplay(name));for(const part of parts){const t=tx(box,part,LARGE_UI.main,new Color(C.text),'black',1);t.minimumScaleFactor=.72;t.centerAlignText();}return parts;}
 function largeFightRow(st,row){const block=st.addStack();block.layoutVertically();const lab=block.addStack();const lt=tx(lab,jpCardLabel(row.label),LARGE_UI.fightLabel,new Color(S.accent),'bold');lt.minimumScaleFactor=.78;lab.addSpacer();block.addSpacer(2);const r=block.addStack();r.centerAlignContent();const aa=r.addStack();aa.size=new Size(78,0);const at=tx(aa,largeSlotName(row.a),LARGE_UI.fightName,new Color(C.text),'semibold',2);at.minimumScaleFactor=.76;r.addSpacer(4);tx(r,'VS',LARGE_UI.fightLabel,new Color(S.accent),'bold');r.addSpacer(4);const bb=r.addStack();bb.size=new Size(78,0);const bt=tx(bb,largeSlotName(row.b),LARGE_UI.fightName,new Color(C.text),'semibold',2);bt.minimumScaleFactor=.76;bt.rightAlignText();}
 function largeNextTitle(next){return jpDisplay(next?.name||'次大会').replace(/^Crypto\.com\s+/i,'');}
-function largeNextMeta(next){if(!next)return'';const d=next.timeTba?dateOnly(next.startAt):dateText(next);const loc=shortLoc(next.location||'');return loc?`${d} · ${loc}`:d;}
+function largeNextMeta(next){if(!next)return'';const d=next.timeTba?dateOnly(next.startAt):dateText(next);const loc=shortLoc(next.location||'');return loc?`${d}\n${loc}`:d;}
 function renderLarge(w,D,ctx,next,nextPoster){
   const pending=!!D.cardTba;
   const h=w.addStack();h.centerAlignContent();
-  const hl=h.addStack();hl.layoutVertically();
+  const hl=h.addStack();hl.layoutVertically();hl.size=new Size(LARGE_UI.headerW,0);
   tx(hl,S.label,LARGE_UI.org,new Color(C.text),'black');
   hl.addSpacer(2);
   const en=tx(hl,jpDisplay(D.name||''),LARGE_UI.event,new Color(S.accent),'bold',2);en.minimumScaleFactor=.76;
   hl.addSpacer(4);
   const meta=hl.addStack();
   const dt=tx(meta,dateText(D),LARGE_UI.meta,new Color(C.sub),'semibold');dt.minimumScaleFactor=.78;meta.addSpacer(6);tx(meta,'·',7.8,new Color(C.muted));meta.addSpacer(6);const ml=tx(meta,shortLoc(D.location),LARGE_UI.meta,new Color(C.sub),'semibold');ml.minimumScaleFactor=.78;
-  h.addSpacer();
-  const status=h.addStack();status.layoutVertically();
-  const sl=status.addStack();sl.addSpacer();tx(sl,statusLabel(D),LARGE_UI.status,new Color(C.muted),'bold');status.addSpacer(3);
-  const badge=status.addStack();badge.backgroundColor=new Color('#05070B',.72);badge.cornerRadius=11;badge.borderWidth=.7;badge.borderColor=new Color(S.accent,.36);badge.setPadding(5,10,5,10);tx(badge,countdown(D),LARGE_UI.countdown,new Color(C.text),'black');
-  w.addSpacer(pending?20:26);
+  h.addSpacer(8);
+  const status=h.addStack();status.layoutVertically();status.size=new Size(LARGE_UI.statusW,0);
+  const sl=status.addStack();sl.addSpacer();tx(sl,statusLabel(D),LARGE_UI.status,new Color(C.muted),'bold');
+  status.addSpacer(3);
+  const badgeRow=status.addStack();badgeRow.addSpacer();const badge=badgeRow.addStack();badge.backgroundColor=new Color('#05070B',.72);badge.cornerRadius=11;badge.borderWidth=.7;badge.borderColor=new Color(S.accent,.36);badge.setPadding(5,10,5,10);tx(badge,countdown(D),LARGE_UI.countdown,new Color(C.text),'black');
+  w.addSpacer(pending?40:26);
   if(pending){
     const center=w.addStack();center.layoutVertically();
     const title=tx(center,D.nextPending?'次大会情報を確認中':'対戦カード発表待ち',LARGE_UI.pending,new Color(C.text),'black');title.centerAlignText();
