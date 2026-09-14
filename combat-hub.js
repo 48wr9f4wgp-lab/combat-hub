@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.16.0-github — single Large header/status template across all organizations; BOXING cache-only path preserved
+// v7.16.1-github — Large pending-state vertical balance polish; single header/status template preserved
 
 (async()=>{
-const VERSION='7.16.0-github';
+const VERSION='7.16.1-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -31,7 +31,7 @@ const VISUAL={
   k1:{heroShade:.60,posterShade:.46,headerShade:.10,mainShade:.11,footShade:.17,veil:.055,gap:15,mainSize:13.6,division:7.3}
 };
 const V=VISUAL[KEY];
-const LARGE_UI={org:24,event:10.0,meta:9.2,status:6.8,countdown:12.4,statusDate:8.2,statusLoc:8.2,heroLabel:7.4,pending:17.2,pendingSub:10.0,main:16.0,vs:17.0,division:9.0,section:8.8,fightLabel:8.4,fightName:10.2,nextLabel:8.4,nextTitle:11.0,nextMeta:8.8,nextCountdown:9.2,dashH:150,leftW:192,rightW:103,headerW:198,statusW:122,heroGap:24};
+const LARGE_UI={org:24,event:10.0,meta:9.2,status:6.8,countdown:12.4,statusDate:8.2,statusLoc:8.2,heroLabel:7.4,pending:17.2,pendingSub:10.0,main:16.0,vs:17.0,division:9.0,section:8.8,fightLabel:8.4,fightName:10.2,nextLabel:8.4,nextTitle:11.0,nextMeta:8.8,nextCountdown:9.2,dashH:150,leftW:192,rightW:103,headerW:198,statusW:122,heroGap:24,pendingOffset:32};
 
 const SNAPSHOT={
   ufc:{startAt:'2026-09-13T06:00:00+09:00',location:'グレンデール',name:'Noche UFC',main:{a:'Jean Silva',b:'Jose Miguel Delgado',context:'FEATHERWEIGHT'},support:[{label:'CO-MAIN',a:'Brandon Moreno',b:'Joseph Morales'},{label:'MAIN CARD',a:'Tommy McMillen',b:'Marwan Rahiki'},{label:'MAIN CARD',a:'Manon Fiorot',b:'Alexa Grasso'},{label:'MAIN CARD',a:'Waldo Cortes Acosta',b:'Curtis Blaydes'},{label:'MAIN CARD',a:'David Martinez',b:'Dan Ige'}],source:'https://www.ufc.com/event/ufc-fight-night-september-12-2026'},
@@ -213,6 +213,7 @@ function renderLarge(w,D,ctx,next,nextPoster){
   status.addSpacer(2);
   largeRightText(status,largeStatusLocation(D),LARGE_UI.statusLoc,new Color(C.sub),'semibold');
   w.addSpacer(LARGE_UI.heroGap);
+  if(pending)w.addSpacer(LARGE_UI.pendingOffset);
   if(pending){
     const center=w.addStack();center.layoutVertically();
     const title=tx(center,D.nextPending?'次大会情報を確認中':'対戦カード発表待ち',LARGE_UI.pending,new Color(C.text),'black');title.centerAlignText();
