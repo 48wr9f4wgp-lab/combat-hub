@@ -31,6 +31,9 @@ p.write_text(s)
 # Static regression guards.
 t=Path('tests/combat-hub-event-transition-regression.mjs')
 ts=t.read_text()
+old_scope="assert.match(src,/\\(KEY==='rizin'\\|\\|KEY==='one'\\)&&age>=KNOWN_EVENT_CARD_REFRESH_MS/,'freshness gate must stay scoped to RIZIN/ONE');"
+new_scope="assert.match(src,/\\(KEY==='rizin'\\|\\|KEY==='one'\\)&&cardAge>=KNOWN_EVENT_CARD_REFRESH_MS/,'freshness gate must stay scoped to RIZIN/ONE');"
+ts=replace_once(ts,old_scope,new_scope,'freshness scope assertion')
 needle="assert.match(src,/cardRefreshed:true/,'known-event card refresh marker missing');\n"
 extra=needle+"assert.match(src,/cardAge=now-Number\\(cached\\?\\.cardRefreshedAt\\?\\?cached\\.savedAt\\)/,'card refresh age must be independent of discovery age');\nassert.match(src,/savedAt:Number\\(cached\\.savedAt\\)\\|\\|now,cardRefreshedAt:now,data:refreshed/,'card refresh must preserve discovery savedAt');\n"
 ts=replace_once(ts,needle,extra,'event transition cache separation guards')
