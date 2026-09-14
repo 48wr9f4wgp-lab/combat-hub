@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const src=fs.readFileSync('combat-hub.js','utf8');
-assert.match(src,/v7\.12\.\d+-github/);
+assert.match(src,/const VERSION='7\.\d+\.\d+-github'/);
 assert.match(src,/function sameEventIdentity\(/);
 assert.match(src,/function rollforwardEligible\(/);
 assert.match(src,/function nextEligible\(/);
