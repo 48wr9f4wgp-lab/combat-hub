@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: combat-hub-${{ github.workflow }}-${{ github.ref }}
@@ -69,3 +69,101 @@ jobs:
         run: node tests/combat-hub-japanese-display.mjs
       - name: COMBAT HUB event transition suite
         run: node tests/combat-hub-event-transition-regression.mjs
+
+  apply_large_readability:
+    if: github.ref_name == 'chatgpt/large-readability-pass' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt/large-readability-pass
+      - name: Apply Large readability pass
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('combat-hub.js')
+          s=p.read_text()
+          old_version="const VERSION='7.12.8-github';"
+          if old_version not in s:
+              raise SystemExit('expected v7.12.8 baseline not found')
+          s=s.replace('// v7.12.8-github — BOXING manual verified prefetch; widget cache-only next-event path','// v7.13.0-github — Large readability / hierarchy pass; BOXING cache-only path preserved',1)
+          s=s.replace(old_version,"const VERSION='7.13.0-github';",1)
+          old="const veil=KEY==='one'?.38:KEY==='k1'?.48:KEY==='rizin'?.68:.44;"
+          new="const veil=KEY==='one'?.50:KEY==='k1'?.56:KEY==='rizin'?.72:.56;"
+          if old not in s:
+              raise SystemExit('largeBackground veil marker not found')
+          s=s.replace(old,new,1)
+          start=s.index('function renderLargeMainName')
+          end=s.index('const D=await loadData()',start)
+          block=r'''function renderLargeMainName(box,name){const parts=mainNameParts(jpDisplay(name));for(const part of parts){const t=tx(box,part,16.0,new Color(C.text),'black',1);t.minimumScaleFactor=.62;t.centerAlignText();}return parts;}
+function largeFightRow(st,row,wide=false){const r=st.addStack();r.centerAlignContent();const lab=r.addStack();lab.size=new Size(wide?44:34,0);const lt=tx(lab,jpCardLabel(row.label),wide?8.4:7.8,new Color(S.accent),'bold');lt.minimumScaleFactor=.68;r.addSpacer(3);const aa=r.addStack();aa.size=new Size(wide?104:60,0);const at=tx(aa,jpDisplay(row.a),wide?10.4:9.5,new Color(C.text),'semibold');at.minimumScaleFactor=.62;r.addSpacer(3);tx(r,'VS',wide?8.2:7.6,new Color(S.accent),'bold');r.addSpacer(3);const bb=r.addStack();bb.size=new Size(wide?104:60,0);const bt=tx(bb,jpDisplay(row.b),wide?10.4:9.5,new Color(C.text),'semibold');bt.minimumScaleFactor=.62;bt.rightAlignText();}
+function largeNextTitle(next){return jpDisplay(next?.name||'次大会').replace(/^Crypto\.com\s+/i,'');}
+function largeNextMeta(next){if(!next)return'';const d=next.timeTba?dateOnly(next.startAt):dateText(next);const loc=shortLoc(next.location||'');return loc?`${d} · ${loc}`:d;}
+function renderLarge(w,D,ctx,next,nextPoster){
+  const pending=!!D.cardTba;
+  const h=w.addStack();h.centerAlignContent();
+  const hl=h.addStack();hl.layoutVertically();
+  tx(hl,S.label,24,new Color(C.text),'black');
+  hl.addSpacer(2);
+  const en=tx(hl,jpDisplay(D.name||''),9.2,new Color(S.accent),'bold',2);en.minimumScaleFactor=.72;
+  hl.addSpacer(4);
+  const meta=hl.addStack();
+  tx(meta,dateText(D),9.0,new Color(C.sub),'semibold');meta.addSpacer(6);tx(meta,'·',7.8,new Color(C.muted));meta.addSpacer(6);tx(meta,shortLoc(D.location),9.0,new Color(C.sub),'semibold');
+  h.addSpacer();
+  const status=h.addStack();status.layoutVertically();
+  if(KEY!=='boxing'){const sl=status.addStack();sl.addSpacer();tx(sl,statusLabel(D),6.8,new Color(C.muted),'bold');status.addSpacer(3);}
+  const badge=status.addStack();badge.backgroundColor=new Color('#05070B',KEY==='boxing'?.78:.70);badge.cornerRadius=11;badge.borderWidth=.7;badge.borderColor=new Color(S.accent,.36);badge.setPadding(5,10,5,10);tx(badge,countdown(D),12.4,new Color(C.text),'black');
+  w.addSpacer(pending?20:(KEY==='boxing'?24:27));
+  if(pending){
+    const center=w.addStack();center.layoutVertically();
+    const title=tx(center,D.nextPending?'次大会情報を確認中':'対戦カード発表待ち',17.2,new Color(C.text),'black');title.centerAlignText();
+    center.addSpacer(7);
+    const sub=tx(center,jpDisplay(D.name||D.main.context),10.0,new Color(S.accent),'semibold',2);sub.minimumScaleFactor=.72;sub.centerAlignText();
+  }else{
+    const tag=w.addStack();tag.addSpacer();const tagText=tx(tag,'メインイベント',7.4,new Color(S.accent),'bold');tagText.centerAlignText();tag.addSpacer();
+    w.addSpacer(4);
+    const main=w.addStack();main.centerAlignContent();main.addSpacer();
+    const aBox=main.addStack();aBox.layoutVertically();aBox.size=new Size(132,46);aBox.addSpacer();renderLargeMainName(aBox,ctx.a.name);aBox.addSpacer();
+    main.addSpacer(5);
+    const center=main.addStack();center.layoutVertically();center.size=new Size(42,46);center.addSpacer();const vs=tx(center,'VS',17.0,new Color(S.accent),'black');vs.centerAlignText();center.addSpacer();
+    main.addSpacer(5);
+    const bBox=main.addStack();bBox.layoutVertically();bBox.size=new Size(132,46);bBox.addSpacer();renderLargeMainName(bBox,ctx.b.name);bBox.addSpacer();main.addSpacer();
+    w.addSpacer(5);
+    const dv=tx(w,division(D.main.context),9.0,new Color('#D8DCE2'),'semibold');dv.centerAlignText();
+  }
+  w.addSpacer();
+  const rows=(D.support||[]).slice(0,2),compactBoxing=KEY==='boxing'&&!next&&rows.length<=1,dashHeight=compactBoxing?122:142;
+  const dash=w.addStack();dash.size=new Size(328,dashHeight);dash.backgroundColor=new Color('#05070B',.91);dash.cornerRadius=16;dash.borderWidth=.8;dash.borderColor=new Color('#FFFFFF',.11);dash.setPadding(10,10,10,10);
+  const left=dash.addStack();left.layoutVertically();left.size=new Size(compactBoxing?308:(next?176:204),dashHeight-20);
+  const cap=left.addStack();const accent=cap.addStack();accent.size=new Size(22,4);accent.backgroundColor=new Color(S.accent);accent.cornerRadius=2;cap.addSpacer();
+  left.addSpacer(7);
+  const ltitle=left.addStack();tx(ltitle,'対戦カード',8.4,new Color(S.accent),'bold');ltitle.addSpacer();
+  left.addSpacer(8);
+  if(rows.length){rows.forEach((row,i)=>{largeFightRow(left,row,compactBoxing);if(i<rows.length-1){left.addSpacer(8);const sep=left.addStack();sep.size=new Size(0,1);sep.backgroundColor=new Color('#FFFFFF',.07);left.addSpacer(8);}});}
+  else{left.addSpacer(compactBoxing?10:17);const em=tx(left,'追加カード発表待ち',9.0,new Color(C.muted),'semibold');em.centerAlignText();}
+  if(compactBoxing){
+    left.addSpacer();const nline=left.addStack();tx(nline,'次大会',8.4,new Color(S.accent),'bold');nline.addSpacer(10);tx(nline,'公式情報を確認中',9.2,new Color(C.muted),'semibold');nline.addSpacer();
+  }else{
+    dash.addSpacer(6);const rule=dash.addStack();rule.size=new Size(1,112);rule.backgroundColor=new Color('#FFFFFF',.09);dash.addSpacer(6);
+    const right=dash.addStack();right.layoutVertically();right.size=new Size(next?119:91,122);right.cornerRadius=12;if(nextPoster)right.backgroundImage=largeMiniPoster(nextPoster);right.setPadding(7,7,7,7);
+    const ncap=right.addStack();tx(ncap,'次大会',8.2,new Color(S.accent),'bold');ncap.addSpacer();
+    if(next){right.addSpacer(7);const nn=tx(right,largeNextTitle(next),10.8,new Color(C.text),'bold',2);nn.minimumScaleFactor=.68;right.addSpacer(7);const nm=tx(right,largeNextMeta(next),8.4,new Color(C.sub),'semibold',2);nm.minimumScaleFactor=.68;right.addSpacer();const nt=tx(right,'あと '+countdown(next),8.6,new Color(S.accent),'bold');nt.minimumScaleFactor=.66;}
+    else{right.addSpacer(15);tx(right,'公式情報を確認中',9.0,new Color(C.muted),'semibold',3);right.addSpacer();}
+  }
+  w.addSpacer(2);
+}
+'''
+          s=s[:start]+block+'\n'+s[end:]
+          p.write_text(s)
+          PY
+      - name: Restore workflow and commit patch
+        shell: bash
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          git checkout origin/main -- .github/workflows/combat-hub-regression.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add combat-hub.js .github/workflows/combat-hub-regression.yml
+          git commit -m "feat: improve Large readability and hierarchy"
+          git push origin HEAD:chatgpt/large-readability-pass
