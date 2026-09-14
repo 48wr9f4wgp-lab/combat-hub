@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
 
 assert.match(src, /const VERSION='7\.\d+\.\d+-github'/, 'Expected audited v7 runtime line');
-assert.match(src, /k1:\{heroShade:\.60,posterShade:\.46,headerShade:\.10,mainShade:\.11,footShade:\.17,veil:\.055,gap:15,mainSize:13\.6,division:7\.3\}/, 'K-1 main row must retain the verified v7.7.4 geometry');
+assert.match(src, /k1:\{heroShade:\.66,posterShade:\.52,headerShade:\.10,mainShade:\.11,footShade:\.17,veil:\.055,gap:15,mainSize:13\.6,division:7\.3\}/, 'K-1 Medium contrast tokens regressed');
 assert.match(src, /const MEDIUM_UI=/, 'K-1 must use the shared Medium geometry');
 assert.match(src, /renderMediumMainName\(aBox,ctx\.a\.name\)/);
 assert.match(src, /renderMediumMainName\(bBox,ctx\.b\.name\)/);

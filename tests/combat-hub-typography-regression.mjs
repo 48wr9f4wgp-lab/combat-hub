@@ -26,6 +26,9 @@ assert.match(src, /if\(KEY==='rizin'&&parts\.length>1\)t\.minimumScaleFactor=\.8
 assert.match(src, /function boxingCenterBand\(c\)\{if\(KEY!=='boxing'\)return;const bands=\[190,158,126,96,68\]/, 'BOXING center contrast band missing or too weak');
 assert.equal((src.match(/boxingCenterBand\(c\);softCenter/g) || []).length, 2, 'BOXING center contrast must apply to hero and poster backgrounds');
 
+// K-1 Medium contrast polish must remain visual-only and preserve shared geometry.
+assert.match(src, /k1:\{heroShade:\.66,posterShade:\.52,headerShade:\.10,mainShade:\.11,footShade:\.17,veil:\.055/, 'K-1 Medium contrast polish regressed');
+
 // Medium v7.17.0 uses one geometry and type scale across all organizations.
 assert.match(src, /const MEDIUM_UI=\{org:20\.5,event:8\.8,status:6\.7,countdown:13\.1,statusDate:7\.5,statusLoc:7\.5,heroGap:12,pending:14\.4,pendingSub:7\.5,main:14\.3,mainLabel:7\.5,vs:15\.2,division:8\.0,supportLabel:7\.5,supportName:8\.8,headerW:205,statusW:105\}/);
 assert.match(src, /function renderMedium\(w,D,ctx\)/);

@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.17.0-github — Medium unified layout/timing hierarchy across all organizations; Large v7.16.1 geometry preserved
+// v7.17.1-github — K-1 Medium contrast polish; shared Medium geometry and Large v7.16.1 preserved
 
 (async()=>{
-const VERSION='7.17.0-github';
+const VERSION='7.17.1-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -28,7 +28,7 @@ const VISUAL={
   rizin:{heroShade:.70,posterShade:.60,headerShade:.14,mainShade:.13,footShade:.19,veil:.018,gap:17,mainSize:13.1,division:7.2},
   one:{heroShade:.68,posterShade:.44,headerShade:.16,mainShade:.15,footShade:.19,veil:.028,gap:19,mainSize:13.4,division:7.3},
   boxing:{heroShade:.68,posterShade:.52,headerShade:.18,mainShade:.18,footShade:.23,veil:.020,gap:18,mainSize:13.6,division:7.2},
-  k1:{heroShade:.60,posterShade:.46,headerShade:.10,mainShade:.11,footShade:.17,veil:.055,gap:15,mainSize:13.6,division:7.3}
+  k1:{heroShade:.66,posterShade:.52,headerShade:.10,mainShade:.11,footShade:.17,veil:.055,gap:15,mainSize:13.6,division:7.3}
 };
 const V=VISUAL[KEY];
 const LARGE_UI={org:24,event:10.0,meta:9.2,status:6.8,countdown:12.4,statusDate:8.2,statusLoc:8.2,heroLabel:7.4,pending:17.2,pendingSub:10.0,main:16.0,vs:17.0,division:9.0,section:8.8,fightLabel:8.4,fightName:10.2,nextLabel:8.4,nextTitle:11.0,nextMeta:8.8,nextCountdown:9.2,dashH:150,leftW:192,rightW:103,headerW:198,statusW:122,heroGap:24,pendingOffset:32};
