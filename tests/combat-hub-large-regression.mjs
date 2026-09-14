@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
 
-assert.match(src, /const VERSION='7\.13\.0-github'/, 'Large readability pass version missing');
+assert.match(src, /const VERSION='7\.13\.1-github'/, 'Large readability pass version missing');
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
@@ -26,21 +26,23 @@ assert.match(src, /tx\(center,'VS',17\.0/, 'Large VS typography missing');
 assert.match(src, /division\(D\.main\.context\),9\.0/, 'Large division typography missing');
 assert.match(src, /D\.nextPending\?'次大会情報を確認中':'対戦カード発表待ち',17\.2/, 'Large pending hero hierarchy missing');
 
-assert.match(src, /dashHeight=compactBoxing\?122:142/, 'Readable adaptive dashboard height missing');
-assert.match(src, /left\.size=new Size\(compactBoxing\?308:\(next\?176:204\),dashHeight-20\)/, 'Readable fight-pane width missing');
-assert.match(src, /right\.size=new Size\(next\?119:91,122\)/, 'Readable next-event pane missing');
-assert.match(src, /rule\.size=new Size\(1,112\)/, 'Readable dashboard divider missing');
+assert.match(src, /dashHeight=compactBoxing\?126:150/, 'Readable adaptive dashboard height missing');
+assert.match(src, /left\.size=new Size\(compactBoxing\?308:\(next\?194:204\),dashHeight-20\)/, 'Readable fight-pane width missing');
+assert.match(src, /right\.size=new Size\(next\?101:91,130\)/, 'Readable next-event pane missing');
+assert.match(src, /rule\.size=new Size\(1,120\)/, 'Readable dashboard divider missing');
 assert.match(src, /function largeMiniPoster\(image\)/, 'Next-event poster treatment missing');
 assert.match(src, /function largeNextTitle\(next\)/, 'Compact next-event title helper missing');
+assert.match(src, /right\.backgroundColor=new Color\('#090C12',\.98\)/, 'Next-event pane must suppress noisy poster text');
+assert.match(src, /jpDisplay\(row\.a\),wide\?10\.8:9\.8[\s\S]*'semibold',2/, 'Fight names must allow two readable lines');
 assert.match(src, /KEY==='rizin'\?\.72/, 'RIZIN readability veil missing');
 assert.match(src, /KEY==='one'\?\.50/, 'ONE readability veil missing');
 
 assert.match(src, /function jpCardLabel\(label\)/, 'Japanese card-label mapper missing');
 assert.match(src, /'対戦カード'/, 'Japanese fight-card label missing');
 assert.match(src, /'次大会'/, 'Japanese next-event label missing');
-assert.match(src, /jpCardLabel\(row\.label\),wide\?8\.4:7\.8/, 'Readable card-label typography missing');
-assert.match(src, /jpDisplay\(row\.a\),wide\?10\.4:9\.5/, 'Readable fighter-name typography missing');
-assert.match(src, /largeNextTitle\(next\),10\.8/, 'Readable next-event title typography missing');
+assert.match(src, /jpCardLabel\(row\.label\),wide\?8\.6:8\.0/, 'Readable card-label typography missing');
+assert.match(src, /jpDisplay\(row\.a\),wide\?10\.8:9\.8/, 'Readable fighter-name typography missing');
+assert.match(src, /largeNextTitle\(next\),11\.2/, 'Readable next-event title typography missing');
 assert.match(src, /'公式情報を確認中',9\.2/, 'BOXING compact next-status line missing');
 assert.match(src, /badge\.cornerRadius=11/, 'Premium countdown radius missing');
 assert.match(src, /badge\.setPadding\(5,10,5,10\)/, 'Premium countdown padding missing');
@@ -54,7 +56,7 @@ assert.match(src, /function boxingVerifiedCache\(cached,snap,now\)/, 'BOXING ver
 assert.match(src, /if\(KEY==='boxing'&&config\.runsInWidget\)\{[\s\S]*if\(verifiedBoxing\)return\{\.\.\.verifiedBoxing,prefetched:true,cacheVerified:true\}/, 'BOXING widgets must read verified cache only');
 assert.match(src, /verifiedBy:'strictNextEvent'/, 'BOXING manual prefetch verification marker missing');
 assert.match(src, /const NEXT=BOXING_LARGE\?null:\(IS_LARGE\?await loadLargeNext\(D\):null\)/, 'BOXING Large must skip next-event scraping');
-assert.match(src, /NEXT_POSTER=IS_LARGE&&NEXT&&!BOXING_LARGE\?await eventPoster\(NEXT\):null/, 'BOXING Large must skip next-event poster loading');
+assert.match(src, /NEXT_POSTER=null/, 'BOXING Large must skip next-event poster loading');
 assert.match(src, /function largeFightRow\(st,row,wide=false\)/, 'BOXING wide fight-row mode missing');
 assert.match(src, /largeFightRow\(left,row,compactBoxing\)/, 'BOXING adaptive row call missing');
 assert.match(src, /if\(KEY!=='boxing'\)\{const sl=status\.addStack\(\)/, 'BOXING Large status label should be suppressed');
@@ -71,4 +73,4 @@ assert.match(src, /combat-hub-runtime-audit\.json/, 'Runtime sync audit cache mi
 assert.doesNotMatch(src, /VERSION\.replace\('-github',''\)/, 'Visible runtime markers should stay removed');
 assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Non-BOXING Large render fallback missing');
 
-console.log('COMBAT HUB Large v7.13 readability + BOXING safety regression: OK');
+console.log('COMBAT HUB Large v7.13.1 lower-panel polish + BOXING safety regression: OK');
