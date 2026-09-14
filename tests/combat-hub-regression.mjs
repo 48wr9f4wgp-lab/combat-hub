@@ -74,16 +74,16 @@ has(/if\(cachedData&&rollforwardEligible\(snap,cachedData,now\)\)return \{\.\.\.
 has(/KEY==='k1'\?370:360/, 'K-1 left hero overlap fix missing');
 has(/KEY==='k1'\?350:365/, 'K-1 right hero overlap fix missing');
 has(/softBand\(/, 'soft background banding missing');
-has(/'メイン',6\.8,new Color\(S\.accent\),'bold'/, 'Japanese main label missing');
-has(/'VS',15\.2,new Color\(S\.accent\),'black'/, 'Main VS emphasis regressed');
+has(/'メイン',MEDIUM_UI\.mainLabel,new Color\(S\.accent\),'bold'/, 'Japanese main label missing');
+has(/'VS',MEDIUM_UI\.vs,new Color\(S\.accent\),'black'/, 'Main VS emphasis regressed');
 has(/mainSize:13\.4/, 'Main fighter font emphasis missing');
 has(/mainSize:13\.6/, 'Main fighter font emphasis missing for short-name layouts');
-has(/aBox\.size=new Size\(140,36\)/, 'Left main fighter box lost fixed height');
-has(/centerBox\.size=new Size\(44,36\)/, 'Main center column lost fixed height');
-has(/bBox\.size=new Size\(140,36\)/, 'Right main fighter box lost fixed height');
-has(/aBox\.addSpacer\(\);renderMainName\(aBox,ctx\.a\.name\);aBox\.addSpacer\(\)/, 'Left main fighter is not vertically centered');
-has(/bBox\.addSpacer\(\);renderMainName\(bBox,ctx\.b\.name\);bBox\.addSpacer\(\)/, 'Right main fighter is not vertically centered');
-has(/function renderMainName\(box,name\)\{[^}]*t\.centerAlignText\(\)/, 'Main fighter text is not horizontally centered');
+has(/aBox\.size=new Size\(132,40\)/, 'Left Medium fighter box geometry regressed');
+has(/centerBox\.size=new Size\(44,40\)/, 'Medium center column geometry regressed');
+has(/bBox\.size=new Size\(132,40\)/, 'Right Medium fighter box geometry regressed');
+has(/aBox\.addSpacer\(\);renderMediumMainName\(aBox,ctx\.a\.name\);aBox\.addSpacer\(\)/, 'Left Medium fighter is not vertically centered');
+has(/bBox\.addSpacer\(\);renderMediumMainName\(bBox,ctx\.b\.name\);bBox\.addSpacer\(\)/, 'Right Medium fighter is not vertically centered');
+has(/function renderMediumMainName\(box,name\)\{[^}]*t\.centerAlignText\(\)/, 'Medium fighter text is not horizontally centered');
 
 const renderMarker = 'const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudit(D,ctx);const w=new ListWidget();';
 assert.ok(src.includes(renderMarker), 'Runtime instrumentation marker changed');
