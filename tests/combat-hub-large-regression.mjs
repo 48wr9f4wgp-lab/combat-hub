@@ -48,7 +48,7 @@ assert.match(src, /w\.addSpacer\(D\.cardTba\?30:\(KEY==='boxing'\?34:40\)\)/, 'B
 assert.match(src, /if\(KEY==='boxing'&&config\.runsInWidget\)\{const safePoster=!D\.nextPending&&!D\.lightweightPending&&\(!!D\.lockedCurrent\|\|sameEventIdentity\(D,SNAPSHOT\.boxing\)\);return\{a:\{name:D\.main\.a,image:null\},b:\{name:D\.main\.b,image:null\},poster:safePoster\?await eventPoster\(D\):null,lightweight:true\};\}/, 'BOXING Medium/Large pending state must suppress poster loading');
 assert.match(src, /function writeRuntimeAudit\(D,ctx\)/, 'Runtime sync audit writer missing');
 assert.match(src, /combat-hub-runtime-audit\.json/, 'Runtime sync audit cache missing');
-assert.match(src, /KEY==='boxing'&&D\.nextPending\?`同期 \${VERSION\.replace\('-github',''\)}`/, 'BOXING Medium temporary sync marker missing');
+assert.doesNotMatch(src, /VERSION\.replace\('-github',''\)/, 'temporary visible runtime version markers should be removed');
 assert.match(src, /if\(BOXING_LARGE\)\{if\(ctx\.poster\)w\.backgroundImage=ctx\.poster;else w\.backgroundGradient=gradient\(\);renderLarge\(w,D,ctx,NEXT,null\);\}/, 'BOXING Large must use lightweight gradient fallback without DrawContext composition');
 assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Non-BOXING Large render fallback missing');
-console.log('COMBAT HUB Large V5.2 + BOXING Medium/Large memory+sync regression: OK');
+console.log('COMBAT HUB Large V5.2 + BOXING Medium/Large memory+audit regression: OK');
