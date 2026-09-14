@@ -82,13 +82,13 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import base64
           p=Path('combat-hub.js')
           s=p.read_text()
-          old_version="const VERSION='7.12.8-github';"
-          if old_version not in s:
+          if "const VERSION='7.12.8-github';" not in s:
               raise SystemExit('expected v7.12.8 baseline not found')
           s=s.replace('// v7.12.8-github — BOXING manual verified prefetch; widget cache-only next-event path','// v7.13.0-github — Large readability / hierarchy pass; BOXING cache-only path preserved',1)
-          s=s.replace(old_version,"const VERSION='7.13.0-github';",1)
+          s=s.replace("const VERSION='7.12.8-github';","const VERSION='7.13.0-github';",1)
           old="const veil=KEY==='one'?.38:KEY==='k1'?.48:KEY==='rizin'?.68:.44;"
           new="const veil=KEY==='one'?.50:KEY==='k1'?.56:KEY==='rizin'?.72:.56;"
           if old not in s:
@@ -96,68 +96,11 @@ jobs:
           s=s.replace(old,new,1)
           start=s.index('function renderLargeMainName')
           end=s.index('const D=await loadData()',start)
-          block=r'''function renderLargeMainName(box,name){const parts=mainNameParts(jpDisplay(name));for(const part of parts){const t=tx(box,part,16.0,new Color(C.text),'black',1);t.minimumScaleFactor=.62;t.centerAlignText();}return parts;}
-function largeFightRow(st,row,wide=false){const r=st.addStack();r.centerAlignContent();const lab=r.addStack();lab.size=new Size(wide?44:34,0);const lt=tx(lab,jpCardLabel(row.label),wide?8.4:7.8,new Color(S.accent),'bold');lt.minimumScaleFactor=.68;r.addSpacer(3);const aa=r.addStack();aa.size=new Size(wide?104:60,0);const at=tx(aa,jpDisplay(row.a),wide?10.4:9.5,new Color(C.text),'semibold');at.minimumScaleFactor=.62;r.addSpacer(3);tx(r,'VS',wide?8.2:7.6,new Color(S.accent),'bold');r.addSpacer(3);const bb=r.addStack();bb.size=new Size(wide?104:60,0);const bt=tx(bb,jpDisplay(row.b),wide?10.4:9.5,new Color(C.text),'semibold');bt.minimumScaleFactor=.62;bt.rightAlignText();}
-function largeNextTitle(next){return jpDisplay(next?.name||'次大会').replace(/^Crypto\.com\s+/i,'');}
-function largeNextMeta(next){if(!next)return'';const d=next.timeTba?dateOnly(next.startAt):dateText(next);const loc=shortLoc(next.location||'');return loc?`${d} · ${loc}`:d;}
-function renderLarge(w,D,ctx,next,nextPoster){
-  const pending=!!D.cardTba;
-  const h=w.addStack();h.centerAlignContent();
-  const hl=h.addStack();hl.layoutVertically();
-  tx(hl,S.label,24,new Color(C.text),'black');
-  hl.addSpacer(2);
-  const en=tx(hl,jpDisplay(D.name||''),9.2,new Color(S.accent),'bold',2);en.minimumScaleFactor=.72;
-  hl.addSpacer(4);
-  const meta=hl.addStack();
-  tx(meta,dateText(D),9.0,new Color(C.sub),'semibold');meta.addSpacer(6);tx(meta,'·',7.8,new Color(C.muted));meta.addSpacer(6);tx(meta,shortLoc(D.location),9.0,new Color(C.sub),'semibold');
-  h.addSpacer();
-  const status=h.addStack();status.layoutVertically();
-  if(KEY!=='boxing'){const sl=status.addStack();sl.addSpacer();tx(sl,statusLabel(D),6.8,new Color(C.muted),'bold');status.addSpacer(3);}
-  const badge=status.addStack();badge.backgroundColor=new Color('#05070B',KEY==='boxing'?.78:.70);badge.cornerRadius=11;badge.borderWidth=.7;badge.borderColor=new Color(S.accent,.36);badge.setPadding(5,10,5,10);tx(badge,countdown(D),12.4,new Color(C.text),'black');
-  w.addSpacer(pending?20:(KEY==='boxing'?24:27));
-  if(pending){
-    const center=w.addStack();center.layoutVertically();
-    const title=tx(center,D.nextPending?'次大会情報を確認中':'対戦カード発表待ち',17.2,new Color(C.text),'black');title.centerAlignText();
-    center.addSpacer(7);
-    const sub=tx(center,jpDisplay(D.name||D.main.context),10.0,new Color(S.accent),'semibold',2);sub.minimumScaleFactor=.72;sub.centerAlignText();
-  }else{
-    const tag=w.addStack();tag.addSpacer();const tagText=tx(tag,'メインイベント',7.4,new Color(S.accent),'bold');tagText.centerAlignText();tag.addSpacer();
-    w.addSpacer(4);
-    const main=w.addStack();main.centerAlignContent();main.addSpacer();
-    const aBox=main.addStack();aBox.layoutVertically();aBox.size=new Size(132,46);aBox.addSpacer();renderLargeMainName(aBox,ctx.a.name);aBox.addSpacer();
-    main.addSpacer(5);
-    const center=main.addStack();center.layoutVertically();center.size=new Size(42,46);center.addSpacer();const vs=tx(center,'VS',17.0,new Color(S.accent),'black');vs.centerAlignText();center.addSpacer();
-    main.addSpacer(5);
-    const bBox=main.addStack();bBox.layoutVertically();bBox.size=new Size(132,46);bBox.addSpacer();renderLargeMainName(bBox,ctx.b.name);bBox.addSpacer();main.addSpacer();
-    w.addSpacer(5);
-    const dv=tx(w,division(D.main.context),9.0,new Color('#D8DCE2'),'semibold');dv.centerAlignText();
-  }
-  w.addSpacer();
-  const rows=(D.support||[]).slice(0,2),compactBoxing=KEY==='boxing'&&!next&&rows.length<=1,dashHeight=compactBoxing?122:142;
-  const dash=w.addStack();dash.size=new Size(328,dashHeight);dash.backgroundColor=new Color('#05070B',.91);dash.cornerRadius=16;dash.borderWidth=.8;dash.borderColor=new Color('#FFFFFF',.11);dash.setPadding(10,10,10,10);
-  const left=dash.addStack();left.layoutVertically();left.size=new Size(compactBoxing?308:(next?176:204),dashHeight-20);
-  const cap=left.addStack();const accent=cap.addStack();accent.size=new Size(22,4);accent.backgroundColor=new Color(S.accent);accent.cornerRadius=2;cap.addSpacer();
-  left.addSpacer(7);
-  const ltitle=left.addStack();tx(ltitle,'対戦カード',8.4,new Color(S.accent),'bold');ltitle.addSpacer();
-  left.addSpacer(8);
-  if(rows.length){rows.forEach((row,i)=>{largeFightRow(left,row,compactBoxing);if(i<rows.length-1){left.addSpacer(8);const sep=left.addStack();sep.size=new Size(0,1);sep.backgroundColor=new Color('#FFFFFF',.07);left.addSpacer(8);}});}
-  else{left.addSpacer(compactBoxing?10:17);const em=tx(left,'追加カード発表待ち',9.0,new Color(C.muted),'semibold');em.centerAlignText();}
-  if(compactBoxing){
-    left.addSpacer();const nline=left.addStack();tx(nline,'次大会',8.4,new Color(S.accent),'bold');nline.addSpacer(10);tx(nline,'公式情報を確認中',9.2,new Color(C.muted),'semibold');nline.addSpacer();
-  }else{
-    dash.addSpacer(6);const rule=dash.addStack();rule.size=new Size(1,112);rule.backgroundColor=new Color('#FFFFFF',.09);dash.addSpacer(6);
-    const right=dash.addStack();right.layoutVertically();right.size=new Size(next?119:91,122);right.cornerRadius=12;if(nextPoster)right.backgroundImage=largeMiniPoster(nextPoster);right.setPadding(7,7,7,7);
-    const ncap=right.addStack();tx(ncap,'次大会',8.2,new Color(S.accent),'bold');ncap.addSpacer();
-    if(next){right.addSpacer(7);const nn=tx(right,largeNextTitle(next),10.8,new Color(C.text),'bold',2);nn.minimumScaleFactor=.68;right.addSpacer(7);const nm=tx(right,largeNextMeta(next),8.4,new Color(C.sub),'semibold',2);nm.minimumScaleFactor=.68;right.addSpacer();const nt=tx(right,'あと '+countdown(next),8.6,new Color(S.accent),'bold');nt.minimumScaleFactor=.66;}
-    else{right.addSpacer(15);tx(right,'公式情報を確認中',9.0,new Color(C.muted),'semibold',3);right.addSpacer();}
-  }
-  w.addSpacer(2);
-}
-'''
+          block=base64.b64decode('ZnVuY3Rpb24gcmVuZGVyTGFyZ2VNYWluTmFtZShib3gsbmFtZSl7Y29uc3QgcGFydHM9bWFpbk5hbWVQYXJ0cyhqcERpc3BsYXkobmFtZSkpO2Zvcihjb25zdCBwYXJ0IG9mIHBhcnRzKXtjb25zdCB0PXR4KGJveCxwYXJ0LDE2LjAsbmV3IENvbG9yKEMudGV4dCksJ2JsYWNrJywxKTt0Lm1pbmltdW1TY2FsZUZhY3Rvcj0uNjI7dC5jZW50ZXJBbGlnblRleHQoKTt9cmV0dXJuIHBhcnRzO30KZnVuY3Rpb24gbGFyZ2VGaWdodFJvdyhzdCxyb3csd2lkZT1mYWxzZSl7Y29uc3Qgcj1zdC5hZGRTdGFjaygpO3IuY2VudGVyQWxpZ25Db250ZW50KCk7Y29uc3QgbGFiPXIuYWRkU3RhY2soKTtsYWIuc2l6ZT1uZXcgU2l6ZSh3aWRlPzQ0OjM0LDApO2NvbnN0IGx0PXR4KGxhYixqcENhcmRMYWJlbChyb3cubGFiZWwpLHdpZGU/OC40OjcuOCxuZXcgQ29sb3IoUy5hY2NlbnQpLCdib2xkJyk7bHQubWluaW11bVNjYWxlRmFjdG9yPS42ODtyLmFkZFNwYWNlcigzKTtjb25zdCBhYT1yLmFkZFN0YWNrKCk7YWEuc2l6ZT1uZXcgU2l6ZSh3aWRlPzEwNDo2MCwwKTtjb25zdCBhdD10eChhYSxqcERpc3BsYXkocm93LmEpLHdpZGU/MTAuNDo5LjUsbmV3IENvbG9yKEMudGV4dCksJ3NlbWlib2xkJyk7YXQubWluaW11bVNjYWxlRmFjdG9yPS42MjtyLmFkZFNwYWNlcigzKTt0eChyLCdWUycsd2lkZT84LjI6Ny42LG5ldyBDb2xvcihTLmFjY2VudCksJ2JvbGQnKTtyLmFkZFNwYWNlcigzKTtjb25zdCBiYj1yLmFkZFN0YWNrKCk7YmIuc2l6ZT1uZXcgU2l6ZSh3aWRlPzEwNDo2MCwwKTtjb25zdCBidD10eChiYixqcERpc3BsYXkocm93LmIpLHdpZGU/MTAuNDo5LjUsbmV3IENvbG9yKEMudGV4dCksJ3NlbWlib2xkJyk7YnQubWluaW11bVNjYWxlRmFjdG9yPS42MjtidC5yaWdodEFsaWduVGV4dCgpO30KZnVuY3Rpb24gbGFyZ2VOZXh0VGl0bGUobmV4dCl7cmV0dXJuIGpwRGlzcGxheShuZXh0Py5uYW1lfHwn5qyh5aSn5LyaJykucmVwbGFjZSgvXkNyeXB0b1wuY29tXHMrL2ksJycpO30KZnVuY3Rpb24gbGFyZ2VOZXh0TWV0YShuZXh0KXtpZighbmV4dClyZXR1cm4nJztjb25zdCBkPW5leHQudGltZVRiYT9kYXRlT25seShuZXh0LnN0YXJ0QXQpOmRhdGVUZXh0KG5leHQpO2NvbnN0IGxvYz1zaG9ydExvYyhuZXh0LmxvY2F0aW9ufHwnJyk7cmV0dXJuIGxvYz9gJHtkfSDCtyAke2xvY31gOmQ7fQpmdW5jdGlvbiByZW5kZXJMYXJnZSh3LEQsY3R4LG5leHQsbmV4dFBvc3Rlcil7CiAgY29uc3QgcGVuZGluZz0hIUQuY2FyZFRiYTsKICBjb25zdCBoPXcuYWRkU3RhY2soKTtoLmNlbnRlckFsaWduQ29udGVudCgpOwogIGNvbnN0IGhsPWguYWRkU3RhY2soKTtobC5sYXlvdXRWZXJ0aWNhbGx5KCk7CiAgdHgoaGwsUy5sYWJlbCwyNCxuZXcgQ29sb3IoQy50ZXh0KSwnYmxhY2snKTsKICBobC5hZGRTcGFjZXIoMik7CiAgY29uc3QgZW49dHgoaGwsanBEaXNwbGF5KEQubmFtZXx8JycpLDkuMixuZXcgQ29sb3IoUy5hY2NlbnQpLCdib2xkJywyKTtlbi5taW5pbXVtU2NhbGVGYWN0b3I9LjcyOwogIGhsLmFkZFNwYWNlcig0KTsKICBjb25zdCBtZXRhPWhsLmFkZFN0YWNrKCk7CiAgdHgobWV0YSxkYXRlVGV4dChEKSw5LjAsbmV3IENvbG9yKEMuc3ViKSwnc2VtaWJvbGQnKTttZXRhLmFkZFNwYWNlcig2KTt0eChtZXRhLCfCtycsNy44LG5ldyBDb2xvcihDLm11dGVkKSk7bWV0YS5hZGRTcGFjZXIoNik7dHgobWV0YSxzaG9ydExvYyhELmxvY2F0aW9uKSw5LjAsbmV3IENvbG9yKEMuc3ViKSwnc2VtaWJvbGQnKTsKICBoLmFkZFNwYWNlcigpOwogIGNvbnN0IHN0YXR1cz1oLmFkZFN0YWNrKCk7c3RhdHVzLmxheW91dFZlcnRpY2FsbHkoKTsKICBpZihLRVkhPT0nYm94aW5nJyl7Y29uc3Qgc2w9c3RhdHVzLmFkZFN0YWNrKCk7c2wuYWRkU3BhY2VyKCk7dHgoc2wsc3RhdHVzTGFiZWwoRCksNi44LG5ldyBDb2xvcihDLm11dGVkKSwnYm9sZCcpO3N0YXR1cy5hZGRTcGFjZXIoMyk7fQogIGNvbnN0IGJhZGdlPXN0YXR1cy5hZGRTdGFjaygpO2JhZGdlLmJhY2tncm91bmRDb2xvcj1uZXcgQ29sb3IoJyMwNTA3MEInLEtFWT09PSdib3hpbmcnPy43ODouNzApO2JhZGdlLmNvcm5lclJhZGl1cz0xMTtiYWRnZS5ib3JkZXJXaWR0aD0uNztiYWRnZS5ib3JkZXJDb2xvcj1uZXcgQ29sb3IoUy5hY2NlbnQsLjM2KTtiYWRnZS5zZXRQYWRkaW5nKDUsMTAsNSwxMCk7dHgoYmFkZ2UsY291bnRkb3duKEQpLDEyLjQsbmV3IENvbG9yKEMudGV4dCksJ2JsYWNrJyk7CiAgdy5hZGRTcGFjZXIocGVuZGluZz8yMDooS0VZPT09J2JveGluZyc/MjQ6MjcpKTsKICBpZihwZW5kaW5nKXsKICAgIGNvbnN0IGNlbnRlcj13LmFkZFN0YWNrKCk7Y2VudGVyLmxheW91dFZlcnRpY2FsbHkoKTsKICAgIGNvbnN0IHRpdGxlPXR4KGNlbnRlcixELm5leHRQZW5kaW5nPyfmrKHlpKfkvJrmg4XloLHjgpLnorroqo3kuK0nOiflr77miKbjgqvjg7zjg4nnmbrooajlvoXjgaEnLDE3LjIsbmV3IENvbG9yKEMudGV4dCksJ2JsYWNrJyk7dGl0bGUuY2VudGVyQWxpZ25UZXh0KCk7CiAgICBjZW50ZXIuYWRkU3BhY2VyKDcpOwogICAgY29uc3Qgc3ViPXR4KGNlbnRlcixqcERpc3BsYXkoRC5uYW1lfHxELm1haW4uY29udGV4dCksMTAuMCxuZXcgQ29sb3IoUy5hY2NlbnQpLCdzZW1pYm9sZCcsMik7c3ViLm1pbmltdW1TY2FsZUZhY3Rvcj0uNzI7c3ViLmNlbnRlckFsaWduVGV4dCgpOwogIH1lbHNlewogICAgY29uc3QgdGFnPXcuYWRkU3RhY2soKTt0YWcuYWRkU3BhY2VyKCk7Y29uc3QgdGFnVGV4dD10eCh0YWcsJ+ODoeOCpOODs+OCpOODmeODs+ODiCcsNy40LG5ldyBDb2xvcihTLmFjY2VudCksJ2JvbGQnKTt0YWdUZXh0LmNlbnRlckFsaWduVGV4dCgpO3RhZy5hZGRTcGFjZXIoKTsKICAgIHcuYWRkU3BhY2VyKDQpOwogICAgY29uc3QgbWFpbj13LmFkZFN0YWNrKCk7bWFpbi5jZW50ZXJBbGlnbkNvbnRlbnQoKTttYWluLmFkZFNwYWNlcigpOwogICAgY29uc3QgYUJveD1tYWluLmFkZFN0YWNrKCk7YUJveC5sYXlvdXRWZXJ0aWNhbGx5KCk7YUJveC5zaXplPW5ldyBTaXplKDEzMiw0Nik7YUJveC5hZGRTcGFjZXIoKTtyZW5kZXJMYXJnZU1haW5OYW1lKGFCb3gsY3R4LmEubmFtZSk7YUJveC5hZGRTcGFjZXIoKTsKICAgIG1haW4uYWRkU3BhY2VyKDUpOwogICAgY29uc3QgY2VudGVyPW1haW4uYWRkU3RhY2soKTtjZW50ZXIubGF5b3V0VmVydGljYWxseSgpO2NlbnRlci5zaXplPW5ldyBTaXplKDQyLDQ2KTtjZW50ZXIuYWRkU3BhY2VyKCk7Y29uc3QgdnM9dHgoY2VudGVyLCdWUycsMTcuMCxuZXcgQ29sb3IoUy5hY2NlbnQpLCdibGFjaycpO3ZzLmNlbnRlckFsaWduVGV4dCgpO2NlbnRlci5hZGRTcGFjZXIoKTsKICAgIG1haW4uYWRkU3BhY2VyKDUpOwogICAgY29uc3QgYkJveD1tYWluLmFkZFN0YWNrKCk7YkJveC5sYXlvdXRWZXJ0aWNhbGx5KCk7YkJveC5zaXplPW5ldyBTaXplKDEzMiw0Nik7YkJveC5hZGRTcGFjZXIoKTtyZW5kZXJMYXJnZU1haW5OYW1lKGJCb3gsY3R4LmIubmFtZSk7YkJveC5hZGRTcGFjZXIoKTttYWluLmFkZFNwYWNlcigpOwogICAgdy5hZGRTcGFjZXIoNSk7CiAgICBjb25zdCBkdj10eCh3LGRpdmlzaW9uKEQubWFpbi5jb250ZXh0KSw5LjAsbmV3IENvbG9yKCcjRDhEQ0UyJyksJ3NlbWlib2xkJyk7ZHYuY2VudGVyQWxpZ25UZXh0KCk7CiAgfQogIHcuYWRkU3BhY2VyKCk7CiAgY29uc3Qgcm93cz0oRC5zdXBwb3J0fHxbXSkuc2xpY2UoMCwyKSxjb21wYWN0Qm94aW5nPUtFWT09PSdib3hpbmcnJiYhbmV4dCYmcm93cy5sZW5ndGg8PTEsZGFzaEhlaWdodD1jb21wYWN0Qm94aW5nPzEyMjoxNDI7CiAgY29uc3QgZGFzaD13LmFkZFN0YWNrKCk7ZGFzaC5zaXplPW5ldyBTaXplKDMyOCxkYXNoSGVpZ2h0KTtkYXNoLmJhY2tncm91bmRDb2xvcj1uZXcgQ29sb3IoJyMwNTA3MEInLC45MSk7ZGFzaC5jb3JuZXJSYWRpdXM9MTY7ZGFzaC5ib3JkZXJXaWR0aD0uODtkYXNoLmJvcmRlckNvbG9yPW5ldyBDb2xvcignI0ZGRkZGRicsLjExKTtkYXNoLnNldFBhZGRpbmcoMTAsMTAsMTAsMTApOwogIGNvbnN0IGxlZnQ9ZGFzaC5hZGRTdGFjaygpO2xlZnQubGF5b3V0VmVydGljYWxseSgpO2xlZnQuc2l6ZT1uZXcgU2l6ZShjb21wYWN0Qm94aW5nPzMwODoobmV4dD8xNzY6MjA0KSxkYXNoSGVpZ2h0LTIwKTsKICBjb25zdCBjYXA9bGVmdC5hZGRTdGFjaygpO2NvbnN0IGFjY2VudD1jYXAuYWRkU3RhY2soKTthY2NlbnQuc2l6ZT1uZXcgU2l6ZSgyMiw0KTthY2NlbnQuYmFja2dyb3VuZENvbG9yPW5ldyBDb2xvcihTLmFjY2VudCk7YWNjZW50LmNvcm5lclJhZGl1cz0yO2NhcC5hZGRTcGFjZXIoKTsKICBsZWZ0LmFkZFNwYWNlcig3KTsKICBjb25zdCBsdGl0bGU9bGVmdC5hZGRTdGFjaygpO3R4KGx0aXRsZSwn5a++5oim44Kr44O844OJJyw4LjQsbmV3IENvbG9yKFMuYWNjZW50KSwnYm9sZCcpO2x0aXRsZS5hZGRTcGFjZXIoKTsKICBsZWZ0LmFkZFNwYWNlcig4KTsKICBpZihyb3dzLmxlbmd0aCl7cm93cy5mb3JFYWNoKChyb3csaSk9PntsYXJnZUZpZ2h0Um93KGxlZnQscm93LGNvbXBhY3RCb3hpbmcpO2lmKGk8cm93cy5sZW5ndGgtMSl7bGVmdC5hZGRTcGFjZXIoOCk7Y29uc3Qgc2VwPWxlZnQuYWRkU3RhY2soKTtzZXAuc2l6ZT1uZXcgU2l6ZSgwLDEpO3NlcC5iYWNrZ3JvdW5kQ29sb3I9bmV3IENvbG9yKCcjRkZGRkZGJywuMDcpO2xlZnQuYWRkU3BhY2VyKDgpO319KTt9CiAgZWxzZXtsZWZ0LmFkZFNwYWNlcihjb21wYWN0Qm94aW5nPzEwOjE3KTtjb25zdCBlbT10eChsZWZ0LCfov73liqDjgqvjg7zjg4nnmbrooajlvoXjgaEnLDkuMCxuZXcgQ29sb3IoQy5tdXRlZCksJ3NlbWlib2xkJyk7ZW0uY2VudGVyQWxpZ25UZXh0KCk7fQogIGlmKGNvbXBhY3RCb3hpbmcpewogICAgbGVmdC5hZGRTcGFjZXIoKTtjb25zdCBubGluZT1sZWZ0LmFkZFN0YWNrKCk7dHgobmxpbmUsJ+asoeWkp+S8micsOC40LG5ldyBDb2xvcihTLmFjY2VudCksJ2JvbGQnKTtubGluZS5hZGRTcGFjZXIoMTApO3R4KG5saW5lLCflhazlvI/mg4XloLHjgpLnorroqo3kuK0nLDkuMixuZXcgQ29sb3IoQy5tdXRlZCksJ3NlbWlib2xkJyk7bmxpbmUuYWRkU3BhY2VyKCk7CiAgfWVsc2V7CiAgICBkYXNoLmFkZFNwYWNlcig2KTtjb25zdCBydWxlPWRhc2guYWRkU3RhY2soKTtydWxlLnNpemU9bmV3IFNpemUoMSwxMTIpO3J1bGUuYmFja2dyb3VuZENvbG9yPW5ldyBDb2xvcignI0ZGRkZGRicsLjA5KTtkYXNoLmFkZFNwYWNlcig2KTsKICAgIGNvbnN0IHJpZ2h0PWRhc2guYWRkU3RhY2soKTtyaWdodC5sYXlvdXRWZXJ0aWNhbGx5KCk7cmlnaHQuc2l6ZT1uZXcgU2l6ZShuZXh0PzExOTo5MSwxMjIpO3JpZ2h0LmNvcm5lclJhZGl1cz0xMjtpZihuZXh0UG9zdGVyKXJpZ2h0LmJhY2tncm91bmRJbWFnZT1sYXJnZU1pbmlQb3N0ZXIobmV4dFBvc3Rlcik7cmlnaHQuc2V0UGFkZGluZyg3LDcsNyw3KTsKICAgIGNvbnN0IG5jYXA9cmlnaHQuYWRkU3RhY2soKTt0eChuY2FwLCfmrKHlpKfkvJonLDguMixuZXcgQ29sb3IoUy5hY2NlbnQpLCdib2xkJyk7bmNhcC5hZGRTcGFjZXIoKTsKICAgIGlmKG5leHQpe3JpZ2h0LmFkZFNwYWNlcig3KTtjb25zdCBubj10eChyaWdodCxsYXJnZU5leHRUaXRsZShuZXh0KSwxMC44LG5ldyBDb2xvcihDLnRleHQpLCdib2xkJywyKTtubi5taW5pbXVtU2NhbGVGYWN0b3I9LjY4O3JpZ2h0LmFkZFNwYWNlcig3KTtjb25zdCBubT10eChyaWdodCxsYXJnZU5leHRNZXRhKG5leHQpLDguNCxuZXcgQ29sb3IoQy5zdWIpLCdzZW1pYm9sZCcsMik7bm0ubWluaW11bVNjYWxlRmFjdG9yPS42ODtyaWdodC5hZGRTcGFjZXIoKTtjb25zdCBudD10eChyaWdodCwn44GC44GoICcrY291bnRkb3duKG5leHQpLDguNixuZXcgQ29sb3IoUy5hY2NlbnQpLCdib2xkJyk7bnQubWluaW11bVNjYWxlRmFjdG9yPS42Njt9CiAgICBlbHNle3JpZ2h0LmFkZFNwYWNlcigxNSk7dHgocmlnaHQsJ+WFrOW8j+aDheWgseOCkueiuuiqjeS4rScsOS4wLG5ldyBDb2xvcihDLm11dGVkKSwnc2VtaWJvbGQnLDMpO3JpZ2h0LmFkZFNwYWNlcigpO30KICB9CiAgdy5hZGRTcGFjZXIoMik7Cn0K').decode()
           s=s[:start]+block+'\n'+s[end:]
           p.write_text(s)
           PY
-      - name: Restore workflow and commit patch
+      - name: Restore canonical workflow and commit patch
         shell: bash
         run: |
           git fetch origin main:refs/remotes/origin/main
