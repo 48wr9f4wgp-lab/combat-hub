@@ -20,7 +20,9 @@ jobs:
         with:
           node-version: '24.x'
       - name: Apply v7.17.0 Medium unified layout
-        run: python3 scripts/apply-medium-unified-v7170.py
+        run: |
+          python3 scripts/apply-medium-unified-v7170.py
+          python3 scripts/fix-medium-test-v7170.py
       - name: Focused verification
         run: |
           node --check combat-hub.js
