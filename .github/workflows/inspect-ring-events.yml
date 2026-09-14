@@ -9,21 +9,23 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
-      - name: Inspect Ring news markup
+      - name: Inspect Ring event detail
         shell: bash
         run: |
           node <<'NODE'
-          const url='https://www.ringmagazine.com/news/news';
+          const url='https://www.ringmagazine.com/events/garcia-vs-benn-7lwM37BFvTG9clZQi9f23U';
           const res=await fetch(url,{headers:{'user-agent':'Mozilla/5.0','accept':'text/html'}});
           const html=await res.text();
-          console.log('status',res.status,'bytes',html.length,'nextflight',html.includes('__next_f.push'));
-          const out=[];
-          for(const m of html.matchAll(/<a\b[^>]*href=["']([^"']*\/news\/[^"'#?]+)["'][^>]*>([\s\S]*?)<\/a>/gi)){
-            const href=m[1],text=m[2].replace(/<[^>]+>/g,' ').replace(/&[^;]+;/g,' ').replace(/\s+/g,' ').trim();
-            if(!text||text.length<10) continue;
-            const key=href+'|'+text;
-            if(!out.some(x=>x.key===key))out.push({key,href,text});
+          console.log('status',res.status,'bytes',html.length);
+          console.log('title', (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]);
+          const heads=[...html.matchAll(/<h[1-4][^>]*>([\s\S]*?)<\/h[1-4]>/gi)].map(m=>m[1].replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+          console.log('heads',JSON.stringify(heads.slice(0,30)));
+          const flight=html.replace(/\\"/g,'"').replace(/\\u0026/g,'&');
+          for(const needle of ['"mainFight"','"fighterA"','"fighterB"','Ryan Garcia','Conor Benn','"fights"']){
+            const i=flight.indexOf(needle);
+            console.log('\nNEEDLE',needle,'INDEX',i);
+            if(i>=0) console.log(flight.slice(Math.max(0,i-400),i+2400).replace(/\s+/g,' '));
           }
-          console.log('article anchors',out.length);
-          for(const x of out.filter(x=>/(Sep(?:t\.?|tember)?\s+\d{1,2}|Oct(?:ober)?\s+\d{1,2}|fight|return|clash|bout|title)/i.test(x.text)).slice(0,80)) console.log('CAND',x.href,'::',x.text.slice(0,220));
+          const pair=flight.match(/"mainFight":\{[\s\S]{0,20000}?"fighterA":\{[\s\S]{0,5000}?"name":"([^"]+)"[\s\S]{0,20000}?"fighterB":\{[\s\S]{0,5000}?"name":"([^"]+)"/);
+          console.log('mainPair',pair&&pair.slice(1));
           NODE
