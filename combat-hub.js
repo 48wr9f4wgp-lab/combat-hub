@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.19.0-github — time-TBA transition grace; frozen visual geometry preserved
+// v7.19.1-github — transition timeline hardening; frozen visual geometry preserved
 
 (async()=>{
-const VERSION='7.19.0-github';
+const VERSION='7.19.1-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -123,7 +123,8 @@ function currentLocked(snap){const end=new Date(snap.startAt).getTime()+currentG
 function sameFight(a,b,x,y){const n=v=>String(v||'').toLowerCase().replace(/[\s・.'’_-]+/g,'');return(n(a)===n(x)&&n(b)===n(y))||(n(a)===n(y)&&n(b)===n(x));}
 function eventIdentityText(v){return stripHTML(v||'').toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/g,'');}
 function eventSourceKey(ev){return String(ev?.source||'').toLowerCase().replace(/^https?:\/\/(?:www\.)?/,'').replace(/[?#].*$/,'').replace(/\/+$/,'');}
-function sameEventIdentity(a,b){if(!a||!b)return false;const as=eventSourceKey(a),bs=eventSourceKey(b);if(as&&bs&&as===bs)return true;const an=eventIdentityText(a.name),bn=eventIdentityText(b.name);if(an&&bn&&an===bn)return true;if(a.main&&b.main&&sameFight(a.main.a,a.main.b,b.main.a,b.main.b))return true;return false;}
+function genericEventIdentityName(v){const n=eventIdentityText(v);return n==='ufcfightnight';}
+function sameEventIdentity(a,b){if(!a||!b)return false;const as=eventSourceKey(a),bs=eventSourceKey(b);if(as&&bs&&as===bs)return true;const an=eventIdentityText(a.name),bn=eventIdentityText(b.name);if(an&&bn&&an===bn&&!genericEventIdentityName(a.name))return true;if(a.main&&b.main&&sameFight(a.main.a,a.main.b,b.main.a,b.main.b))return true;return false;}
 function rollforwardEligible(base,e,now=Date.now()){const t=new Date(e?.startAt).getTime(),baseT=new Date(base?.startAt).getTime();return Number.isFinite(t)&&Number.isFinite(baseT)&&t>baseT+6*3600000&&t>now-currentGraceMs(e)&&t<now+180*86400000&&validOrgName(e?.name)&&!sameEventIdentity(base,e);}
 function nextEligible(base,e,now=Date.now()){const t=new Date(e?.startAt).getTime(),baseT=new Date(base?.startAt).getTime();return Number.isFinite(t)&&Number.isFinite(baseT)&&t>Math.max(baseT+6*3600000,now)&&t<now+180*86400000&&validOrgName(e?.name)&&!sameEventIdentity(base,e);}
 function currentPagePairs(html){if(!html)return[];if(KEY==='boxing'){const ring=ringDetailPairs(html);if(ring.length)return ring;}if(KEY==='one'){const out=[],seen=new Set(),chunks=String(html).split('<tr class="vs">').slice(1);for(const chunk of chunks){const row=chunk.split('</tr>')[0],titles=[...row.matchAll(/title="([^"]+)"/g)].map(m=>cleanName(m[1]));if(titles.length<2)continue;const a=titles[0],b=titles[1],k=a+'|'+b;if(a&&b&&!seen.has(k)){seen.add(k);out.push({a,b});}}if(out.length)return out.slice(0,6);}return fightPairs(html);}
