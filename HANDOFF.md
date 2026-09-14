@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.16.1-github**
+- Runtime: **v7.17.0-github**
 - Runtime PR: **#45 — Ring official-events parser**
 - Runtime merge commit: `cb6358396a5493b98f1a7c486d17fba957aa92a4`
 - Main Regression after PR #45: **#486 success**
@@ -148,6 +148,15 @@ Large now uses one shared geometry and typography system across UFC / RIZIN / ON
 - BOXING retains the low-memory verified-cache-only data path and skips heavy next-event discovery/poster work in Widget execution; only its visual geometry is unified.
 
 Physical iPhone visual confirmation for v7.15.0 is still required before calling this pass complete.
+
+
+## 6A. Medium UI architecture in v7.17.0
+
+- Physical iPhone review across UFC / RIZIN / ONE / BOXING / K-1 showed Medium geometry drifting by organization.
+- Medium now uses one shared header/status template: organization + event on the left, and `開催まで/開催状況` + countdown + date + location on the right.
+- Pending and confirmed states share the same header geometry. Organization differences are limited to data, accent color, and available background art.
+- K-1 no longer has a bespoke Medium optical inset; fighter slots, VS axis, support rows, and typography use shared MEDIUM_UI tokens.
+- Large v7.16.1 geometry and BOXING verified-cache-only safety are unchanged.
 
 ## 7. BOXING architecture in v7.14.0
 
