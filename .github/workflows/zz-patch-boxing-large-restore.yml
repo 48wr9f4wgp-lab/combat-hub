@@ -10,17 +10,16 @@ permissions:
 
 jobs:
   patch:
-    if: github.event.head_commit.message != 'fix: restore BOXING Large normal runtime'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Restore normal BOXING Large runtime
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
           p = Path('combat-hub.js')
           s = p.read_text()
           s = s.replace('// v7.12.3-github — BOXING Large emergency local safe mode', '// v7.12.4-github — BOXING Large normal runtime restore')
@@ -34,7 +33,6 @@ jobs:
               raise SystemExit('SNAPSHOT marker not found')
           s = s[:start] + s[end:]
           p.write_text(s)
-
           tests = Path('tests')
           if tests.exists():
               for f in tests.rglob('*'):
@@ -49,13 +47,15 @@ jobs:
                       f.write_text(nt)
           PY
       - name: Verify patch invariants
+        shell: bash
         run: |
           node --check combat-hub.js
           grep -q "const VERSION='7.12.4-github';" combat-hub.js
-          ! grep -q "Emergency local-only guard for BOXING Large" combat-hub.js
+          if grep -q "Emergency local-only guard for BOXING Large" combat-hub.js; then exit 1; fi
           grep -q "if(KEY==='boxing'&&config.widgetFamily==='large')" combat-hub.js
           grep -q "if(KEY==='boxing'&&config.widgetFamily==='large'){if(cachedData&&rollforwardEligible" combat-hub.js
       - name: Commit patch
+        shell: bash
         run: |
           git config user.name "48wr9f4wgp-lab"
           git config user.email "48wr9f4wgp@privaterelay.appleid.com"
