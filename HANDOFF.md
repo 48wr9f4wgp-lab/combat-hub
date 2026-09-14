@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.14.0-github**
+- Runtime: **v7.15.0-github**
 - Runtime PR: **#45 — Ring official-events parser**
 - Runtime merge commit: `cb6358396a5493b98f1a7c486d17fba957aa92a4`
 - Main Regression after PR #45: **#486 success**
@@ -131,7 +131,21 @@ Current accepted Large direction:
 
 The Large layout is considered good enough to freeze for now. Do not restart broad visual churn unless a concrete defect is observed.
 
-## 6. BOXING architecture in v7.14.0
+## 6. Large UI architecture in v7.15.0
+
+Large now uses one shared geometry and typography system across UFC / RIZIN / ONE / BOXING / K-1.
+
+- `LARGE_UI` is the canonical Large typography/geometry token set.
+- organization-specific Large font sizing and lower-panel widths are removed.
+- the lower dashboard is always the same two-column layout: fight card left / next event right.
+- long fighter names use the same delimiter-aware two-line wrapping rule.
+- the Large hero/background contrast veil is shared across organizations.
+- organization differences are limited to accent color, source data and available imagery.
+- BOXING retains the low-memory verified-cache-only data path and skips heavy next-event discovery/poster work in Widget execution; only its visual geometry is unified.
+
+Physical iPhone visual confirmation for v7.15.0 is still required before calling this pass complete.
+
+## 7. BOXING architecture in v7.14.0
 
 ### Manual/non-widget path
 
@@ -161,7 +175,7 @@ BOXING Medium/Large Widget execution:
 
 This cache-only Widget rule survived the v7.13 visual work and remains unchanged in v7.14.0.
 
-## 7. New in v7.14.0 — Ring-specific official parser
+## 8. New in v7.14.0 — Ring-specific official parser
 
 The old generic discovery expected JSON-LD-style event data and did not correctly understand the current Ring site structure.
 
@@ -210,7 +224,7 @@ This is a source-availability limitation, not by itself evidence that the parser
 
 The new parser is ready to consume the next official Ring event when the official `/events` page advances.
 
-## 8. Runtime audit
+## 9. Runtime audit
 
 `combat-hub-runtime-audit.json` remains the first diagnostic source before patching.
 
@@ -232,7 +246,7 @@ Important fields:
 
 For v7.14.0 BOXING, unexpected behavior should be diagnosed from these fields plus the actual current Ring source before changing code.
 
-## 9. Regression coverage / current CI
+## 10. Regression coverage / current CI
 
 Canonical CI checks include:
 

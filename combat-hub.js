@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.14.0-github — Ring official-events parser; BOXING cache-only widget path preserved
+// v7.15.0-github — unified Large layout/typography across organizations; BOXING cache-only path preserved
 
 (async()=>{
-const VERSION='7.14.0-github';
+const VERSION='7.15.0-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -31,6 +31,7 @@ const VISUAL={
   k1:{heroShade:.60,posterShade:.46,headerShade:.10,mainShade:.11,footShade:.17,veil:.055,gap:15,mainSize:13.6,division:7.3}
 };
 const V=VISUAL[KEY];
+const LARGE_UI={org:24,event:10.0,meta:9.2,status:6.8,countdown:12.4,heroLabel:7.4,pending:17.2,pendingSub:10.0,main:16.0,vs:17.0,division:9.0,section:8.8,fightLabel:8.4,fightName:10.2,nextLabel:8.4,nextTitle:11.0,nextMeta:8.8,nextCountdown:9.2,dashH:150,leftW:192,rightW:103};
 
 const SNAPSHOT={
   ufc:{startAt:'2026-09-13T06:00:00+09:00',location:'グレンデール',name:'Noche UFC',main:{a:'Jean Silva',b:'Jose Miguel Delgado',context:'FEATHERWEIGHT'},support:[{label:'CO-MAIN',a:'Brandon Moreno',b:'Joseph Morales'},{label:'MAIN CARD',a:'Tommy McMillen',b:'Marwan Rahiki'},{label:'MAIN CARD',a:'Manon Fiorot',b:'Alexa Grasso'},{label:'MAIN CARD',a:'Waldo Cortes Acosta',b:'Curtis Blaydes'},{label:'MAIN CARD',a:'David Martinez',b:'Dan Ige'}],source:'https://www.ufc.com/event/ufc-fight-night-september-12-2026'},
@@ -183,63 +184,61 @@ function renderMainName(box,name){const parts=mainNameParts(jpDisplay(name));for
 function supportRow(w,row){const s=w.addStack();s.centerAlignContent();const l=s.addStack();l.size=new Size(65,0);tx(l,jpCardLabel(row.label),7.1,new Color(S.accent),'bold');s.addSpacer(4);const a=s.addStack();a.size=new Size(116,0);tx(a,jpDisplay(row.a),supportFont(jpDisplay(row.a)),new Color(C.text),'semibold');s.addSpacer(4);tx(s,'VS',7.1,new Color(S.accent),'bold');s.addSpacer(4);const b=s.addStack();b.size=new Size(116,0);const bt=tx(b,jpDisplay(row.b),supportFont(jpDisplay(row.b)),new Color(C.text),'semibold');bt.rightAlignText();}
 
 function largePortraitSlot(image,side){const W=360,H=520,c=new DrawContext();c.size=new Size(W,H);c.opaque=false;c.respectScreenScale=false;if(!image?.size)return c.getImage();const iw=image.size.width,ih=image.size.height,scale=Math.max(W/iw,H/ih),dw=iw*scale,dh=ih*scale,x=(W-dw)/2,y=(H-dh)/2-6;c.drawImageInRect(image,new Rect(x,y,dw,dh));return c.getImage();}
-function largeBackground(ctx){const c=new DrawContext();c.size=new Size(720,756);c.opaque=true;c.respectScreenScale=false;c.setFillColor(new Color('#020305'));c.fillRect(new Rect(0,0,720,756));if(ctx.poster?.size){const iw=ctx.poster.size.width,ih=ctx.poster.size.height,scale=Math.max(720/iw,520/ih),dw=iw*scale,dh=ih*scale;c.drawImageInRect(ctx.poster,new Rect((720-dw)/2,(520-dh)/2,dw,dh));}else{if(ctx.a.image)c.drawImageInRect(largePortraitSlot(ctx.a.image,'left'),new Rect(0,0,360,520));if(ctx.b.image)c.drawImageInRect(largePortraitSlot(ctx.b.image,'right'),new Rect(360,0,360,520));}const veil=KEY==='one'?.50:KEY==='k1'?.56:KEY==='rizin'?.72:.56;c.setFillColor(new Color('#000000',veil));c.fillRect(new Rect(0,0,720,520));softBand(c,0,118,.16,28);softBand(c,250,520,.18,36);for(let i=0;i<160;i++){const p=i/159,a=.08+Math.pow(p,1.7)*.91;c.setFillColor(new Color('#020305',Math.min(.995,a)));c.fillRect(new Rect(0,388+i,720,1));}c.setFillColor(new Color('#020305',.995));c.fillRect(new Rect(0,548,720,208));c.setFillColor(new Color(S.accent,.12));c.fillRect(new Rect(30,0,660,1));c.setFillColor(new Color(S.accent,.10));c.fillRect(new Rect(48,548,624,1));return c.getImage();}
+function largeBackground(ctx){const c=new DrawContext();c.size=new Size(720,756);c.opaque=true;c.respectScreenScale=false;c.setFillColor(new Color('#020305'));c.fillRect(new Rect(0,0,720,756));if(ctx.poster?.size){const iw=ctx.poster.size.width,ih=ctx.poster.size.height,scale=Math.max(720/iw,520/ih),dw=iw*scale,dh=ih*scale;c.drawImageInRect(ctx.poster,new Rect((720-dw)/2,(520-dh)/2,dw,dh));}else{if(ctx.a.image)c.drawImageInRect(largePortraitSlot(ctx.a.image,'left'),new Rect(0,0,360,520));if(ctx.b.image)c.drawImageInRect(largePortraitSlot(ctx.b.image,'right'),new Rect(360,0,360,520));}const veil=.64;c.setFillColor(new Color('#000000',veil));c.fillRect(new Rect(0,0,720,520));softBand(c,0,118,.16,28);softBand(c,250,520,.18,36);for(let i=0;i<160;i++){const p=i/159,a=.08+Math.pow(p,1.7)*.91;c.setFillColor(new Color('#020305',Math.min(.995,a)));c.fillRect(new Rect(0,388+i,720,1));}c.setFillColor(new Color('#020305',.995));c.fillRect(new Rect(0,548,720,208));c.setFillColor(new Color(S.accent,.12));c.fillRect(new Rect(30,0,660,1));c.setFillColor(new Color(S.accent,.10));c.fillRect(new Rect(48,548,624,1));return c.getImage();}
 function largeMiniPoster(image){if(!image?.size)return null;const W=210,H=224,c=new DrawContext();c.size=new Size(W,H);c.opaque=true;c.respectScreenScale=false;c.setFillColor(new Color('#07090D'));c.fillRect(new Rect(0,0,W,H));const iw=image.size.width,ih=image.size.height,scale=Math.max(W/iw,H/ih),dw=iw*scale,dh=ih*scale;c.drawImageInRect(image,new Rect((W-dw)/2,(H-dh)/2,dw,dh));c.setFillColor(new Color('#000000',.78));c.fillRect(new Rect(0,0,W,H));return c.getImage();}
-function renderLargeMainName(box,name){const parts=mainNameParts(jpDisplay(name));for(const part of parts){const t=tx(box,part,16.0,new Color(C.text),'black',1);t.minimumScaleFactor=.62;t.centerAlignText();}return parts;}
-function largeFightRow(st,row,wide=false){const block=st.addStack();block.layoutVertically();const lab=block.addStack();const lt=tx(lab,jpCardLabel(row.label),wide?8.6:8.0,new Color(S.accent),'bold');lt.minimumScaleFactor=.74;lab.addSpacer();block.addSpacer(2);const r=block.addStack();r.centerAlignContent();const aa=r.addStack();aa.size=new Size(wide?124:79,0);const at=tx(aa,jpDisplay(row.a),wide?10.8:9.8,new Color(C.text),'semibold',2);at.minimumScaleFactor=.72;r.addSpacer(4);tx(r,'VS',wide?8.4:7.8,new Color(S.accent),'bold');r.addSpacer(4);const bb=r.addStack();bb.size=new Size(wide?124:79,0);const bt=tx(bb,jpDisplay(row.b),wide?10.8:9.8,new Color(C.text),'semibold',2);bt.minimumScaleFactor=.72;bt.rightAlignText();}
+function largeNameParts(s){const v=String(s||'').trim(),chars=[...v];if(chars.length<=13)return[v];const mid=Math.floor(chars.length/2),seps=['・',' ','-','‐','–','／','/'];let best=-1,dist=Infinity;chars.forEach((ch,i)=>{if(!seps.includes(ch)||i<=2||i>=chars.length-3)return;const d=Math.abs(i-mid);if(d<dist){best=i;dist=d;}});if(best>=0)return[chars.slice(0,best+1).join('').trim(),chars.slice(best+1).join('').trim()].filter(Boolean);return[chars.slice(0,mid).join(''),chars.slice(mid).join('')];}
+function largeSlotName(name){return largeNameParts(jpDisplay(name)).join('\n');}
+function renderLargeMainName(box,name){const parts=largeNameParts(jpDisplay(name));for(const part of parts){const t=tx(box,part,LARGE_UI.main,new Color(C.text),'black',1);t.minimumScaleFactor=.72;t.centerAlignText();}return parts;}
+function largeFightRow(st,row){const block=st.addStack();block.layoutVertically();const lab=block.addStack();const lt=tx(lab,jpCardLabel(row.label),LARGE_UI.fightLabel,new Color(S.accent),'bold');lt.minimumScaleFactor=.78;lab.addSpacer();block.addSpacer(2);const r=block.addStack();r.centerAlignContent();const aa=r.addStack();aa.size=new Size(78,0);const at=tx(aa,largeSlotName(row.a),LARGE_UI.fightName,new Color(C.text),'semibold',2);at.minimumScaleFactor=.76;r.addSpacer(4);tx(r,'VS',LARGE_UI.fightLabel,new Color(S.accent),'bold');r.addSpacer(4);const bb=r.addStack();bb.size=new Size(78,0);const bt=tx(bb,largeSlotName(row.b),LARGE_UI.fightName,new Color(C.text),'semibold',2);bt.minimumScaleFactor=.76;bt.rightAlignText();}
 function largeNextTitle(next){return jpDisplay(next?.name||'次大会').replace(/^Crypto\.com\s+/i,'');}
 function largeNextMeta(next){if(!next)return'';const d=next.timeTba?dateOnly(next.startAt):dateText(next);const loc=shortLoc(next.location||'');return loc?`${d} · ${loc}`:d;}
 function renderLarge(w,D,ctx,next,nextPoster){
   const pending=!!D.cardTba;
   const h=w.addStack();h.centerAlignContent();
   const hl=h.addStack();hl.layoutVertically();
-  tx(hl,S.label,24,new Color(C.text),'black');
+  tx(hl,S.label,LARGE_UI.org,new Color(C.text),'black');
   hl.addSpacer(2);
-  const en=tx(hl,jpDisplay(D.name||''),9.2,new Color(S.accent),'bold',2);en.minimumScaleFactor=.72;
+  const en=tx(hl,jpDisplay(D.name||''),LARGE_UI.event,new Color(S.accent),'bold',2);en.minimumScaleFactor=.76;
   hl.addSpacer(4);
   const meta=hl.addStack();
-  tx(meta,dateText(D),9.0,new Color(C.sub),'semibold');meta.addSpacer(6);tx(meta,'·',7.8,new Color(C.muted));meta.addSpacer(6);tx(meta,shortLoc(D.location),9.0,new Color(C.sub),'semibold');
+  const dt=tx(meta,dateText(D),LARGE_UI.meta,new Color(C.sub),'semibold');dt.minimumScaleFactor=.78;meta.addSpacer(6);tx(meta,'·',7.8,new Color(C.muted));meta.addSpacer(6);const ml=tx(meta,shortLoc(D.location),LARGE_UI.meta,new Color(C.sub),'semibold');ml.minimumScaleFactor=.78;
   h.addSpacer();
   const status=h.addStack();status.layoutVertically();
-  if(KEY!=='boxing'){const sl=status.addStack();sl.addSpacer();tx(sl,statusLabel(D),6.8,new Color(C.muted),'bold');status.addSpacer(3);}
-  const badge=status.addStack();badge.backgroundColor=new Color('#05070B',KEY==='boxing'?.78:.70);badge.cornerRadius=11;badge.borderWidth=.7;badge.borderColor=new Color(S.accent,.36);badge.setPadding(5,10,5,10);tx(badge,countdown(D),12.4,new Color(C.text),'black');
-  w.addSpacer(pending?20:(KEY==='boxing'?24:27));
+  const sl=status.addStack();sl.addSpacer();tx(sl,statusLabel(D),LARGE_UI.status,new Color(C.muted),'bold');status.addSpacer(3);
+  const badge=status.addStack();badge.backgroundColor=new Color('#05070B',.72);badge.cornerRadius=11;badge.borderWidth=.7;badge.borderColor=new Color(S.accent,.36);badge.setPadding(5,10,5,10);tx(badge,countdown(D),LARGE_UI.countdown,new Color(C.text),'black');
+  w.addSpacer(pending?20:26);
   if(pending){
     const center=w.addStack();center.layoutVertically();
-    const title=tx(center,D.nextPending?'次大会情報を確認中':'対戦カード発表待ち',17.2,new Color(C.text),'black');title.centerAlignText();
+    const title=tx(center,D.nextPending?'次大会情報を確認中':'対戦カード発表待ち',LARGE_UI.pending,new Color(C.text),'black');title.centerAlignText();
     center.addSpacer(7);
-    const sub=tx(center,jpDisplay(D.name||D.main.context),10.0,new Color(S.accent),'semibold',2);sub.minimumScaleFactor=.72;sub.centerAlignText();
+    const sub=tx(center,jpDisplay(D.name||D.main.context),LARGE_UI.pendingSub,new Color(S.accent),'semibold',2);sub.minimumScaleFactor=.76;sub.centerAlignText();
   }else{
-    const tag=w.addStack();tag.addSpacer();const tagText=tx(tag,'メインイベント',7.4,new Color(S.accent),'bold');tagText.centerAlignText();tag.addSpacer();
+    const tag=w.addStack();tag.addSpacer();const tagText=tx(tag,'メインイベント',LARGE_UI.heroLabel,new Color(S.accent),'bold');tagText.centerAlignText();tag.addSpacer();
     w.addSpacer(4);
     const main=w.addStack();main.centerAlignContent();main.addSpacer();
     const aBox=main.addStack();aBox.layoutVertically();aBox.size=new Size(132,46);aBox.addSpacer();renderLargeMainName(aBox,ctx.a.name);aBox.addSpacer();
     main.addSpacer(5);
-    const center=main.addStack();center.layoutVertically();center.size=new Size(42,46);center.addSpacer();const vs=tx(center,'VS',17.0,new Color(S.accent),'black');vs.centerAlignText();center.addSpacer();
+    const center=main.addStack();center.layoutVertically();center.size=new Size(42,46);center.addSpacer();const vs=tx(center,'VS',LARGE_UI.vs,new Color(S.accent),'black');vs.centerAlignText();center.addSpacer();
     main.addSpacer(5);
     const bBox=main.addStack();bBox.layoutVertically();bBox.size=new Size(132,46);bBox.addSpacer();renderLargeMainName(bBox,ctx.b.name);bBox.addSpacer();main.addSpacer();
     w.addSpacer(5);
-    const dv=tx(w,division(D.main.context),9.0,new Color('#D8DCE2'),'semibold');dv.centerAlignText();
+    const dv=tx(w,division(D.main.context),LARGE_UI.division,new Color('#D8DCE2'),'semibold');dv.centerAlignText();
   }
   w.addSpacer();
-  const rows=(D.support||[]).slice(0,2),compactBoxing=KEY==='boxing'&&!next&&rows.length<=1,dashHeight=compactBoxing?126:150;
+  const rows=(D.support||[]).slice(0,2),dashHeight=LARGE_UI.dashH;
   const dash=w.addStack();dash.size=new Size(328,dashHeight);dash.backgroundColor=new Color('#05070B',.91);dash.cornerRadius=16;dash.borderWidth=.8;dash.borderColor=new Color('#FFFFFF',.11);dash.setPadding(10,10,10,10);
-  const left=dash.addStack();left.layoutVertically();left.size=new Size(compactBoxing?308:(next?194:204),dashHeight-20);
+  const left=dash.addStack();left.layoutVertically();left.size=new Size(LARGE_UI.leftW,dashHeight-20);
   const cap=left.addStack();const accent=cap.addStack();accent.size=new Size(22,4);accent.backgroundColor=new Color(S.accent);accent.cornerRadius=2;cap.addSpacer();
   left.addSpacer(7);
-  const ltitle=left.addStack();tx(ltitle,'対戦カード',8.8,new Color(S.accent),'bold');ltitle.addSpacer();
+  const ltitle=left.addStack();tx(ltitle,'対戦カード',LARGE_UI.section,new Color(S.accent),'bold');ltitle.addSpacer();
   left.addSpacer(8);
-  if(rows.length){rows.forEach((row,i)=>{largeFightRow(left,row,compactBoxing);if(i<rows.length-1){left.addSpacer(6);const sep=left.addStack();sep.size=new Size(0,1);sep.backgroundColor=new Color('#FFFFFF',.07);left.addSpacer(6);}});}
-  else{left.addSpacer(compactBoxing?10:17);const em=tx(left,'追加カード発表待ち',9.0,new Color(C.muted),'semibold');em.centerAlignText();}
-  if(compactBoxing){
-    left.addSpacer();const nline=left.addStack();tx(nline,'次大会',8.4,new Color(S.accent),'bold');nline.addSpacer(10);tx(nline,'公式情報を確認中',9.2,new Color(C.muted),'semibold');nline.addSpacer();
-  }else{
-    dash.addSpacer(6);const rule=dash.addStack();rule.size=new Size(1,120);rule.backgroundColor=new Color('#FFFFFF',.09);dash.addSpacer(6);
-    const right=dash.addStack();right.layoutVertically();right.size=new Size(next?101:91,130);right.cornerRadius=12;right.backgroundColor=new Color('#090C12',.98);right.borderWidth=.6;right.borderColor=new Color(S.accent,.16);right.setPadding(8,8,8,8);
-    const ncap=right.addStack();tx(ncap,'次大会',8.2,new Color(S.accent),'bold');ncap.addSpacer();
-    if(next){right.addSpacer(7);const nn=tx(right,largeNextTitle(next),11.2,new Color(C.text),'bold',2);nn.minimumScaleFactor=.72;right.addSpacer(7);const nm=tx(right,largeNextMeta(next),8.6,new Color(C.sub),'semibold',2);nm.minimumScaleFactor=.72;right.addSpacer();const nt=tx(right,'あと '+countdown(next),9.0,new Color(S.accent),'bold');nt.minimumScaleFactor=.70;}
-    else{right.addSpacer(15);tx(right,'公式情報を確認中',9.0,new Color(C.muted),'semibold',3);right.addSpacer();}
-  }
+  if(rows.length){rows.forEach((row,i)=>{largeFightRow(left,row);if(i<rows.length-1){left.addSpacer(6);const sep=left.addStack();sep.size=new Size(0,1);sep.backgroundColor=new Color('#FFFFFF',.07);left.addSpacer(6);}});}
+  else{left.addSpacer(17);const em=tx(left,'追加カード発表待ち',9.2,new Color(C.muted),'semibold');em.centerAlignText();}
+  dash.addSpacer(6);const rule=dash.addStack();rule.size=new Size(1,120);rule.backgroundColor=new Color('#FFFFFF',.09);dash.addSpacer(6);
+  const right=dash.addStack();right.layoutVertically();right.size=new Size(LARGE_UI.rightW,130);right.cornerRadius=12;right.backgroundColor=new Color('#090C12',.98);right.borderWidth=.6;right.borderColor=new Color(S.accent,.16);right.setPadding(8,8,8,8);
+  const ncap=right.addStack();tx(ncap,'次大会',LARGE_UI.nextLabel,new Color(S.accent),'bold');ncap.addSpacer();
+  if(next){right.addSpacer(7);const nn=tx(right,largeNextTitle(next),LARGE_UI.nextTitle,new Color(C.text),'bold',2);nn.minimumScaleFactor=.74;right.addSpacer(7);const nm=tx(right,largeNextMeta(next),LARGE_UI.nextMeta,new Color(C.sub),'semibold',2);nm.minimumScaleFactor=.74;right.addSpacer();const nt=tx(right,'あと '+countdown(next),LARGE_UI.nextCountdown,new Color(S.accent),'bold');nt.minimumScaleFactor=.72;}
+  else{right.addSpacer(15);const wait=tx(right,'公式情報を確認中',LARGE_UI.nextMeta,new Color(C.muted),'semibold',3);wait.minimumScaleFactor=.76;right.addSpacer();}
   w.addSpacer(2);
 }
 
