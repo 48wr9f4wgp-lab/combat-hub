@@ -2,7 +2,7 @@
 // ScriptableにはこのLoaderだけを保存する。
 
 (async()=>{
-const LOADER_VERSION='4.1.0';
+const LOADER_VERSION='4.2.0';
 const MIN_RUNTIME=[7,6,0];
 const WIDGET_CACHE_TTL=30*60*1000;
 const REMOTES=[
@@ -10,27 +10,10 @@ const REMOTES=[
   'https://github.com/48wr9f4wgp-lab/combat-hub/raw/refs/heads/main/combat-hub.js'
 ];
 
-// Diagnostic guard: if this screen appears, the home-screen widget is definitely
-// executing the current Loader and the remaining fault is downstream of Loader routing.
 const rawParam=(typeof args!=='undefined'&&args)?args.widgetParameter:'';
 const param=String(rawParam||'').trim().toUpperCase().replace(/[\s_-]+/g,'');
 const widgetFamily=(typeof config!=='undefined'&&config)?config.widgetFamily:'';
-if(typeof config!=='undefined'&&config.runsInWidget&&widgetFamily==='large'&&param==='BOXING'){
-  const diag=new ListWidget();
-  diag.setPadding(20,20,18,20);
-  diag.backgroundColor=new Color('#08162A');
-  const title=diag.addText('COMBAT HUB');title.font=Font.blackSystemFont(24);title.textColor=new Color('#FFFFFF');
-  diag.addSpacer(8);
-  const ok=diag.addText('LOADER OK');ok.font=Font.blackSystemFont(30);ok.textColor=new Color('#4BA3FF');
-  diag.addSpacer(6);
-  const ver=diag.addText('Loader v4.1.0');ver.font=Font.boldSystemFont(13);ver.textColor=new Color('#D7DCE3');
-  diag.addSpacer(14);
-  const note=diag.addText('BOXING Large 直描画テスト');note.font=Font.semiboldSystemFont(12);note.textColor=new Color('#9AA2AD');
-  diag.addSpacer();
-  const foot=diag.addText('通信・キャッシュ・本体コード未使用');foot.font=Font.semiboldSystemFont(11);foot.textColor=new Color('#9AA2AD');
-  diag.refreshAfterDate=new Date(Date.now()+30*60*1000);
-  Script.setWidget(diag);Script.complete();return;
-}
+const isBoxingLarge=!!(typeof config!=='undefined'&&config.runsInWidget&&widgetFamily==='large'&&param==='BOXING');
 
 const fm=FileManager.local();
 const doc=fm.documentsDirectory();
@@ -109,29 +92,64 @@ async function fetchRemote(){
   throw lastError||new Error('remote runtime unavailable');
 }
 
+function runtimeErrorText(err){
+  const raw=String(err&&err.message?err.message:err||'unknown runtime error');
+  return raw.length>180?raw.slice(0,177)+'...':raw;
+}
+
+function canRenderErrorWidget(){
+  return typeof config!=='undefined'&&config.runsInWidget&&typeof ListWidget!=='undefined'&&typeof Color!=='undefined'&&typeof Font!=='undefined'&&typeof Script!=='undefined';
+}
+
+function renderRuntimeError(err){
+  if(!canRenderErrorWidget())throw err;
+  const w=new ListWidget();
+  w.setPadding(18,18,16,18);
+  w.backgroundColor=new Color('#18090B');
+  const title=w.addText('COMBAT HUB');title.font=Font.blackSystemFont(22);title.textColor=new Color('#FFFFFF');
+  w.addSpacer(6);
+  const state=w.addText('RUNTIME ERROR');state.font=Font.blackSystemFont(22);state.textColor=new Color('#FF5A63');
+  w.addSpacer(10);
+  const meta=w.addText('Loader v'+LOADER_VERSION+(isBoxingLarge?' ・ BOXING Large':''));meta.font=Font.boldSystemFont(11);meta.textColor=new Color('#D7DCE3');
+  w.addSpacer(12);
+  const msg=w.addText(runtimeErrorText(err));msg.font=Font.semiboldSystemFont(11);msg.textColor=new Color('#F3C7CA');msg.lineLimit=6;msg.minimumScaleFactor=.65;
+  w.addSpacer();
+  const foot=w.addText('白画面防止フォールバック');foot.font=Font.semiboldSystemFont(10);foot.textColor=new Color('#9AA2AD');
+  w.refreshAfterDate=new Date(Date.now()+15*60*1000);
+  Script.setWidget(w);Script.complete();
+}
+
 const cached=readCache();
 const cacheAge=cached?.meta?.savedAt?Date.now()-Number(cached.meta.savedAt):Infinity;
 let selected=null;
 
-// Home-screen widgets prioritize a recently verified local copy to avoid unnecessary
-// network work. Manual Scriptable runs always check the independent GitHub channel.
-if(config.runsInWidget&&cached&&cacheAge<WIDGET_CACHE_TTL){
+// Large BOXING bypasses the 30-minute runtime cache so device fixes reach the widget
+// immediately. Other widgets keep the verified local-cache fast path.
+if(typeof config!=='undefined'&&config.runsInWidget&&cached&&cacheAge<WIDGET_CACHE_TTL&&!isBoxingLarge){
   selected=cached.source;
 }else{
   try{
     const remote=await fetchRemote();
-    // Remote-first by design: a verified lower patch version may intentionally be
-    // published as an emergency rollback, so do not prefer a numerically newer cache.
     selected=remote.source;
     writeCache(remote.source,remote.url);
-  }catch(_){
+  }catch(fetchError){
     if(cached)selected=cached.source;
+    else{
+      renderRuntimeError(fetchError);
+      return;
+    }
   }
 }
 
 if(!selected||!validRuntime(selected)){
-  throw new Error('COMBAT HUB Loader: 有効な本体を取得できませんでした');
+  const e=new Error('COMBAT HUB Loader: 有効な本体を取得できませんでした');
+  renderRuntimeError(e);
+  return;
 }
 
-await eval(selected);
+try{
+  await eval(selected);
+}catch(runtimeError){
+  renderRuntimeError(runtimeError);
+}
 })();
