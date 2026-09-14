@@ -45,7 +45,7 @@ assert.match(src, /if\(KEY!=='boxing'\)\{const sl=status\.addStack\(\)/, 'BOXING
 assert.match(src, /badge\.cornerRadius=KEY==='boxing'\?11:9/, 'BOXING Large premium countdown radius missing');
 assert.match(src, /badge\.setPadding\(KEY==='boxing'\?5:4,KEY==='boxing'\?10:8,KEY==='boxing'\?5:4,KEY==='boxing'\?10:8\)/, 'BOXING Large premium countdown padding missing');
 assert.match(src, /w\.addSpacer\(D\.cardTba\?30:\(KEY==='boxing'\?34:40\)\)/, 'BOXING Large final hero spacing missing');
-assert.match(src, /if\(KEY==='boxing'&&config\.widgetFamily==='large'\)\{const safePoster=!!D\.lockedCurrent\|\|sameEventIdentity\(D,SNAPSHOT\.boxing\);return\{a:\{name:D\.main\.a,image:null\},b:\{name:D\.main\.b,image:null\},poster:safePoster\?await eventPoster\(D\):null,lightweight:true\};\}/, 'BOXING Large must only load a known-safe rollover poster');
+assert.match(src, /if\(KEY==='boxing'&&config\.widgetFamily==='large'\)\{const safePoster=!D\.nextPending&&!D\.lightweightPending&&\(!!D\.lockedCurrent\|\|sameEventIdentity\(D,SNAPSHOT\.boxing\)\);return\{a:\{name:D\.main\.a,image:null\},b:\{name:D\.main\.b,image:null\},poster:safePoster\?await eventPoster\(D\):null,lightweight:true\};\}/, 'BOXING Large pending state must suppress stale rollover posters');
 assert.match(src, /if\(BOXING_LARGE\)\{if\(ctx\.poster\)w\.backgroundImage=ctx\.poster;else w\.backgroundGradient=gradient\(\);renderLarge\(w,D,ctx,NEXT,null\);\}/, 'BOXING Large must use lightweight gradient fallback without DrawContext composition');
 assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Non-BOXING Large render fallback missing');
 console.log('COMBAT HUB Large V5.2 + BOXING rollover-memory regression: OK');
