@@ -1,0 +1,65 @@
+name: One-shot BOXING Large restore
+
+on:
+  push:
+    branches:
+      - chatgpt/boxing-large-restore-v7.12.4
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message != 'fix: restore BOXING Large normal runtime'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore normal BOXING Large runtime
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('combat-hub.js')
+          s = p.read_text()
+          s = s.replace('// v7.12.3-github — BOXING Large emergency local safe mode', '// v7.12.4-github — BOXING Large normal runtime restore')
+          s = s.replace("const VERSION='7.12.3-github';", "const VERSION='7.12.4-github';")
+          marker = '// Emergency local-only guard for BOXING Large after the locked event expired.\n'
+          start = s.find(marker)
+          if start < 0:
+              raise SystemExit('emergency BOXING guard marker not found')
+          end = s.find('const SNAPSHOT={', start)
+          if end < 0:
+              raise SystemExit('SNAPSHOT marker not found')
+          s = s[:start] + s[end:]
+          p.write_text(s)
+
+          tests = Path('tests')
+          if tests.exists():
+              for f in tests.rglob('*'):
+                  if not f.is_file():
+                      continue
+                  try:
+                      t = f.read_text()
+                  except UnicodeDecodeError:
+                      continue
+                  nt = t.replace('7.12.3-github', '7.12.4-github')
+                  if nt != t:
+                      f.write_text(nt)
+          PY
+      - name: Verify patch invariants
+        run: |
+          node --check combat-hub.js
+          grep -q "const VERSION='7.12.4-github';" combat-hub.js
+          ! grep -q "Emergency local-only guard for BOXING Large" combat-hub.js
+          grep -q "if(KEY==='boxing'&&config.widgetFamily==='large')" combat-hub.js
+          grep -q "if(KEY==='boxing'&&config.widgetFamily==='large'){if(cachedData&&rollforwardEligible" combat-hub.js
+      - name: Commit patch
+        run: |
+          git config user.name "48wr9f4wgp-lab"
+          git config user.email "48wr9f4wgp@privaterelay.appleid.com"
+          git add combat-hub.js tests
+          git diff --cached --quiet && exit 1
+          git commit -m "fix: restore BOXING Large normal runtime"
+          git push origin HEAD:chatgpt/boxing-large-restore-v7.12.4
