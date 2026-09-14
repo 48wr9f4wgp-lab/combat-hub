@@ -10,6 +10,12 @@ assert.match(src,/RIZIN\.55/);
 assert.match(src,/ONE Friday Fights 171 & The Inner Circle 31/);
 assert.match(src,/K-1 FIGHTING NETWORK in Sangju Korea 2026/);
 assert.match(src,/cachedData&&now-Number\(cached\.savedAt\)<6\*3600000&&nextEligible\(base,cachedData,now\)/);
+assert.match(src,/function ringListingEvents\(html,base,now=Date\.now\(\)\)/,'Ring official listing parser missing');
+assert.match(src,/function ringDetailMain\(html\)/,'Ring event-detail parser missing');
+assert.match(src,/if\(KEY==='boxing'\)candidates\.push\(\.\.\.ringListingEvents\(listing,S\.listing,now\)\.filter\(eligible\)\)/,'Ring candidates must enter strictNextEvent');
+assert.match(src,/if\(KEY==='boxing'\)\{const ring=ringDetailPairs\(html\);if\(ring\.length\)return ring;\}/,'BOXING detail cards must use Ring parser first');
+assert.match(src,/verifiedBy:'strictNextEvent'/,'BOXING verified-cache marker must remain');
+assert.match(src,/if\(KEY==='boxing'&&config\.runsInWidget\)/,'BOXING widget cache-only gate must remain');
 
 const H=3600000,D=24*H;
 const id=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
