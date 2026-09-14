@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: combat-hub-${{ github.workflow }}-${{ github.ref }}
@@ -21,6 +21,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24.x'
+      - name: Apply v7.18.1 cache separation patch
+        run: python .github/scripts/patch-v7181.py
       - name: Runtime syntax check
         run: node --check combat-hub.js
       - name: Production Loader syntax check
@@ -69,3 +71,12 @@ jobs:
         run: node tests/combat-hub-japanese-display.mjs
       - name: COMBAT HUB event transition suite
         run: node tests/combat-hub-event-transition-regression.mjs
+      - name: Commit v7.18.1 cache separation patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add combat-hub.js HANDOFF.md tests/combat-hub-event-transition-regression.mjs tests/combat-hub-cache-regression.mjs
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: separate event discovery and card refresh TTLs"
+            git push
+          fi
