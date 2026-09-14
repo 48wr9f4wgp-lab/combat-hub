@@ -25,6 +25,14 @@ s=replace_once(s,
     'rollforward grace')
 p.write_text(s)
 
+# Main regression guard follows the time-aware current lock.
+r=Path('tests/combat-hub-regression.mjs')
+rs=r.read_text()
+old_guard="has(/function currentLocked\\(snap\\)\\{const end=new Date\\(snap\\.startAt\\)\\.getTime\\(\\)\\+12\\*3600000;return Date\\.now\\(\\)<end;\\}/, '12h current-event lock guard missing');"
+new_guard="has(/function currentGraceMs\\(e\\)\\{return e\\?\\.timeTba\\?36\\*3600000:12\\*3600000;\\}/, 'time-aware current-event grace missing');\nhas(/function currentLocked\\(snap\\)\\{const end=new Date\\(snap\\.startAt\\)\\.getTime\\(\\)\\+currentGraceMs\\(snap\\);return Date\\.now\\(\\)<end;\\}/, 'time-aware current-event lock guard missing');"
+rs=replace_once(rs,old_guard,new_guard,'main regression lock guard')
+r.write_text(rs)
+
 # Transition regression: guard both exact-time and TBA grace.
 t=Path('tests/combat-hub-event-transition-regression.mjs')
 ts=t.read_text()
