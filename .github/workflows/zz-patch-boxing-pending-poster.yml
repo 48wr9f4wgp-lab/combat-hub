@@ -1,4 +1,5 @@
 name: One-shot BOXING pending poster suppression
+# retrigger after workflow registration
 
 on:
   push:
