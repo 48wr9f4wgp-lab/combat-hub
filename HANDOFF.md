@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.15.1-github**
+- Runtime: **v7.16.0-github**
 - Runtime PR: **#45 — Ring official-events parser**
 - Runtime merge commit: `cb6358396a5493b98f1a7c486d17fba957aa92a4`
 - Main Regression after PR #45: **#486 success**
@@ -131,11 +131,14 @@ Current accepted Large direction:
 
 The Large layout is considered good enough to freeze for now. Do not restart broad visual churn unless a concrete defect is observed.
 
-## 6. Large UI architecture in v7.15.0
+## 6. Large UI architecture in v7.16.0
 
 Large now uses one shared geometry and typography system across UFC / RIZIN / ONE / BOXING / K-1.
 
 - `LARGE_UI` is the canonical Large typography/geometry token set.
+- Header geometry is now one strict template for all five organizations: organization/event on the left, then a fixed right status column ordered as `開催まで` / countdown / event date-time / location.
+- `開催` alone is not used in the Large header. Time-TBA events still show `開催まで`, then `時刻未定`, then the known event date and location.
+- Current event date/location are no longer rendered in the Large left header, preventing organization-specific drift.
 - organization-specific Large font sizing and lower-panel widths are removed.
 - the lower dashboard is always the same two-column layout: fight card left / next event right.
 - long fighter names use the same delimiter-aware two-line wrapping rule.
