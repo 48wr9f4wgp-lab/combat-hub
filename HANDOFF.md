@@ -7,7 +7,7 @@ Updated: 2026-09-14 JST
 
 ## 1. Product / target
 
-COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widget** supporting five Widget Parameters:
+COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widget** supporting:
 
 - `UFC`
 - `RIZIN`
@@ -17,157 +17,208 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Medium and Large both stable on physical iPhone.
+- Medium and Large stable on physical iPhone.
 - Japanese-first premium sports/event UI.
-- Current/upcoming event, date/time/location, countdown/status, main event and support card are clear.
-- Unknown fighters/cards/times/venues are never invented; uncertain data remains TBA/pending.
+- Event/date/time/location/countdown/main/support cards readable at a glance.
+- Never invent fighters, cards, dates, times or venues.
 - Current and next event identity must never duplicate.
-- Network/image/parser failure must degrade to a safe render, not a blank widget, when possible.
-- CI is necessary but not sufficient: runtime changes require physical-device verification before completion/RC.
+- Network/parser/image failures must degrade safely rather than blank when possible.
+- CI is necessary but runtime-affecting work is not complete until relevant physical-device verification.
 
 ## 2. Canonical production baseline
 
 - Repository: `48wr9f4wgp-lab/combat-hub`
 - Production branch: `main`
-- Device route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
+- Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.12.8-github**
-- Runtime merge: **PR #41**
-- Runtime merge commit: `6ef0fe5c3acfd2fdf1d5ff41d25237f61a2cc739`
-- Main Regression after PR #41: **#454 success**
-- Main `.github/workflows` must contain only `combat-hub-regression.yml`; temporary `zz-*` workflows must never remain on main.
+- Runtime: **v7.14.0-github**
+- Runtime PR: **#45 — Ring official-events parser**
+- Runtime merge commit: `cb6358396a5493b98f1a7c486d17fba957aa92a4`
+- Main Regression after PR #45: **#486 success**
+- `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
-### Source endpoints encoded in runtime
+Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
+
+### Production source endpoints
 
 - UFC: `https://www.ufc.com/events`
 - RIZIN: `https://jp.rizinff.com/`
 - ONE: `https://www.onefc.com/events/`
-- BOXING listing: `https://www.ringmagazine.com/events`
+- BOXING: `https://www.ringmagazine.com/events`
 - K-1: `https://www.k-1.co.jp/k-1wgp/schedule`
 
 No backend/database/auth/paid service is required. Runtime is standalone Scriptable JavaScript using public HTTP GETs and `FileManager.local()` cache.
 
 ## 3. Important files
 
-- `combat-hub.js` — production runtime, data/cache/state transitions, Medium/Large rendering.
-- `combat-hub-loader.js` — stable production Loader v4.2.0, remote runtime validation/cache/fallback.
+- `combat-hub.js` — production runtime, parsing/cache/state transitions, Medium/Large rendering.
+- `combat-hub-loader.js` — production Loader v4.2.0.
 - `combat-hub-preview-loader.js` — preview utility only.
 - `combat-hub-large-preview-loader.js` — Large preview helper only.
 - `tests/*` — Node regression suites.
-- `.github/workflows/combat-hub-regression.yml` — canonical CI workflow.
+- `.github/workflows/combat-hub-regression.yml` — canonical CI.
 - `HANDOFF.md` — this canonical handoff.
-- `HANDOFF_CODEX.md` — historical/stale; do not use as baseline.
+- `HANDOFF_CODEX.md` — historical/stale; never use as current baseline.
 
 ## 4. Reliability architecture
 
 ### Loader
 
-- Loader validates runtime signature/version before execution.
+- Validates runtime signature/version before execution.
 - Primary + fallback GitHub raw URLs.
-- Normal widgets can use a verified 30-minute local runtime cache.
-- BOXING Large bypasses runtime-cache TTL so urgent runtime changes arrive immediately.
-- Remote failure may fall back to last valid cached runtime.
-- Catchable runtime/fetch failures render `RUNTIME ERROR` instead of silently failing.
+- Normal widgets can use verified local runtime cache.
+- BOXING Large has special cache behavior so urgent runtime changes are not hidden by a stale runtime cache.
+- Remote failure may fall back to the last valid runtime.
+- Catchable runtime/fetch failures should render an error instead of silently blanking.
 
-### Trusted event state
+### Event-state safety
 
 - Trusted `SNAPSHOT` current baselines exist for all five organizations.
 - `NEXT_SNAPSHOT` trusted fallback exists for UFC/RIZIN/ONE/K-1.
-- Current official data may overlay a snapshot only when event/main identity validation passes.
-- Event identity uses source/name/main-fight matching and time bounds to prevent current=next duplication.
+- Event identity uses source/name/main-fight matching and time bounds.
 - Future acceptance is bounded to 180 days.
+- Current and next must not resolve to the same event.
 
-### BOXING low-memory rule
+### BOXING low-memory rule — non-negotiable without new device evidence
 
-Physical iPhone Scriptable previously produced white/blank BOXING Medium/Large under heavier image/network work. Therefore:
+Physical iPhone Scriptable previously produced blank/white BOXING Medium/Large under heavier network/image work. Therefore:
 
-- **Do not reintroduce deep discovery in widget execution.**
-- **Do not reintroduce full-widget/heavy DrawContext poster composition for BOXING without measured device proof.**
-- pending BOXING suppresses unverified poster loading.
-- stability takes priority over richer live discovery inside the widget process.
+- **Do not run deep next-event discovery inside BOXING Widget execution.**
+- **Do not restore heavy full-widget DrawContext composition for BOXING without measured device proof.**
+- Pending BOXING suppresses unverified poster loading.
+- Stability outranks richer discovery in the Widget process.
 
-## 5. Completed physical-device QA
+## 5. Physical-device QA already completed
 
-### v7.12.6 — BOXING Medium / Large memory fix
+### v7.12.6 — BOXING white-screen fix
 
-Physical iPhone QA completed successfully on 2026-09-14.
+Medium and Large passed physical iPhone QA:
 
-Medium confirmed:
-
-- no white/blank widget
-- `同期 7.12.6` visible, proving correct runtime
-- lightweight pending gradient rendered
+- no blank/white widget
+- lightweight pending render works
 - no unverified poster/fighter image
 
-Large confirmed:
+Temporary visible runtime markers confirmed the correct runtime at the time.
 
-- no white/blank widget
-- pending gradient rendered
-- no unverified poster/fighter image
-- v7.12.6 marker visible
+### v7.12.7 — runtime-marker cleanup
 
-This closes the original P0 white-screen/pending-image defect for v7.12.6.
+Physical iPhone regression passed after removing temporary version/sync labels:
 
-### v7.12.7 — temporary sync UI cleanup
-
-PR #40 removed the temporary visible runtime markers while retaining runtime audit and BOXING memory guards.
-
-Physical iPhone regression completed successfully:
-
-- Medium renders normally with no visible `同期 7.12.6`
-- Large renders normally with no runtime-version marker
 - no white screen
 - no unverified pending imagery
+- no visible debug/version marker
 
-v7.12.7 cleanup is therefore device-verified.
+### v7.12.8 — verified BOXING prefetch / cache-only Widget
 
-## 6. Current implementation — v7.12.8 verified BOXING prefetch
+Physical iPhone QA passed for Medium and Large after the architecture changed to:
 
-PR #41 implements the preferred architecture:
+**manual Scriptable BOXING run -> verified cache -> Widget reads cache only**
 
-**manual Scriptable execution -> validated BOXING next-event cache -> widget reads cache only**
+Safe pending remained stable when no verified future Ring event was available.
 
-### Manual/non-widget BOXING path
+### v7.13.0 / v7.13.1 — Large readability Visual Pass
 
-When BOXING is selected during manual Scriptable execution:
+Physical iPhone Large review completed on RIZIN after the visual pass.
 
-1. `strictNextEvent(snap)` may perform the heavier Ring discovery outside widget execution.
-2. The result is accepted only if `boxingPrefetchValid(...)` passes.
-3. Validation currently requires:
-   - normal `rollforwardEligible(...)` checks: future/time bound, organization-valid event name, not same event identity
-   - normalized source must be `ringmagazine.com`
-4. Only then is `combat-hub-next-boxing.json` persisted with:
+Current accepted Large direction:
+
+- larger organization/event/date/location/countdown/main-event typography
+- support rows capped at two
+- readable two-line support fighter names
+- stronger hierarchy/contrast
+- text-first lower dashboard
+- next-event poster background removed to avoid duplicate/noisy typography
+
+The Large layout is considered good enough to freeze for now. Do not restart broad visual churn unless a concrete defect is observed.
+
+## 6. BOXING architecture in v7.14.0
+
+### Manual/non-widget path
+
+When the existing COMBAT HUB Loader is run manually and **BOXING** is selected:
+
+1. `strictNextEvent(snap)` may perform Ring discovery outside Widget execution.
+2. Future candidates must pass normal roll-forward/time/event-identity checks.
+3. A BOXING result is persisted only when `boxingPrefetchValid(...)` accepts it.
+4. Verified cache is stored in `combat-hub-next-boxing.json` with:
    - `savedAt`
    - `verifiedAt`
-   - `verifiedBy: 'strictNextEvent'`
+   - `verifiedBy:'strictNextEvent'`
    - validated `data`
 
-If discovery fails, a previous still-valid verified cache may be retained/read; otherwise fallback remains safe/pending rather than inventing data.
+### Widget path
 
-### BOXING widget path
+BOXING Medium/Large Widget execution:
 
-Medium/Large widget execution:
-
-- reads a BOXING future event only through `boxingVerifiedCache(...)`
-- ignores legacy/unverified BOXING next-event cache
-- performs **zero deep next-event discovery** when verified cache is absent
-- falls back immediately to lightweight pending:
+- consumes future event data only through `boxingVerifiedCache(...)`
+- ignores legacy/unverified future BOXING cache
+- performs no deep next-event discovery when verified cache is absent
+- falls back immediately to safe lightweight pending:
   - `nextPending:true`
   - `lightweightPending:true`
   - `posterURL:null`
   - Ring listing as `source`
-- verified future cache is marked at runtime with:
-  - `prefetched:true`
-  - `cacheVerified:true`
 
-Poster loading remains conservative; the v7.12.8 work did not restore heavy remote poster work in the widget path.
+This cache-only Widget rule survived the v7.13 visual work and remains unchanged in v7.14.0.
 
-### Runtime audit
+## 7. New in v7.14.0 — Ring-specific official parser
 
-`combat-hub-runtime-audit.json` remains available and now includes the prior fields plus prefetch state. Important fields:
+The old generic discovery expected JSON-LD-style event data and did not correctly understand the current Ring site structure.
+
+Live source inspection on 2026-09-14 established that Ring's current pages expose useful event data through normal server-rendered markup plus React/Next Flight data.
+
+v7.14.0 therefore adds Ring-specific parsing outside Widget execution:
+
+### Official `/events` listing parser
+
+`ringListingEvents(...)` parses official Ring event cards for:
+
+- `/events/...` source URL
+- visible month/day
+- displayed local time/time-zone label
+- location
+- nearby `aria-label="View event details for ..."` event identity
+
+It normalizes the listing into normal COMBAT HUB candidate objects and feeds only eligible future candidates into `strictNextEvent(...)`.
+
+### Event-detail parser
+
+`ringDetailMain(...)` reads Ring event-detail Flight data and extracts the official `mainFight`:
+
+- `fighterA.name`
+- `fighterB.name`
+- `tagLine` context
+
+`currentPagePairs(...)` now tries the Ring parser first for BOXING.
+
+### Intentional source limitation
+
+**Do not add a broad Ring news/article fallback merely to force a future event onto the widget.**
+
+News articles can describe tentative, cancelled, postponed or superseded fights. The current policy is:
+
+- official Ring `/events` candidate -> eligible -> verified cache -> display
+- otherwise -> safe pending
+
+Wrong certainty is worse than pending.
+
+### Current live-source state at implementation time
+
+On 2026-09-14, live Ring `/events` still exposed only the already-past Sep 12 Garcia vs Benn event. Therefore, **a correct v7.14.0 manual BOXING run can still produce no verified future event and the Widget can correctly remain `次大会情報を確認中`.**
+
+This is a source-availability limitation, not by itself evidence that the parser failed.
+
+The new parser is ready to consume the next official Ring event when the official `/events` page advances.
+
+## 8. Runtime audit
+
+`combat-hub-runtime-audit.json` remains the first diagnostic source before patching.
+
+Important fields:
 
 - `version`
 - `loaderVersion`
+- `key`
 - `widgetFamily`
 - `nextPending`
 - `lightweightPending`
@@ -179,13 +230,13 @@ Poster loading remains conservative; the v7.12.8 work did not restore heavy remo
 - `source`
 - `posterLoaded`
 
-Use these fields to identify the failure layer before patching anything.
+For v7.14.0 BOXING, unexpected behavior should be diagnosed from these fields plus the actual current Ring source before changing code.
 
-## 7. Regression coverage / latest CI
+## 9. Regression coverage / current CI
 
-CI currently checks:
+Canonical CI checks include:
 
-- production runtime syntax
+- runtime syntax
 - production/preview/Large preview Loader syntax
 - general runtime regression
 - cache/performance behavior
@@ -198,158 +249,117 @@ CI currently checks:
 - Japanese display
 - event transition behavior
 
-v7.12.8 adds explicit cache regression for:
+v7.14.0 adds regression contracts confirming:
 
-- unverified BOXING cache rejected by widget
-- verified BOXING cache consumed with zero discovery network work
-- manual BOXING discovery persisting `verifiedBy:'strictNextEvent'`
+- Ring listing parser exists
+- Ring event-detail parser exists
+- official Ring candidates enter `strictNextEvent(...)`
+- BOXING detail parsing uses Ring parser first
+- `verifiedBy:'strictNextEvent'` remains
+- BOXING Widget cache-only gate remains
 
-PR #41 full regression passed. Merge-to-main Regression **#454 also passed**.
+PR #45 Regression **#485 success**.
+Merge-to-main Regression **#486 success**.
 
-## 8. Next task — physical QA for v7.12.8
+## 10. Immediate next task — one minimal v7.14.0 device check
 
-**Do not edit code first.** v7.12.8 must now be verified on physical iPhone.
+Do **not** repeat all five organizations or the old Medium/Large QA loop.
 
-Exact sequence:
+Only:
 
-1. Open the already-installed **COMBAT HUB Loader** in Scriptable.
-2. Manually run it once.
-3. When the organization chooser appears, select **BOXING**. This manual selection is required to execute the new BOXING prefetch path.
-4. Let the manual run finish/render.
-5. Return to Home Screen and inspect BOXING **Medium** and **Large**.
+1. Open the existing **COMBAT HUB Loader** in Scriptable.
+2. Run it once manually.
+3. Choose **BOXING**.
+4. Return to Home Screen.
 
-Expected behavior has two valid outcomes:
+At the current Ring source state, expected behavior is likely still safe pending.
 
-### Outcome A — Ring exposes a future event that passes validation
+A valid result is:
 
-- widget may advance from generic pending to the validated future event from cache
 - no white/blank widget
-- no wrong/unverified event imagery
-- widget itself does not deep-discover
+- no suspicious/unverified image
+- `次大会情報を確認中` may remain
 
-### Outcome B — no future Ring event passes validation
+Only send a screenshot / investigate further if the display becomes abnormal or if a verified future event appears and needs truth-checking.
 
-- widget remains lightweight `次大会情報を確認中`
-- no white/blank widget
-- no unverified poster/fighter image
+Do not call live future-event ingestion fully proven until Ring official `/events` advances and a real future event is actually written/read through the verified cache on device.
 
-**Outcome B is not automatically a bug.** It means no verified cache was produced. Do not patch from appearance alone.
+## 11. Known debt / risks
 
-If behavior is suspicious, inspect `combat-hub-runtime-audit.json` and specifically compare:
+### BOXING source availability
 
-- `version` should be `7.12.8-github`
-- `widgetFamily`
-- `prefetched`
-- `cacheVerified`
-- `nextPending`
-- `lightweightPending`
-- `posterLoaded`
-- `source`
+The official source can lag behind real-world announcements. Safe pending is intentional until an official candidate passes validation.
 
-If a verified event appears, also verify its displayed name/date/source against current public source before calling data correctness complete.
+### Current BOXING snapshot source debt
 
-## 9. Remaining priorities after v7.12.8 device QA
-
-### P1 — full RC physical smoke
-
-Test all ten widget states on iPhone:
-
-- UFC Medium / Large
-- RIZIN Medium / Large
-- ONE Medium / Large
-- BOXING Medium / Large
-- K-1 Medium / Large
-
-Check:
-
-- blank/crash
-- current/next duplication
-- wrong event
-- time/location/card truth
-- clipping/readability
-- image/event mismatch
-- memory behavior
-
-### P2 — documentation / product polish
-
-- `README.md` still describes Medium-only support; update to Medium + Large and current Loader/runtime architecture.
-- `HANDOFF_CODEX.md` is historical; optionally replace its content with a pointer to this file after RC.
-- Old branches may be cleaned later, but **never modify/delete/promote `friends-stable` without explicit user approval**.
-
-## 10. Known risks / data debt
-
-### BOXING memory sensitivity
-
-Still a core technical risk. A future richer UI must preserve the validated cache-only widget rule unless device measurements prove a heavier path safe.
-
-### BOXING data availability
-
-The cache-only widget design can remain pending longer than a direct deep scrape. This is an intentional reliability tradeoff.
-
-### Suspicious current BOXING snapshot source
-
-`SNAPSHOT.boxing.source` currently contains:
+`SNAPSHOT.boxing.source` still contains:
 
 `https://www.ufc.com/news/garcia-vs-benn-official-fight-card`
 
-This is suspicious/noncanonical for boxing. Do **not** silently correct or reuse it as future truth without current-source verification. Treat as explicit data debt.
+This is suspicious/noncanonical for boxing and remains explicit data debt. Do not silently promote it as future truth.
+
+### Ring time semantics
+
+Ring's listing displays a time-zone-labelled event time. v7.14.0 normalizes it for candidate selection. If a future official event appears, verify the displayed Japanese time against the event-detail source before declaring time accuracy complete.
 
 ### README / historical handoff
 
-- README is behind current Medium+Large support.
-- `HANDOFF_CODEX.md` is stale.
+- `README.md` may still lag current Medium+Large/runtime architecture.
+- `HANDOFF_CODEX.md` is historical.
 
-## 11. Do-not-do list
+## 12. Do-not-do list
 
 - **Do not modify/promote/delete `friends-stable` without explicit approval.**
-- Do not deep-scrape BOXING in Medium/Large widget execution.
-- Do not restore heavy BOXING DrawContext composition without physical-device evidence.
-- Do not display a poster unless event/image identity is validated.
-- Do not invent fighters, times, venues, cards or events.
-- Do not infer poster provenance merely from a screenshot.
-- Do not keep one-shot `zz-*` workflows in main.
-- Do not switch production routing to preview loaders.
+- Do not deep-scrape BOXING inside Medium/Large Widget execution.
+- Do not restore heavy BOXING DrawContext work without physical-device evidence.
+- Do not display unverified event imagery.
+- Do not invent event/card/time/location data.
+- Do not use broad news scraping to manufacture certainty when official Ring events data is absent.
+- Do not leave one-shot workflows on `main`.
+- Do not route production to preview loaders.
 - Do not add unnecessary backend/PWA/Vercel dependencies.
-- Do not claim a runtime fix complete from CI alone.
+- Do not treat CI-only verification as full runtime completion.
 - Do not use `HANDOFF_CODEX.md` as current state.
 
-## 12. Development procedure
+## 13. Development procedure
 
 For runtime-affecting work:
 
 1. fetch latest `main`
-2. inspect current code + `HANDOFF.md`
+2. inspect actual code + `HANDOFF.md`
 3. branch from exact main SHA
-4. syntax/build checks
+4. syntax/build
 5. regression
-6. merge only after green CI
+6. merge only after green PR CI
 7. main regression
-8. physical iPhone verification
-9. regression again if any code changes follow device QA
+8. relevant physical-device verification
+9. regression again if code changes follow device QA
 
-When a problem remains, diagnose from actual runtime/audit/source evidence before adding a patch.
+When a problem remains, identify the actual layer from runtime audit + source evidence before patching.
 
-## 13. Current branch / work state
+## 14. Current branch / work state
 
 Canonical production:
 
 - `main`
-- runtime `7.12.8-github`
+- runtime `7.14.0-github`
 - Loader `4.2.0`
-- merge commit `6ef0fe5c3acfd2fdf1d5ff41d25237f61a2cc739`
-- main Regression `#454 success`
+- runtime merge commit `cb6358396a5493b98f1a7c486d17fba957aa92a4`
+- main Regression `#486 success`
 
-Completed recent PRs:
+Recent completed PRs:
 
 - PR #40 — remove temporary BOXING sync UI -> v7.12.7
-- PR #41 — verified manual BOXING prefetch/cache-only widget path -> v7.12.8
+- PR #41 — verified manual BOXING prefetch/cache-only Widget -> v7.12.8
+- PR #43 — Large readability/hierarchy pass -> v7.13.0
+- PR #44 — Large lower-dashboard readability polish -> v7.13.1
+- PR #45 — official Ring listing/detail parser -> v7.14.0
 
-No temporary workflow is intended to remain in production.
+No temporary implementation workflow is intended to remain in production.
 `friends-stable` remains intentionally isolated.
-A stale historical PR #3 may still exist; do not merge it blindly.
 
 ---
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。GitHubの現在の `main` とルート `HANDOFF.md` を正本として取得してください。現在のproductionは runtime `v7.12.8-github` / Loader `v4.2.0`。v7.12.6のBOXING白画面対策とv7.12.7の同期表示cleanupはiPhone実機QA済みです。直近はv7.12.8の「手動BOXING prefetch -> verified cache -> Widgetはcache-only」経路の実機QAです。最初にコード変更せず最新main CIと `combat-hub.js` / `combat-hub-loader.js` を確認してください。その後iPhoneで既存Loaderを手動実行し、団体選択でBOXINGを選択してからMedium/Largeを確認します。pendingのままでも未検証イベントが無いだけなら正常です。異常時は推測でpatchせず `combat-hub-runtime-audit.json` の `version / widgetFamily / prefetched / cacheVerified / nextPending / lightweightPending / posterLoaded / source` を根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。syntax/build -> regression -> 実機確認 -> regressionの順を守り、未確認を完成扱いしないでください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。GitHubの現在の `main` とルート `HANDOFF.md` を正本として取得してください。productionは runtime `v7.14.0-github` / Loader `v4.2.0`。BOXINGの白画面対策、verified-cache-only Widget経路、Large可読性Visual Passは実機確認済みです。v7.14.0ではRing公式 `/events` の現行HTMLとevent detailのReact/Next Flightデータに対応する専用parserを追加し、PR #45とmain Regression #486は成功しています。ただし2026-09-14時点でRing公式 `/events` 自体がSep 12 Garcia vs Bennまでしか進んでいないため、BOXINGが `次大会情報を確認中` のままでも正常候補です。次は既存Loaderを手動実行してBOXINGを1回だけ選び、異常がなければ同じQAを何周も繰り返さないでください。異常時は推測でpatchせず `combat-hub-runtime-audit.json` の `version / widgetFamily / prefetched / cacheVerified / nextPending / lightweightPending / posterLoaded / source` と現在のRing公式ソースを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。BOXING Widgetへheavy deep discoveryやfull-widget DrawContextを戻さず、syntax/build -> regression -> 実機確認 -> regressionの順を守り、未確認を完成扱いしないでください。
