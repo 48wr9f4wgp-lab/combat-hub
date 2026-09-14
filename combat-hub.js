@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.18.0-github — RIZIN/ONE known-event card refresh; Medium/Large visual geometry frozen
+// v7.18.1-github — separate event-discovery TTL from RIZIN/ONE card-refresh TTL
 
 (async()=>{
-const VERSION='7.18.0-github';
+const VERSION='7.18.1-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -148,9 +148,9 @@ async function loadData(){
     const trusted=trustedRollforward(snap);if(trusted)return trusted;
     return{...snap,cardTba:true,main:{a:'次大会',b:'確認中',context:S.label},support:[],nextPending:true,cacheVerified:false};
   }
-  if(cachedData&&now-Number(cached.savedAt)<4*3600000&&rollforwardEligible(snap,cachedData,now)){const age=now-Number(cached.savedAt);if((KEY==='rizin'||KEY==='one')&&age>=KNOWN_EVENT_CARD_REFRESH_MS){const refreshed=await refreshKnownRollforwardEvent(cachedData);writeJSON(path,{savedAt:now,data:refreshed});return refreshed;}return cachedData;}
-  const live=await strictNextEvent(snap);if(live&&rollforwardEligible(snap,live,now)){writeJSON(path,{savedAt:now,data:live});return live;}
-  const trusted=trustedRollforward(snap);if(trusted){writeJSON(path,{savedAt:now,data:trusted});return trusted;}
+  if(cachedData&&now-Number(cached.savedAt)<4*3600000&&rollforwardEligible(snap,cachedData,now)){const cardAge=now-Number(cached?.cardRefreshedAt??cached.savedAt);if((KEY==='rizin'||KEY==='one')&&cardAge>=KNOWN_EVENT_CARD_REFRESH_MS){const refreshed=await refreshKnownRollforwardEvent(cachedData);writeJSON(path,{savedAt:Number(cached.savedAt)||now,cardRefreshedAt:now,data:refreshed});return refreshed;}return cachedData;}
+  const live=await strictNextEvent(snap);if(live&&rollforwardEligible(snap,live,now)){writeJSON(path,{savedAt:now,cardRefreshedAt:now,data:live});return live;}
+  const trusted=trustedRollforward(snap);if(trusted){writeJSON(path,{savedAt:now,cardRefreshedAt:now,data:trusted});return trusted;}
   if(cachedData&&rollforwardEligible(snap,cachedData,now))return {...cachedData,stale:true};
   return{...snap,cardTba:true,main:{a:'次大会',b:'確認中',context:S.label},support:[],nextPending:true};
 }

@@ -185,6 +185,24 @@ function stringRequests(requests) {
 }
 
 
+// RIZIN/ONE card refresh must not extend the 4h event-discovery TTL.
+{
+  const now=Date.parse('2026-09-14T12:00:00+09:00');
+  const source='https://www.onefc.com/events/one-friday-fights-171/';
+  const detail='<tr class="vs"><a title="Klarob NuiCafeboran"></a><a title="Sornsueknoi FA Group"></a></tr><tr class="vs"><a title="Petsuphan Lookmuangpet"></a><a title="Mahar Thway"></a></tr>';
+  const {api,fm,requests}=await boot('ONE',{now,textResponses:{[source]:detail}});
+  const path='/docs/combat-hub-next-one.json';
+  const discoveredAt=now-2*3600_000;
+  fm.api.writeString(path,JSON.stringify({savedAt:discoveredAt,cardRefreshedAt:now-31*60_000,data:{name:'ONE Friday Fights 171 & The Inner Circle 31',startAt:'2026-09-18T00:00:00+09:00',location:'バンコク',source,main:{a:'Old A',b:'Old B',context:'MAIN EVENT'},support:[],cardTba:false}}));
+  const data=await api.loadData();
+  assert.equal(data.main.a,'Klarob NuiCafeboran');
+  assert.equal(data.main.b,'Sornsueknoi FA Group');
+  assert.ok(stringRequests(requests).some(r=>r.url===source),'Known ONE event detail should refresh after 30m');
+  const saved=JSON.parse(fm.api.readString(path));
+  assert.equal(saved.savedAt,discoveredAt,'Card refresh must preserve discovery timestamp');
+  assert.equal(saved.cardRefreshedAt,now,'Card refresh timestamp must advance independently');
+}
+
 // BOXING widget mode must ignore legacy/unverified next-event cache and perform zero discovery network work.
 {
   const now=Date.parse('2026-09-14T16:00:00+09:00');
