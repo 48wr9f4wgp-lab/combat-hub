@@ -1,0 +1,37 @@
+name: Inspect Ring Events
+on:
+  push:
+    branches: [chatgpt/boxing-ring-parser-inspect3]
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Inspect Ring markup
+        shell: bash
+        run: |
+          node <<'NODE'
+          const url='https://www.ringmagazine.com/events';
+          const res=await fetch(url,{headers:{'user-agent':'Mozilla/5.0','accept':'text/html'}});
+          const html=await res.text();
+          console.log('status',res.status,'bytes',html.length);
+          console.log('jsonld', [...html.matchAll(/application\/ld\+json/gi)].length);
+          console.log('__NEXT_DATA__', html.includes('__NEXT_DATA__'));
+          console.log('__next_f.push', html.includes('__next_f.push'));
+          const hrefs=[...new Set([...html.matchAll(/href=["']([^"']*\/events\/[^"'#?]+)["']/gi)].map(m=>m[1]))];
+          console.log('event href count',hrefs.length);
+          console.log(hrefs.slice(0,30).join('\n'));
+          for(const needle of ['Sep 12','Garcia','Benn','Opetaia','Mikaelian','Sep 25','Mayweather','Pacquiao']){
+            const i=html.toLowerCase().indexOf(needle.toLowerCase());
+            console.log('\nNEEDLE',needle,'INDEX',i);
+            if(i>=0) console.log(html.slice(Math.max(0,i-700),Math.min(html.length,i+1600)).replace(/\s+/g,' '));
+          }
+          const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)].map((m,i)=>({i,attrs:m[1],body:m[2]}));
+          for(const s of scripts.filter(s=>/Garcia|Benn|Sep 12|events\//i.test(s.body)).slice(0,8)){
+            console.log('\nSCRIPT',s.i,s.attrs.slice(0,180));
+            const idx=s.body.search(/Garcia|Benn|Sep 12|events\//i);
+            console.log(s.body.slice(Math.max(0,idx-500),idx+1800).replace(/\s+/g,' '));
+          }
+          NODE
