@@ -140,7 +140,7 @@ async function loadData(){
   if(cachedData&&now-Number(cached.savedAt)<4*3600000&&rollforwardEligible(snap,cachedData,now))return cachedData;
   const live=await strictNextEvent(snap);if(live&&rollforwardEligible(snap,live,now)){writeJSON(path,{savedAt:now,data:live});return live;}
   const trusted=trustedRollforward(snap);if(trusted){writeJSON(path,{savedAt:now,data:trusted});return trusted;}
-  if(cachedData&&rollforwardEligible(snap,cachedData,now))return{...cachedData,stale:true};
+  if(cachedData&&rollforwardEligible(snap,cachedData,now))return {...cachedData,stale:true};
   return{...snap,cardTba:true,main:{a:'次大会',b:'確認中',context:S.label},support:[],nextPending:true};
 }
 
