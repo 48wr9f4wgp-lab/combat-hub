@@ -24,7 +24,7 @@ assert.match(src, /function largeNextTitle\(next\)/, 'V5.1 compact next-event ti
 assert.match(src, /KEY==='rizin'\?\.68/, 'V5.1 RIZIN noise suppression missing');
 assert.match(src, /const BOXING_LARGE=IS_LARGE&&KEY==='boxing'/, 'BOXING Large ultra-light gate missing');
 assert.match(src, /lightweightPending:true/, 'BOXING Large expired-event local fallback missing');
-assert.match(src, /if\(KEY==='boxing'&&config\.widgetFamily==='large'\)\{if\(cachedData&&rollforwardEligible\(snap,cachedData,now\)\)return cachedData;return\{/, 'BOXING Large must short-circuit before live deep discovery');
+assert.match(src, /if\(KEY==='boxing'&&config\.runsInWidget\)\{if\(cachedData&&rollforwardEligible\(snap,cachedData,now\)\)return cachedData;return\{/, 'BOXING Medium/Large must short-circuit before live deep discovery');
 assert.match(src, /const NEXT=BOXING_LARGE\?null:\(IS_LARGE\?await loadLargeNext\(D\):null\)/, 'BOXING Large must skip next-event scraping');
 assert.match(src, /NEXT_POSTER=IS_LARGE&&NEXT&&!BOXING_LARGE\?await eventPoster\(NEXT\):null/, 'BOXING Large must skip next-event poster loading');
 assert.match(src, /const NEXT_SNAPSHOT=/, 'Trusted next-event fallback missing');
@@ -45,7 +45,10 @@ assert.match(src, /if\(KEY!=='boxing'\)\{const sl=status\.addStack\(\)/, 'BOXING
 assert.match(src, /badge\.cornerRadius=KEY==='boxing'\?11:9/, 'BOXING Large premium countdown radius missing');
 assert.match(src, /badge\.setPadding\(KEY==='boxing'\?5:4,KEY==='boxing'\?10:8,KEY==='boxing'\?5:4,KEY==='boxing'\?10:8\)/, 'BOXING Large premium countdown padding missing');
 assert.match(src, /w\.addSpacer\(D\.cardTba\?30:\(KEY==='boxing'\?34:40\)\)/, 'BOXING Large final hero spacing missing');
-assert.match(src, /if\(KEY==='boxing'&&config\.widgetFamily==='large'\)\{const safePoster=!D\.nextPending&&!D\.lightweightPending&&\(!!D\.lockedCurrent\|\|sameEventIdentity\(D,SNAPSHOT\.boxing\)\);return\{a:\{name:D\.main\.a,image:null\},b:\{name:D\.main\.b,image:null\},poster:safePoster\?await eventPoster\(D\):null,lightweight:true\};\}/, 'BOXING Large pending state must suppress stale rollover posters');
+assert.match(src, /if\(KEY==='boxing'&&config\.runsInWidget\)\{const safePoster=!D\.nextPending&&!D\.lightweightPending&&\(!!D\.lockedCurrent\|\|sameEventIdentity\(D,SNAPSHOT\.boxing\)\);return\{a:\{name:D\.main\.a,image:null\},b:\{name:D\.main\.b,image:null\},poster:safePoster\?await eventPoster\(D\):null,lightweight:true\};\}/, 'BOXING Medium/Large pending state must suppress poster loading');
+assert.match(src, /function writeRuntimeAudit\(D,ctx\)/, 'Runtime sync audit writer missing');
+assert.match(src, /combat-hub-runtime-audit\.json/, 'Runtime sync audit cache missing');
+assert.match(src, /KEY==='boxing'&&D\.nextPending\?`同期 \${VERSION\.replace\('-github',''\)}`/, 'BOXING Medium temporary sync marker missing');
 assert.match(src, /if\(BOXING_LARGE\)\{if\(ctx\.poster\)w\.backgroundImage=ctx\.poster;else w\.backgroundGradient=gradient\(\);renderLarge\(w,D,ctx,NEXT,null\);\}/, 'BOXING Large must use lightweight gradient fallback without DrawContext composition');
 assert.match(src, /try\{w\.backgroundImage=largeBackground\(ctx\);renderLarge\(w,D,ctx,NEXT,NEXT_POSTER\);\}catch\(_\)/, 'Non-BOXING Large render fallback missing');
-console.log('COMBAT HUB Large V5.2 + BOXING rollover-memory regression: OK');
+console.log('COMBAT HUB Large V5.2 + BOXING Medium/Large memory+sync regression: OK');

@@ -85,7 +85,7 @@ has(/aBox\.addSpacer\(\);renderMainName\(aBox,ctx\.a\.name\);aBox\.addSpacer\(\)
 has(/bBox\.addSpacer\(\);renderMainName\(bBox,ctx\.b\.name\);bBox\.addSpacer\(\)/, 'Right main fighter is not vertically centered');
 has(/function renderMainName\(box,name\)\{[^}]*t\.centerAlignText\(\)/, 'Main fighter text is not horizontally centered');
 
-const renderMarker = 'const D=await loadData(),ctx=await heroContext(D),w=new ListWidget();';
+const renderMarker = 'const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudit(D,ctx);const w=new ListWidget();';
 assert.ok(src.includes(renderMarker), 'Runtime instrumentation marker changed');
 const instrumented = src.replace(
   renderMarker,

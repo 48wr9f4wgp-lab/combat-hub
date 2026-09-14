@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const src = fs.readFileSync('combat-hub.js', 'utf8');
-const marker = 'const D=await loadData(),ctx=await heroContext(D),w=new ListWidget();';
+const marker = 'const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudit(D,ctx);const w=new ListWidget();';
 assert.ok(src.includes(marker), 'Runtime instrumentation marker changed');
 const instrumented = src.replace(
   marker,
