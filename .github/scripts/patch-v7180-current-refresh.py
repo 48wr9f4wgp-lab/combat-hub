@@ -22,6 +22,13 @@ extra=needle+"assert.match(src,/refreshTtl=\\(KEY==='rizin'\\|\\|KEY==='one'\\)\
 ts=replace_once(ts,needle,extra,'current refresh regression guard')
 t.write_text(ts)
 
+c=Path('tests/combat-hub-cache-regression.mjs')
+cs=c.read_text()
+old_guard="assert.match(src, /now-Number\\(cached\\.savedAt\\)<2\\*3600000/, 'locked-current refresh TTL must remain 2h');"
+new_guard="assert.match(src, /refreshTtl=\\(KEY==='rizin'\\|\\|KEY==='one'\\)\\?30\\*60\\*1000:2\\*3600000/, 'locked-current refresh TTL must be 30m for RIZIN/ONE and 2h otherwise');"
+cs=replace_once(cs,old_guard,new_guard,'cache regression TTL contract')
+c.write_text(cs)
+
 h=Path('HANDOFF.md')
 hs=h.read_text()
 needle='- Once RIZIN or ONE has a known eligible event source, its official event-detail page is refreshed every 30 minutes to pick up card changes without repeating full event discovery.\n'
