@@ -24,7 +24,10 @@ assert.match(src, /function largeNextTitle\(next\)/, 'V5.1 compact next-event ti
 assert.match(src, /KEY==='rizin'\?\.68/, 'V5.1 RIZIN noise suppression missing');
 assert.match(src, /const BOXING_LARGE=IS_LARGE&&KEY==='boxing'/, 'BOXING Large ultra-light gate missing');
 assert.match(src, /lightweightPending:true/, 'BOXING Large expired-event local fallback missing');
-assert.match(src, /if\(KEY==='boxing'&&config\.runsInWidget\)\{if\(cachedData&&rollforwardEligible\(snap,cachedData,now\)\)return cachedData;return\{/, 'BOXING Medium/Large must short-circuit before live deep discovery');
+assert.match(src, /function boxingPrefetchValid\(snap,e,now=Date\.now\(\)\)/, 'BOXING verified prefetch validator missing');
+assert.match(src, /function boxingVerifiedCache\(cached,snap,now\)/, 'BOXING verified cache reader missing');
+assert.match(src, /if\(KEY==='boxing'&&config\.runsInWidget\)\{[\s\S]*if\(verifiedBoxing\)return\{\.\.\.verifiedBoxing,prefetched:true,cacheVerified:true\}/, 'BOXING widgets must read verified cache only');
+assert.match(src, /verifiedBy:'strictNextEvent'/, 'BOXING manual prefetch verification marker missing');
 assert.match(src, /const NEXT=BOXING_LARGE\?null:\(IS_LARGE\?await loadLargeNext\(D\):null\)/, 'BOXING Large must skip next-event scraping');
 assert.match(src, /NEXT_POSTER=IS_LARGE&&NEXT&&!BOXING_LARGE\?await eventPoster\(NEXT\):null/, 'BOXING Large must skip next-event poster loading');
 assert.match(src, /const NEXT_SNAPSHOT=/, 'Trusted next-event fallback missing');
