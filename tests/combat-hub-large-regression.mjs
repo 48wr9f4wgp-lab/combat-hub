@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const src = fs.readFileSync('combat-hub.js', 'utf8');
 
-assert.match(src, /const VERSION='7\.13\.1-github'/, 'Large readability pass version missing');
+assert.match(src, /const VERSION='7\.14\.0-github'/, 'Large readability pass version missing');
 assert.match(src, /const IS_LARGE=config\.widgetFamily==='large'/);
 assert.match(src, /async function loadLargeNext\(base\)/);
 assert.match(src, /combat-hub-large-next-\$\{KEY\}\.json/);
