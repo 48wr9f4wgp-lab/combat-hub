@@ -169,6 +169,7 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - Medium/Large visual geometry is frozen; this pass changes data freshness only.
 - Discovery of a new event remains cached for up to four hours to avoid repeated heavy listing/deep discovery work.
 - Once RIZIN or ONE has a known eligible event source, its official event-detail page is refreshed every 30 minutes to pick up card changes without repeating full event discovery.
+- Snapshot-locked RIZIN/ONE current events use the same 30-minute detail refresh cadence; other organizations keep the existing two-hour locked-current cache.
 - A successful detail refresh updates main/support cards and poster metadata while preserving the event identity/time/location already validated by roll-forward logic.
 - If detail refresh fails or yields no card pairs, the last known valid cached event/card is preserved.
 - BOXING verified-cache-only Widget safety, Loader v4.2.0, Large v7.16.1 geometry, Medium v7.17.x geometry, and friends-stable are unchanged.

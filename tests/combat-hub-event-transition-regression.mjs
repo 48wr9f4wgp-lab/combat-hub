@@ -7,6 +7,7 @@ assert.match(src,/function sameEventIdentity\(/);
 assert.match(src,/function rollforwardEligible\(/);
 assert.match(src,/function nextEligible\(/);
 assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000/,'RIZIN/ONE known-event refresh cadence missing');
+assert.match(src,/refreshTtl=\(KEY==='rizin'\|\|KEY==='one'\)\?30\*60\*1000:2\*3600000/,'snapshot-locked RIZIN/ONE cards must refresh every 30 minutes');
 assert.match(src,/async function refreshKnownRollforwardEvent\(data\)/,'RIZIN/ONE direct card refresh helper missing');
 assert.match(src,/\(KEY==='rizin'\|\|KEY==='one'\)&&age>=KNOWN_EVENT_CARD_REFRESH_MS/,'freshness gate must stay scoped to RIZIN/ONE');
 assert.match(src,/cardRefreshed:true/,'known-event card refresh marker missing');
