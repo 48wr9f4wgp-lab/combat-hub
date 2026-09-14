@@ -1,0 +1,37 @@
+name: Temporary BOXING prefetch regression fix
+on:
+  push:
+    branches: [chatgpt/boxing-prefetch]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chatgpt/boxing-prefetch
+      - name: Restore regression-compatible stale fallback formatting
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('combat-hub.js')
+          s=p.read_text()
+          old="if(cachedData&&rollforwardEligible(snap,cachedData,now))return{...cachedData,stale:true};"
+          new="if(cachedData&&rollforwardEligible(snap,cachedData,now))return {...cachedData,stale:true};"
+          if old not in s: raise SystemExit('target not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+          node --check combat-hub.js
+          node tests/combat-hub-regression.mjs
+          node tests/combat-hub-cache-regression.mjs
+          node tests/combat-hub-large-regression.mjs
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/zz-boxing-prefetch-regression-fix.yml
+          git add combat-hub.js
+          git commit -m 'test: preserve stale fallback regression contract'
+          git push origin HEAD:chatgpt/boxing-prefetch
