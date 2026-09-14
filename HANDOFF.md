@@ -1,6 +1,6 @@
 # COMBAT HUB — Development Handoff
 
-Updated: 2026-09-14 JST
+Updated: 2026-09-15 JST
 
 > **This file is the canonical handoff for the current project state.**
 > Always fetch current GitHub `main` first. Actual code + this file take priority over old chat logs and `HANDOFF_CODEX.md`.
@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.19.0-github**
+- Runtime: **v7.19.1-github**
 - Runtime PR: **#45 — Ring official-events parser**
 - Runtime merge commit: `cb6358396a5493b98f1a7c486d17fba957aa92a4`
 - Main Regression after PR #45: **#486 success**
@@ -76,6 +76,7 @@ No backend/database/auth/paid service is required. Runtime is standalone Scripta
 - Trusted `SNAPSHOT` current baselines exist for all five organizations.
 - `NEXT_SNAPSHOT` trusted fallback exists for UFC/RIZIN/ONE/K-1.
 - Event identity uses source/name/main-fight matching and time bounds.
+- Generic UFC listing fallback name `UFC Fight Night` is intentionally weak identity: distinct official event URLs remain distinct so sequential Fight Night cards cannot collapse into one event during roll-forward.
 - Future acceptance is bounded to 180 days.
 - Current and next must not resolve to the same event.
 

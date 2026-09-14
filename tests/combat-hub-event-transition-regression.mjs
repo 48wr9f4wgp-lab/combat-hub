@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const src=fs.readFileSync('combat-hub.js','utf8');
 assert.match(src,/const VERSION='7\.\d+\.\d+-github'/);
 assert.match(src,/function sameEventIdentity\(/);
+assert.match(src,/function genericEventIdentityName\(v\)\{const n=eventIdentityText\(v\);return n==='ufcfightnight';\}/,'generic UFC fallback identity guard missing');
 assert.match(src,/function rollforwardEligible\(/);
 assert.match(src,/function currentGraceMs\(e\)\{return e\?\.timeTba\?36\*3600000:12\*3600000;\}/,'time-TBA current grace helper missing');
 assert.match(src,/currentGraceMs\(snap\)/,'currentLocked must use time-aware grace');
