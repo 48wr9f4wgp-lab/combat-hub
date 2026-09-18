@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.20.1-github — Small status wording polish; Medium/Large frozen
+// v7.20.2-github — Small footer contrast polish; Medium/Large frozen
 
 (async()=>{
-const VERSION='7.20.1-github';
+const VERSION='7.20.2-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -291,7 +291,7 @@ function renderSmall(w,D,ctx){
   const meta=w.addStack();meta.layoutVertically();
   const dt=tx(meta,smallDate(D),SMALL_UI.meta,new Color(C.sub),'semibold',1);dt.centerAlignText();
   meta.addSpacer(1);
-  const loc=tx(meta,smallLocation(D),SMALL_UI.meta,new Color(C.muted),'semibold',1);loc.minimumScaleFactor=.64;loc.centerAlignText();
+  const loc=tx(meta,smallLocation(D),SMALL_UI.meta,new Color(C.sub),'semibold',1);loc.minimumScaleFactor=.64;loc.centerAlignText();
 }
 
 function mediumRightText(st,text,size,color,weight='semibold'){const row=st.addStack();row.addSpacer();const t=tx(row,text,size,color,weight,1);t.minimumScaleFactor=.68;t.rightAlignText();return t;}
