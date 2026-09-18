@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.20.0-github**
+- Runtime: **v7.20.1-github**
 - Latest runtime-changing PR: **#58 — unified Small widget for all five series**
 - Runtime verification policy: branch / PR / main CI must pass, and physical Small-device QA is required before v7.20.0 is promoted to `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
@@ -175,6 +175,16 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - A successful detail refresh updates main/support cards and poster metadata while preserving the event identity/time/location already validated by roll-forward logic.
 - If detail refresh fails or yields no card pairs, the last known valid cached event/card is preserved.
 - BOXING verified-cache-only Widget safety, Loader v4.2.0, Large v7.16.1 geometry, Medium v7.17.x geometry, and friends-stable are unchanged.
+
+## 6E. Small status wording polish in v7.20.1
+
+- Physical iPhone review of all five Small categories on 2026-09-18 confirmed the dedicated Small geometry works and the earlier clipping/Medium fall-through defect is resolved.
+- Follow-up visual audit found no actual duplicated K-1 date/location rendering; that earlier reading was incorrect. No K-1-specific geometry exception is introduced.
+- Small now uses `smallStatusHeading(...)` instead of the Large wording helper.
+- Exact-time future events keep `開催まで`.
+- Time-TBA events and safe pending events use `開催` with `時刻未定` / `確認中`, avoiding awkward `開催まで / 時刻未定` and `開催まで / 確認中` combinations.
+- Medium and Large wording/geometry remain unchanged.
+- Small still requires one final physical-device confirmation of K-1 and BOXING wording before visual freeze.
 
 ## 6D. Small UI architecture in v7.20.0
 
@@ -411,7 +421,7 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `7.20.0-github`
+- runtime `7.20.1-github`
 - Loader `4.2.0`
 - latest runtime PR `#58`
 - Small physical-device QA pending
