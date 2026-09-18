@@ -31,15 +31,15 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.22.5-github**.
-- Latest runtime-changing PR: **#73 — normalize cached support roles by card position**.
-- Runtime merge commit: `9b5761c10db0cbba7ac23899590a698068ebae71`.
-- Main Regression after PR #73: **#729 success**.
+- Production runtime: **v7.22.6-github**.
+- Latest runtime-changing PR: **#75 — restore K-1 poster-gallery priority**.
+- Runtime merge commit: `43c2d6c084567f0f4316e4020991012b562bac7b`.
+- Main Regression after PR #75: **#741 success**.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=5` remains correct; no additional cache migration is required.
 - Small/Medium/Large geometry and Loader v4.2.0 remain unchanged.
-- v7.22.5 corrects the remaining K-1 Large support-role defect by normalizing cached/trusted support labels by position and migrating to `CARD_POLICY_VERSION=6`. One final K-1 Large physical recheck remains before promotion to `VERIFIED_BASELINE`.
+- v7.22.5 corrects K-1 Large support-role normalization and migrates to `CARD_POLICY_VERSION=6`. v7.22.6 additionally enforces K-1 poster-gallery priority, rejects generic logo/icon artwork, and migrates image metadata to `IMAGE_POLICY_VERSION=2`. One final K-1 Large physical recheck remains before promotion to `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -369,20 +369,24 @@ Physical iPhone QA on 2026-09-18 confirmed:
 - ONE Small: current main event and image presentation normal.
 - BOXING Small: Cruz vs Bravo, safe gradient fallback and no white screen.
 - BOXING Medium: Cruz vs Bravo main, Jesus Ramos vs Meiirim Nursultanov co-main/セミ, safe gradient, no white screen.
-- K-1 Large on v7.22.4: the false `注目` label is gone, but both support rows render as `本戦`; the first support row must be `セミ`.
+- K-1 Large on v7.22.4: false `注目` was removed, but both support rows showed `本戦`.
+- The same K-1 Large screenshot also exposed an image regression: the official Sangju poster had fallen back to a generic K-1 logo/hero-style image even though the official poster gallery still existed.
 
-Root cause for the remaining K-1 Large defect: cached/trusted `MAIN CARD` was treated as authoritative by `normalizedExistingSupportLabel()`, so the first support row could not be re-normalized to the canonical positional role.
+v7.22.5 fixes support-role normalization:
+- support[0] -> CO-MAIN/セミ
+- support[1+] -> MAIN CARD/本戦
+- cached/trusted support labels are sanitized on read
+- `CARD_POLICY_VERSION=6`
 
-v7.22.5 fixes this by:
-- treating existing cached `MAIN CARD` as positional, not authoritative
-- normalizing support[0] -> CO-MAIN/セミ and support[1+] -> MAIN CARD/本戦
-- correcting the trusted K-1 fallback row itself to CO-MAIN
-- sanitizing cached support labels on read
-- bumping `CARD_POLICY_VERSION` to 6
+v7.22.6 fixes K-1 image priority:
+- poster_gallery > event_hero > JSON-LD > meta
+- when no cached poster-gallery candidate exists, the official K-1 event page is re-resolved before accepting a stale lower-priority hero
+- generic logo/favicon/icon/noimage/placeholder URLs are rejected as K-1 event artwork
+- `IMAGE_POLICY_VERSION=2`
 
-After merge / Loader refresh, only one physical recheck remains:
+After Loader refresh on production v7.22.6, only one physical recheck remains:
 
-- K-1 Large: Yang vs Oishi = `セミ`; Lee vs Harada = `本戦`; no `注目`; `-70kg級` and poster retained.
+- K-1 Large: Yang vs Oishi = `セミ`; Lee vs Harada = `本戦`; no `注目`; `-70kg級` retained; official Sangju poster restored instead of the generic K-1 logo image.
 
 All five Small categories and BOXING Medium are already accepted.
 
@@ -436,16 +440,17 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.22.5-github`
+- runtime `v7.22.6-github`
 - Loader `v4.2.0`
-- runtime PR `#73`
-- runtime merge `9b5761c10db0cbba7ac23899590a698068ebae71`
-- main Regression `#729 success`
+- runtime PR `#75`
+- runtime merge `43c2d6c084567f0f4316e4020991012b562bac7b`
+- main Regression `#741 success`
 - `CARD_POLICY_VERSION=6`
+- `IMAGE_POLICY_VERSION=2`
 - all five Small categories physically accepted
 - BOXING Medium physically accepted
-- only K-1 Large support-role recheck remains
-- do **not** label v7.22.5 `VERIFIED_BASELINE` until that recheck passes
+- only K-1 Large support-role + poster recheck remains
+- do **not** label v7.22.6 `VERIFIED_BASELINE` until that recheck passes
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -454,4 +459,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.5-github（PR #73 / main Regression #729 success）です。Small 5カテゴリとBOXING Mediumは実機確認済みで、残る確認はK-1 Largeが`セミ / 本戦`へ正規化されたことだけです。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.6-github（PR #75 / main Regression #741 success）です。Small 5カテゴリとBOXING Mediumは実機確認済みで、残る確認はK-1 Largeが`セミ / 本戦`へ正規化され、公式Sangjuポスターが復帰したことだけです。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
