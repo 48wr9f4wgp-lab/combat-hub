@@ -31,12 +31,13 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.22.0-github**.
-- Latest runtime-changing PR: **#63 — official image/context/BOXING verified-cache hardening**.
-- Runtime merge commit: `0b2713650cde3bc3f535e7a6882432b679944f09`.
-- Main Regression after PR #63: **#667 success**.
-- v7.22.0 changes data/image acquisition, bout context, BOXING official-cache safety and diagnostics; frozen Small/Medium/Large geometry is unchanged.
-- v7.22.0 physical iPhone QA exposed stale-cache bout-context contamination on UFC/K-1. A v7.22.1 hotfix is in progress on `chatgpt/context-cache-sanitization-v7221`; do not promote v7.22.0 to `VERIFIED_BASELINE`.
+- Production runtime: **v7.22.1-github**.
+- Latest runtime-changing PR: **#65 — stale cached bout-context sanitization hotfix**.
+- Runtime merge commit: `3b34be35f35a09a91e4a8bf82362a4e9b51e2ed6`.
+- Main Regression after PR #65: **#685 success**.
+- v7.22.1 keeps the v7.22.0 image/BOXING/data hardening and additionally sanitizes cached fight context, restores trusted same-event/same-main context when appropriate, preserves Japanese title-fight wording, and uses `CARD_POLICY_VERSION=5`.
+- Small/Medium/Large geometry and Loader v4.2.0 remain unchanged.
+- Targeted physical recheck is still required before v7.22.1 becomes `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -368,7 +369,7 @@ Root cause: a pre-v7.22 cached `main.context=event name` could survive if the fo
 
 v7.22.1 fixes this by sanitizing cached bout context before reuse, restoring the trusted same-event/same-main fallback context when appropriate, preserving Japanese `タイトル戦` semantics, and bumping `CARD_POLICY_VERSION` to 5.
 
-After v7.22.1 merge / Loader refresh, check only:
+After Loader refresh on production v7.22.1, check only:
 
 - UFC Small or Medium: Van vs Pantoja and `フライ級タイトル戦` (or equivalent official title-bout wording), never the event title.
 - K-1 Large: Kim vs Oda main, Yang vs Oishi as co-main/セミ, Lee vs Harada as main-card/本戦, no invented `注目`, `-70kg級` context, poster retained.
@@ -426,27 +427,20 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.22.0-github`
-- Loader `v4.2.0`
-- runtime PR `#63`
-- runtime merge `0b2713650cde3bc3f535e7a6882432b679944f09`
-- main Regression `#667 success`
-- physical QA found UFC/K-1 stale-cache context contamination; v7.22.0 is **not** `VERIFIED_BASELINE`
-
-Current WORKING_HEAD:
-
-- branch `chatgpt/context-cache-sanitization-v7221`
 - runtime `v7.22.1-github`
+- Loader `v4.2.0`
+- runtime PR `#65`
+- runtime merge `3b34be35f35a09a91e4a8bf82362a4e9b51e2ed6`
+- main Regression `#685 success`
 - `CARD_POLICY_VERSION=5`
-- branch Regression `#680 success`
-- PR #65 open; PR CI / merge / main CI pending
 - targeted UFC/K-1 context recheck + K-1 Large + BOXING Medium physical QA pending
+- do **not** label v7.22.1 `VERIFIED_BASELINE` until that recheck passes
 
-No temporary implementation workflow or patch script is intended to remain in production.
+No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
 
 ---
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.0-github（PR #63 / main Regression #667 success）ですが、実機QAでUFC/K-1のstale-cache context汚染が見つかり、v7.22.1 hotfixが進行中です。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.1-github（PR #65 / main Regression #685 success）です。v7.22.0実機QAで見つかったUFC/K-1のstale-cache context汚染はhotfix済みですが、対象実機recheckはまだ必要です。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
