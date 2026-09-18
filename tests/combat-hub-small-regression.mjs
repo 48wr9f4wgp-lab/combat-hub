@@ -7,6 +7,7 @@ assert.match(src,/const VERSION='7\.\d+\.\d+-github'/,'Runtime version missing f
 assert.match(src,/const MODE_MAP=\{UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'\}/,'five-series mode map changed');
 assert.match(src,/const SMALL_UI=\{/,'SMALL_UI token set missing');
 assert.match(src,/function renderSmall\(w,D,ctx\)/,'renderSmall missing');
+assert.match(src,/division\(D\.main\.context\|\|trustedMainContext\(D\)\)/,'Small must fall back to trusted bout context without geometry changes');
 assert.match(src,/function smallCountdown\(D\)/,'small countdown helper missing');
 assert.match(src,/function smallStatusHeading\(D\)\{if\(D\?\.nextPending\|\|D\?\.timeTba\)return'開催'/,'Small pending/time-TBA heading contract missing');
 assert.match(src,/tx\(right,smallStatusHeading\(D\),SMALL_UI\.status/,'Small must use the Small-specific status heading');
