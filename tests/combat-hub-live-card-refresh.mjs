@@ -31,7 +31,7 @@ async function boot(parameter,{now,textResponses={}}={}){
   return {api:context.__cardInternals,requests};
 }
 
-assert.match(src,/const VERSION='7\.22\.1-github'/);
+assert.match(src,/const VERSION='7\.22\.2-github'/);
 assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=5/);
 assert.match(src,/function supportsLiveCardRefresh\(\)\{return KEY==='ufc'\|\|KEY==='rizin'\|\|KEY==='one'\|\|KEY==='k1';\}/);
 assert.match(src,/Number\(cached\?\.cardPolicy\)!==CARD_POLICY_VERSION/,'old caches must be invalidated once for the new card policy');
