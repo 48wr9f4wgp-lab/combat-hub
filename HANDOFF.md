@@ -31,10 +31,12 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime before this branch: **v7.21.1-github** (PR #62).
-- Current WORKING_HEAD: **v7.22.0-github** on `chatgpt/residual-hardening-v722` (PR #63).
+- Production runtime: **v7.22.0-github**.
+- Latest runtime-changing PR: **#63 — official image/context/BOXING verified-cache hardening**.
+- Runtime merge commit: `0b2713650cde3bc3f535e7a6882432b679944f09`.
+- Main Regression after PR #63: **#667 success**.
 - v7.22.0 changes data/image acquisition, bout context, BOXING official-cache safety and diagnostics; frozen Small/Medium/Large geometry is unchanged.
-- Runtime verification policy: branch / PR / main CI must pass, then the targeted v7.22.0 physical iPhone QA must pass before v7.22.0 is promoted to `VERIFIED_BASELINE`.
+- Automated verification is complete; targeted v7.22.0 physical iPhone QA is still required before v7.22.0 becomes `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -348,7 +350,7 @@ The v7.22 suite additionally locks:
 - image refresh not mutating event-discovery timestamps
 - expanded runtime-audit diagnostics
 
-Latest clean branch Regression before PR: **#662 success**. PR/main CI must still be recorded after merge.
+v7.22.0 verification chain: branch Regression **#663 success**, PR #63 Regression **#666 success**, merge-to-main Regression **#667 success**.
 
 ## 10. Historical BOXING device note
 
@@ -413,25 +415,21 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 
 ## 14. Current branch / work state
 
-Production before this branch:
+Canonical production:
 
-- `main` at v7.21.1-github (PR #62)
-- Loader 4.2.0
-- main Regression #646 success
-
-Current WORKING_HEAD:
-
-- branch `chatgpt/residual-hardening-v722`
+- `main`
 - runtime `v7.22.0-github`
-- branch Regression #662 success
-- PR #63 open; PR CI / merge / main CI pending
-- targeted physical-device QA pending
+- Loader `v4.2.0`
+- runtime PR `#63`
+- runtime merge `0b2713650cde3bc3f535e7a6882432b679944f09`
+- main Regression `#667 success`
+- targeted physical-device QA pending; do **not** label v7.22.0 `VERIFIED_BASELINE` yet
 
-No temporary implementation workflow or patch script is intended to remain in production.
+No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
 
 ---
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。現WORKING_HEADは v7.22.0候補で、Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.0-github（PR #63 / main Regression #667 success）で、Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
