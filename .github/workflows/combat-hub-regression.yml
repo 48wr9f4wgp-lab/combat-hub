@@ -55,6 +55,8 @@ jobs:
         run: node --check tests/combat-hub-transition-integration.mjs
       - name: Small widget regression syntax check
         run: node --check tests/combat-hub-small-regression.mjs
+      - name: Live-card refresh regression syntax check
+        run: node --check tests/combat-hub-live-card-refresh.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
       - name: COMBAT HUB cache performance suite
@@ -81,3 +83,5 @@ jobs:
         run: node tests/combat-hub-transition-integration.mjs
       - name: COMBAT HUB Small five-series suite
         run: node tests/combat-hub-small-regression.mjs
+      - name: COMBAT HUB UFC/K-1 live-card freshness suite
+        run: node tests/combat-hub-live-card-refresh.mjs
