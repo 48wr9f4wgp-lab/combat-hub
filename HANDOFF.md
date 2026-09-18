@@ -31,13 +31,14 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.22.1-github**.
-- Latest runtime-changing PR: **#65 — stale cached bout-context sanitization hotfix**.
-- Runtime merge commit: `3b34be35f35a09a91e4a8bf82362a4e9b51e2ed6`.
-- Main Regression after PR #65: **#685 success**.
-- v7.22.1 keeps the v7.22.0 image/BOXING/data hardening and additionally sanitizes cached fight context, restores trusted same-event/same-main context when appropriate, preserves Japanese title-fight wording, and uses `CARD_POLICY_VERSION=5`.
+- Production runtime: **v7.22.2-github**.
+- Latest runtime-changing PR: **#67 — fresh-discovery bout-context finalization hotfix**.
+- Runtime merge commit: `fe546571d280b9b46894fdd598b3af8ef8941d29`.
+- Main Regression after PR #67: **#695 success**.
+- v7.22.2 keeps the v7.22.0 image/BOXING/data hardening and v7.22.1 cache sanitization, and additionally sanitizes fresh `strictNextEvent()` discovery results before first cache write/render so trusted bout context is available immediately.
+- `CARD_POLICY_VERSION=5` remains correct; no additional cache migration is required.
 - Small/Medium/Large geometry and Loader v4.2.0 remain unchanged.
-- Targeted physical recheck is still required before v7.22.1 becomes `VERIFIED_BASELINE`.
+- Targeted physical recheck is still required before v7.22.2 becomes `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -361,17 +362,15 @@ The v7.12-v7.14 white-screen investigation established the non-negotiable BOXING
 
 Physical iPhone QA on 2026-09-18 confirmed:
 
-- UFC Small: Van vs Pantoja and official imagery render correctly, but the line below the fighters still showed the event title from stale cache.
-- K-1 Small: Kim vs Oda and the official poster render correctly, but the line below the fighters still showed the event title from stale cache.
+- K-1 Small on v7.22.1: Kim vs Oda renders with official poster and correct `-70kg級` context. The previous event-title contamination is gone.
+- UFC Small on v7.22.1: Van vs Pantoja and official imagery render correctly; the event-title contamination is gone, but the bout-context line was blank on the first refreshed render.
 - BOXING Small: Cruz vs Bravo renders with safe gradient fallback, correct date/location and no white screen.
 
-Root cause: a pre-v7.22 cached `main.context=event name` could survive if the forced card refresh failed once and that stale cache was then re-saved under the new card policy.
+The UFC blank-context case exposed a second boundary bug: fresh `strictNextEvent()` discovery data could be rendered before `sanitizeEventFightContext()` was applied. v7.22.2 fixes that boundary and adds regression coverage requiring fresh UFC 331 discovery to resolve to `フライ級タイトル戦` before first render/cache write.
 
-v7.22.1 fixes this by sanitizing cached bout context before reuse, restoring the trusted same-event/same-main fallback context when appropriate, preserving Japanese `タイトル戦` semantics, and bumping `CARD_POLICY_VERSION` to 5.
+After Loader refresh on production v7.22.2, check only:
 
-After Loader refresh on production v7.22.1, check only:
-
-- UFC Small or Medium: Van vs Pantoja and `フライ級タイトル戦` (or equivalent official title-bout wording), never the event title.
+- UFC Small or Medium: Van vs Pantoja and `フライ級タイトル戦`, never blank and never the event title.
 - K-1 Large: Kim vs Oda main, Yang vs Oishi as co-main/セミ, Lee vs Harada as main-card/本戦, no invented `注目`, `-70kg級` context, poster retained.
 - BOXING Medium: Cruz vs Bravo, Ramos vs Nursultanov support if available from verified Ring cache, no white screen; verified poster or safe gradient are both acceptable.
 
@@ -427,14 +426,14 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.22.1-github`
+- runtime `v7.22.2-github`
 - Loader `v4.2.0`
-- runtime PR `#65`
-- runtime merge `3b34be35f35a09a91e4a8bf82362a4e9b51e2ed6`
-- main Regression `#685 success`
+- runtime PR `#67`
+- runtime merge `fe546571d280b9b46894fdd598b3af8ef8941d29`
+- main Regression `#695 success`
 - `CARD_POLICY_VERSION=5`
-- targeted UFC/K-1 context recheck + K-1 Large + BOXING Medium physical QA pending
-- do **not** label v7.22.1 `VERIFIED_BASELINE` until that recheck passes
+- targeted UFC context recheck + K-1 Large + BOXING Medium physical QA pending
+- do **not** label v7.22.2 `VERIFIED_BASELINE` until that recheck passes
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -443,4 +442,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.1-github（PR #65 / main Regression #685 success）です。v7.22.0実機QAで見つかったUFC/K-1のstale-cache context汚染はhotfix済みですが、対象実機recheckはまだ必要です。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.2-github（PR #67 / main Regression #695 success）です。v7.22.0のstale-cache context汚染と、v7.22.1で判明したfresh-discovery初回render時のUFC context欠落をhotfix済みですが、対象実機recheckはまだ必要です。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
