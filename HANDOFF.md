@@ -32,7 +32,7 @@ Target quality:
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
 - Production runtime before this branch: **v7.21.1-github** (PR #62).
-- Current WORKING_HEAD: **v7.22.0-github** on `chatgpt/residual-hardening-v722`.
+- Current WORKING_HEAD: **v7.22.0-github** on `chatgpt/residual-hardening-v722` (PR #63).
 - v7.22.0 changes data/image acquisition, bout context, BOXING official-cache safety and diagnostics; frozen Small/Medium/Large geometry is unchanged.
 - Runtime verification policy: branch / PR / main CI must pass, then the targeted v7.22.0 physical iPhone QA must pass before v7.22.0 is promoted to `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
@@ -424,7 +424,7 @@ Current WORKING_HEAD:
 - branch `chatgpt/residual-hardening-v722`
 - runtime `v7.22.0-github`
 - branch Regression #662 success
-- PR / merge / main CI pending
+- PR #63 open; PR CI / merge / main CI pending
 - targeted physical-device QA pending
 
 No temporary implementation workflow or patch script is intended to remain in production.
