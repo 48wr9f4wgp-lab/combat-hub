@@ -206,8 +206,8 @@ function stringRequests(requests) {
 
 // BOXING widget mode must ignore legacy/unverified next-event cache and perform zero discovery network work.
 {
-  const now=Date.parse('2026-09-14T16:00:00+09:00');
-  const future={name:'Alpha vs Beta Championship',startAt:'2026-09-20T10:00:00+09:00',location:'Las Vegas',source:'https://www.ringmagazine.com/events/alpha-vs-beta',main:{a:'Alpha',b:'Beta',context:'TITLE FIGHT'},support:[],cardTba:false,posterURL:null};
+  const now=Date.parse('2026-09-22T13:00:00+09:00');
+  const future={name:'Alpha vs Beta Championship',startAt:'2026-09-27T10:00:00+09:00',location:'Las Vegas',source:'https://www.ringmagazine.com/events/alpha-vs-beta',main:{a:'Alpha',b:'Beta',context:'TITLE FIGHT'},support:[],cardTba:false,posterURL:null};
   const {api,fm,requests}=await boot('BOXING',{now});
   const path='/docs/combat-hub-next-boxing.json';
   fm.api.writeString(path,JSON.stringify({savedAt:now-60_000,data:future}));
@@ -225,10 +225,10 @@ function stringRequests(requests) {
 
 // Manual BOXING execution should discover from Ring, validate, and persist a verified next-event cache.
 {
-  const now=Date.parse('2026-09-14T16:00:00+09:00');
+  const now=Date.parse('2026-09-22T13:00:00+09:00');
   const listing='https://www.ringmagazine.com/events';
   const event='https://www.ringmagazine.com/events/alpha-vs-beta';
-  const listingHtml=`<script type="application/ld+json">${JSON.stringify({'@type':'Event',name:'Alpha vs Beta Championship',startDate:'2026-09-20T10:00:00+09:00',location:{name:'Las Vegas'},url:event})}</script>`;
+  const listingHtml=`<script type="application/ld+json">${JSON.stringify({'@type':'Event',name:'Alpha vs Beta Championship',startDate:'2026-09-27T10:00:00+09:00',location:{name:'Las Vegas'},url:event})}</script>`;
   const detailHtml='<title>Alpha vs Beta</title><meta property="og:image" content="https://img.example/alpha-beta.jpg">';
   const {api,fm}=await boot('BOXING',{now,runsInWidget:false,textResponses:{[listing]:listingHtml,[event]:detailHtml}});
   const data=await api.loadData();
