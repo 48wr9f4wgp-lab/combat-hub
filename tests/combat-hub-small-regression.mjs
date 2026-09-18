@@ -16,7 +16,7 @@ assert.match(src,/c\.size=new Size\(338,338\)/,'square Small background canvas m
 assert.match(src,/const IS_LARGE=config\.widgetFamily==='large',IS_SMALL=config\.widgetFamily==='small'/,'Small family routing missing');
 assert.match(src,/else if\(IS_SMALL\)\{w\.setPadding\(SMALL_UI\.pad,SMALL_UI\.pad,9,SMALL_UI\.pad\)/,'Small must have dedicated safe padding');
 assert.match(src,/renderSmall\(w,D,ctx\);\n\}else\{w\.setPadding\(10,14,8,14\)/,'Small must not fall through to Medium renderer');
-assert.match(src,/if\(KEY==='boxing'\)w\.backgroundGradient=gradient\(\)/,'BOXING Small must keep the low-memory gradient path');
+assert.match(src,/if\(ctx\.poster\)w\.backgroundImage=smallPosterBg\(ctx\.poster\);else if\(KEY==='boxing'\)w\.backgroundGradient=gradient\(\)/,'BOXING Small may use only verified cached poster, otherwise gradient');
 assert.match(src,/else if\(IS_SMALL\)await w\.presentSmall\(\)/,'manual Small preview routing missing');
 assert.match(src,/D\.nextPending\?'次大会情報\\n確認中':'対戦カード\\n発表待ち'/,'Small pending copy contract missing');
 assert.match(src,/tx\(w,'メインイベント',SMALL_UI\.mainLabel/,'Small confirmed main-event hierarchy missing');
