@@ -31,8 +31,8 @@ async function boot(parameter,{now,textResponses={}}={}){
   return {api:context.__cardInternals,requests};
 }
 
-assert.match(src,/const VERSION='7\.21\.1-github'/);
-assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=3/);
+assert.match(src,/const VERSION='7\.22\.0-github'/);
+assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=4/);
 assert.match(src,/function supportsLiveCardRefresh\(\)\{return KEY==='ufc'\|\|KEY==='rizin'\|\|KEY==='one'\|\|KEY==='k1';\}/);
 assert.match(src,/Number\(cached\?\.cardPolicy\)!==CARD_POLICY_VERSION/,'old caches must be invalidated once for the new card policy');
 assert.match(src,/const hydrated=supportsLiveCardRefresh\(\)\?await refreshKnownRollforwardEvent\(trusted\):trusted/,'trusted known events must be hydrated immediately');
@@ -53,11 +53,12 @@ assert.match(src,/a:'ヤン・ホンチョル',b:'大石 昌輝'/,'verified K-1 
     <a href="/athlete/dooho-choi">Dooho Choi</a>`;
   const {api,requests}=await boot('UFC',{textResponses:{[jp]:new Error('jp unavailable'),[www]:html}});
   assert.equal(api.supportsLiveCardRefresh(),true);
-  const pairs=api.officialPagePairs(html);
-  assert.deepEqual(JSON.parse(JSON.stringify(pairs.slice(0,2))),[
+  const pairs=api.officialPagePairs(html,www);
+  assert.deepEqual(pairs.slice(0,2).map(p=>({a:p.a,b:p.b})),[
     {a:'Joshua Van',b:'Alexandre Pantoja'},
     {a:'Arman Tsarukyan',b:'Mauricio Ruffy'},
   ]);
+  assert.match(pairs[0].aProfileURL,/\/athlete\/joshua-van$/);
   const refreshed=await api.refreshKnownRollforwardEvent({source:jp,name:'Crypto.com UFC 331: Van vs Pantoja 2',main:{a:'対戦カード',b:'発表待ち'},support:[],cardTba:true});
   assert.equal(refreshed.cardTba,false);
   assert.equal(refreshed.main.a,'Joshua Van');
@@ -83,12 +84,13 @@ assert.match(src,/a:'ヤン・ホンチョル',b:'大石 昌輝'/,'verified K-1 
     <a href="/fighter/1315">原田 闘鬼 / Harada Toki</a>`;
   const {api}=await boot('K1',{textResponses:{[source]:html}});
   assert.equal(api.supportsLiveCardRefresh(),true);
-  const pairs=api.currentPagePairs(html);
-  assert.deepEqual(JSON.parse(JSON.stringify(pairs.slice(0,3))),[
+  const pairs=api.currentPagePairs(html,source);
+  assert.deepEqual(pairs.slice(0,3).map(p=>({a:p.a,b:p.b})),[
     {a:'キム・ヒョンジュン',b:'小田 尋久'},
     {a:'ヤン・ホンチョル',b:'大石 昌輝'},
     {a:'イ・ヒョンソク',b:'原田 闘鬼'},
   ]);
+  assert.match(pairs[0].aProfileURL,/fighter\/1793$/);
   const refreshed=await api.refreshKnownRollforwardEvent({source,name:'K-1 FIGHTING NETWORK in Sangju Korea 2026',main:{a:'対戦カード',b:'発表待ち'},support:[],cardTba:true});
   assert.equal(refreshed.cardTba,false);
   assert.equal(refreshed.main.a,'キム・ヒョンジュン');
