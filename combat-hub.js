@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.22.3-github — locale-aware fight identity + Small context fallback; visuals frozen
+// v7.22.4-github — prevent false K-1 Featured labels from broad context windows; visuals frozen
 
 (async()=>{
-const VERSION='7.22.3-github';
+const VERSION='7.22.4-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -121,7 +121,7 @@ function fightContext(raw,eventName=''){let v=stripHTML(raw||'').replace(/\s+/g,
 function cardScope(html){const raw=String(html||'');if(KEY==='k1'){const a=raw.search(/(?:対戦カード|battle\s*card)/i);if(a>=0){const rest=raw.slice(a+1),b=rest.search(/(?:ポスターギャラリー|poster[^<]{0,20}gallery|ニュース|\bnews\b)/i);return raw.slice(a,b>=0?a+1+b:Math.min(raw.length,a+70000));}}if(KEY==='ufc'){const a=raw.search(/(?:メインカード|Main\s*Card)/i);if(a>=0){const rest=raw.slice(a+1),b=rest.search(/(?:アーリー?プレリム|プレリム|Early\s*Prelims?|Prelims?)/i);return raw.slice(a,b>=0?a+1+b:Math.min(raw.length,a+90000));}}return raw;}
 function linkedFighterBouts(html,base){if(KEY!=='ufc'&&KEY!=='k1')return[];const scoped=cardScope(html),items=[],seen=new Set(),hrefOK=KEY==='ufc'?/\/athlete\/[^"'#?]+/i:/\/(?:k-1wgp\/)?fighter\/\d+/i;for(const m of scoped.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)){const tag='<a '+m[1]+'>',href=attr(tag,'href')||'';if(!hrefOK.test(href))continue;const n=cardFighterName(m[2]),url=absoluteURL(href,base);if(!n||n.length<2||n.length>48||!url)continue;const key=eventIdentityText(n)+'|'+url;if(seen.has(key))continue;seen.add(key);items.push({name:n,url,index:m.index||0,end:(m.index||0)+m[0].length});}
   const out=[];for(let i=0;i+1<items.length&&out.length<8;i+=2){const a=items[i],b=items[i+1],from=Math.max(0,a.index-1800),window=scoped.slice(from,a.index),plain=stripHTML(window);let ctx='';if(KEY==='k1'){const all=[...plain.matchAll(/-?\d+(?:\.\d+)?kg級/gi)];ctx=all.length?fightContext(all[all.length-1][0]):'';}else{const all=[...plain.matchAll(/(?:女子)?(?:ストロー|フライ|バンタム|フェザー|ライト|ウェルター|ミドル|ライトヘビー|ヘビー)級\s*(?:タイトルマッチ|マッチ)|(?:Women's\s+)?(?:Strawweight|Flyweight|Bantamweight|Featherweight|Lightweight|Welterweight|Middleweight|Light Heavyweight|Heavyweight)\s+(?:Interim\s+)?(?:Title\s+)?Bout/gi)];ctx=all.length?fightContext(all[all.length-1][0]):'';}
-    let officialLabel='';if(/\bco-?main\b|セミ(?:ファイナル|メイン)?/i.test(plain))officialLabel='CO-MAIN';else if(/\bfeatured\b|注目/i.test(plain))officialLabel='FEATURED';else if(/\bundercard\b|前座/i.test(plain))officialLabel='UNDERCARD';else if(/\btitle\s+(?:fight|bout)\b|タイトル(?:戦|マッチ)/i.test(plain))officialLabel='TITLE FIGHT';
+    let officialLabel='';if(/\bco-?main\b|セミ(?:ファイナル|メイン)?/i.test(plain))officialLabel='CO-MAIN';else if(KEY!=='k1'&&/\bfeatured\b|注目/i.test(plain))officialLabel='FEATURED';else if(/\bundercard\b|前座/i.test(plain))officialLabel='UNDERCARD';else if(/\btitle\s+(?:fight|bout)\b|タイトル(?:戦|マッチ)/i.test(plain))officialLabel='TITLE FIGHT';
     out.push({a:a.name,b:b.name,aProfileURL:a.url,bProfileURL:b.url,context:ctx,officialLabel});}
   return out;}
 function linkedFighterPairs(html,base=S.listing){return linkedFighterBouts(html,base).map(({a,b,aProfileURL,bProfileURL,context,officialLabel})=>({a,b,aProfileURL,bProfileURL,context,officialLabel}));}
