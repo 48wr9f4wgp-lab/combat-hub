@@ -44,7 +44,7 @@ async function boot(parameter,{now=Date.parse('2026-09-18T12:00:00+09:00'),runsI
 const stringRequests=r=>r.filter(x=>x.kind==='string');
 const imageRequests=r=>r.filter(x=>x.kind==='image');
 
-assert.match(src,/const VERSION='7\.22\.3-github'/);
+assert.match(src,/const VERSION='7\.22\.4-github'/);
 assert.match(src,/const IMAGE_POLICY_VERSION=1/);
 assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=5/);
 assert.match(src,/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/);
@@ -90,6 +90,25 @@ assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]
   const imgs=api.sourceImageCandidates(html,source,{name:'K-1 FIGHTING NETWORK in Sangju Korea 2026',main:{a:'キム・ヒョンジュン',b:'小田 尋久'}});
   assert.equal(imgs[0].source,'poster_gallery');
   assert.equal(imgs[0].url,'https://www.k-1.co.jp/images/poster-first.jpg');
+}
+
+// K-1 must never promote broad-context "注目/Featured" noise into an authoritative fight label.
+{
+  const source='https://www.k-1.co.jp/k-1wgp/schedule/16687';
+  const html=`
+    <h3>対戦カード</h3>
+    <h4>-70kg級/3分3R・延長1R</h4>
+    <a href="/fighter/1">A</a><span>VS</span><a href="/fighter/2">B</a>
+    <div>注目選手インタビュー</div>
+    <h4>-70kg級/3分3R・延長1R</h4>
+    <a href="/fighter/3">C</a><span>VS</span><a href="/fighter/4">D</a>
+    <h4>-63kg級/3分3R・延長1R</h4>
+    <a href="/fighter/5">E</a><span>VS</span><a href="/fighter/6">F</a>
+    <h3>ポスターギャラリー</h3>`;
+  const {api}=await boot('K1');
+  const bouts=api.linkedFighterBouts(html,source);
+  assert.equal(bouts[2].officialLabel,'','K-1 broad-context 注目 noise must not become FEATURED');
+  assert.equal(api.supportLabelFor({support:[]},bouts[2],1),'MAIN CARD','third K-1 bout must fall back to MAIN CARD / 本戦');
 }
 
 // Image candidate fallback: failed first candidate must fall through to second.
