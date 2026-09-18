@@ -114,7 +114,7 @@ assert.doesNotMatch(src,/ufc\.com\/news\/garcia-vs-benn-official-fight-card/,'st
 
 // Stale v7.22 cache must never re-authorize an event title as fight context when refresh fails.
 for(const fixture of [
-  {parameter:'UFC',path:'/docs/combat-hub-next-ufc.json',name:'Crypto.com UFC 331: Van vs Pantoja 2',source:'https://jp.ufc.com/event/cryptocom-ufc-331',a:'Joshua Van',b:'Alexandre Pantoja',expected:/UFCフライ級タイトル戦/},
+  {parameter:'UFC',path:'/docs/combat-hub-next-ufc.json',name:'Crypto.com UFC 331: Van vs Pantoja 2',source:'https://jp.ufc.com/event/cryptocom-ufc-331',a:'Joshua Van',b:'Alexandre Pantoja',expected:/フライ級タイトル戦/},
   {parameter:'K1',path:'/docs/combat-hub-next-k1.json',name:'K-1 FIGHTING NETWORK in Sangju Korea 2026',source:'https://www.k-1.co.jp/k-1wgp/schedule/16687',a:'キム・ヒョンジュン',b:'小田 尋久',expected:/-70kg級/},
 ]){
   const now=Date.parse('2026-09-18T12:00:00+09:00'),fm=sharedFM();
