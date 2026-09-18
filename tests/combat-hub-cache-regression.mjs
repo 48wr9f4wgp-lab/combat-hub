@@ -146,7 +146,7 @@ function stringRequests(requests) {
   const { api, fm, requests, now } = await boot('ONE');
   const metaPath = `/docs/combat-meta-one-event-${api.safeKey(source)}.json`;
   const imagePath = `/docs/combat-one-event-${api.safeKey(imageURL)}.jpg`;
-  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 60_000, policy: 1, imageURL }));
+  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 60_000, policy: 2, imageURL }));
   fm.api.writeImage(imagePath, image);
 
   const poster = await api.eventPoster({ source, main: { a: 'A', b: 'B', context: '' } });
@@ -162,7 +162,7 @@ function stringRequests(requests) {
   const { api, fm, requests, now } = await boot('ONE');
   const metaPath = `/docs/combat-meta-one-event-${api.safeKey(source)}.json`;
   const imagePath = `/docs/combat-one-event-${api.safeKey(imageURL)}.jpg`;
-  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 5 * 3600_000, policy: 1, imageURL }));
+  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 5 * 3600_000, policy: 2, imageURL }));
   fm.api.writeImage(imagePath, image);
 
   const poster = await api.eventPoster({ source, main: { a: 'A', b: 'B', context: '' } });
