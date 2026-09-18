@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.19.1-github**
+- Runtime: **v7.20.0-github**
 - Latest runtime-changing PR: **#56 — harden multi-event transition timeline**
 - Runtime merge commit: `d9d44577e60861893694b5e1ee4a5a10aee9233b`
 - Main Regression after runtime PR #56: **#595 success**
@@ -176,6 +176,18 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - A successful detail refresh updates main/support cards and poster metadata while preserving the event identity/time/location already validated by roll-forward logic.
 - If detail refresh fails or yields no card pairs, the last known valid cached event/card is preserved.
 - BOXING verified-cache-only Widget safety, Loader v4.2.0, Large v7.16.1 geometry, Medium v7.17.x geometry, and friends-stable are unchanged.
+
+## 6D. Small UI architecture in v7.20.0
+
+- Physical iPhone screenshot on 2026-09-18 exposed that `small` was falling through the Medium renderer, causing severe left-edge clipping, oversized pending text, and unusable square composition.
+- Small now has its own shared `SMALL_UI` token set and dedicated `renderSmall(...)` path for all five organizations: UFC / RIZIN / ONE / BOXING / K-1.
+- Small uses one organization-agnostic geometry: organization + compact status at the top, event name, then either a compact pending state or main-event matchup, with date/location metadata anchored at the bottom.
+- Support-card rows and Large/Medium dashboard content are intentionally omitted in Small. Information density is constrained to what remains reliably readable in the square family.
+- Non-BOXING Small uses square 338x338 background composition for poster/hero imagery. BOXING Small intentionally stays on the lightweight gradient background path to preserve the existing low-memory safety rule.
+- `small` no longer falls through `renderMedium(...)`; manual preview now uses `presentSmall()`.
+- Medium v7.17.x and Large v7.16.1 geometry are unchanged.
+- Automated regression covers family routing, five-series availability, square background composition, pending/confirmed hierarchy, and BOXING low-memory isolation.
+- Physical-device verification is still required before Small is promoted from WORKING_HEAD to VERIFIED_BASELINE.
 
 ## 7. BOXING architecture in v7.14.0
 
@@ -400,7 +412,7 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `7.19.0-github`
+- runtime `7.20.0-github`
 - Loader `4.2.0`
 - runtime merge commit `cb6358396a5493b98f1a7c486d17fba957aa92a4`
 - main Regression `#486 success`
