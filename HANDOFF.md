@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.20.1-github**
+- Runtime: **v7.20.2-github**
 - Latest runtime-changing PR: **#58 — unified Small widget for all five series**
 - Runtime verification policy: branch / PR / main CI must pass, and physical Small-device QA is required before v7.20.0 is promoted to `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
@@ -175,6 +175,14 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - A successful detail refresh updates main/support cards and poster metadata while preserving the event identity/time/location already validated by roll-forward logic.
 - If detail refresh fails or yields no card pairs, the last known valid cached event/card is preserved.
 - BOXING verified-cache-only Widget safety, Loader v4.2.0, Large v7.16.1 geometry, Medium v7.17.x geometry, and friends-stable are unchanged.
+
+## 6F. Small footer contrast polish in v7.20.2
+
+- Physical iPhone review after v7.20.1 confirmed K-1 status wording and geometry are correct and can be frozen.
+- BOXING confirmed-card Small remained structurally correct but the bottom venue line was too faint against the system-tinted/lightweight background.
+- Small venue metadata now uses the same `C.sub` contrast class as the date instead of `C.muted`; geometry, font size, and line count are unchanged.
+- This is a Small-only readability fix. Medium/Large visuals, BOXING cache-only/deep-discovery safety, event logic, and Loader remain unchanged.
+- Final device confirmation is required only for BOXING Small venue readability.
 
 ## 6E. Small status wording polish in v7.20.1
 
@@ -421,7 +429,7 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `7.20.1-github`
+- runtime `7.20.2-github`
 - Loader `4.2.0`
 - latest runtime PR `#58`
 - Small physical-device QA pending

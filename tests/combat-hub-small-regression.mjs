@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const src=fs.readFileSync('combat-hub.js','utf8');
 
-assert.match(src,/const VERSION='7\.20\.1-github'/,'Small pass runtime version missing');
+assert.match(src,/const VERSION='7\.20\.2-github'/,'Small pass runtime version missing');
 assert.match(src,/const MODE_MAP=\{UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'\}/,'five-series mode map changed');
 assert.match(src,/const SMALL_UI=\{/,'SMALL_UI token set missing');
 assert.match(src,/function renderSmall\(w,D,ctx\)/,'renderSmall missing');
@@ -21,6 +21,7 @@ assert.match(src,/else if\(IS_SMALL\)await w\.presentSmall\(\)/,'manual Small pr
 assert.match(src,/D\.nextPending\?'次大会情報\\n確認中':'対戦カード\\n発表待ち'/,'Small pending copy contract missing');
 assert.match(src,/tx\(w,'メインイベント',SMALL_UI\.mainLabel/,'Small confirmed main-event hierarchy missing');
 assert.match(src,/smallDate\(D\).*smallLocation\(D\)/s,'Small footer metadata missing');
+assert.match(src,/const loc=tx\(meta,smallLocation\(D\),SMALL_UI\.meta,new Color\(C\.sub\)/,'Small location must keep readable footer contrast');
 
 const smallBody=src.slice(src.indexOf('function renderSmall(w,D,ctx){'),src.indexOf("function mediumRightText",src.indexOf('function renderSmall(w,D,ctx){')));
 assert.doesNotMatch(smallBody,/if\(KEY===/,'Small renderer geometry must remain organization-agnostic');
