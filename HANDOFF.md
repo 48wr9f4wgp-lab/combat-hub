@@ -439,7 +439,7 @@ Current WORKING_HEAD:
 - runtime `v7.22.1-github`
 - `CARD_POLICY_VERSION=5`
 - branch Regression `#680 success`
-- PR / merge / main CI pending
+- PR #65 open; PR CI / merge / main CI pending
 - targeted UFC/K-1 context recheck + K-1 Large + BOXING Medium physical QA pending
 
 No temporary implementation workflow or patch script is intended to remain in production.
