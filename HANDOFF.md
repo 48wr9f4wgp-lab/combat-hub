@@ -457,6 +457,7 @@ Canonical production:
 - BOXING Medium physically accepted
 - K-1 Large support-role + poster physical recheck passed on 2026-09-18
 - `v7.22.6-github` is `VERIFIED_BASELINE` for: all five Small categories, BOXING Medium, and K-1 Large targeted role/context/poster/geometry verification
+- v7.22 residual defect-fix phase is **CLOSED** after physical QA + docs-only PR #77 + successful PR/main regression
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -465,4 +466,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.6-github（PR #75 / main Regression #741 success）です。Small 5カテゴリ、BOXING Medium、K-1 Largeのtargeted physical QAは実機合格済みで、v7.22.6は当該検証範囲のVERIFIED_BASELINEです。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.6-github（PR #75 / main Regression #741 success）です。Small 5カテゴリ、BOXING Medium、K-1 Largeのtargeted physical QAは実機合格済みで、v7.22.6は当該検証範囲のVERIFIED_BASELINEです。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。v7.22.6のtargeted physical QAは完了済みでVERIFIED_BASELINEへ昇格済みです。新しい実機証拠やsource driftがない限り、この完了済みQAへ理由なく戻らず、次の未完了タスクから進めてください。
