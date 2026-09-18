@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.20.0-github — unified Small widget for all five series; Medium/Large frozen
+// v7.20.1-github — Small status wording polish; Medium/Large frozen
 
 (async()=>{
-const VERSION='7.20.0-github';
+const VERSION='7.20.1-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -258,6 +258,7 @@ function renderLarge(w,D,ctx,next,nextPoster){
   w.addSpacer(2);
 }
 
+function smallStatusHeading(D){if(D?.nextPending||D?.timeTba)return'開催';const t=new Date(D?.startAt||0).getTime();if(!Number.isFinite(t)||t<=0)return'開催';return t>Date.now()?'開催まで':'開催状況';}
 function smallCountdown(D){if(D?.nextPending)return'確認中';if(D?.timeTba)return'時刻未定';const q=new Date(D?.startAt||0).getTime()-Date.now();if(!Number.isFinite(q))return'確認中';if(q<=0)return q>-6*3600000?'開催中':'終了';if(q>=86400000)return'あと'+Math.max(1,Math.ceil(q/86400000))+'日';return'あと'+Math.max(1,Math.ceil(q/3600000))+'時間';}
 function smallDate(D){if(D?.nextPending)return'日程未定';if(D?.displayDate)return String(D.displayDate);const t=new Date(D?.startAt||0).getTime();return Number.isFinite(t)?dateOnly(D.startAt):'日程未定';}
 function smallLocation(D){if(D?.nextPending)return'会場未定';return shortLoc(D?.location||'')||'会場未定';}
@@ -268,7 +269,7 @@ function renderSmall(w,D,ctx){
   const left=top.addStack();left.layoutVertically();left.size=new Size(86,0);
   tx(left,S.label,SMALL_UI.org,new Color(C.text),'black');
   const right=top.addStack();right.layoutVertically();right.size=new Size(48,0);
-  const state=tx(right,largeStatusHeading(D),SMALL_UI.status,new Color(C.muted),'bold',1);state.rightAlignText();
+  const state=tx(right,smallStatusHeading(D),SMALL_UI.status,new Color(C.muted),'bold',1);state.rightAlignText();
   right.addSpacer(1);
   const cd=tx(right,smallCountdown(D),SMALL_UI.countdown,new Color(S.accent),'black',1);cd.minimumScaleFactor=.64;cd.rightAlignText();
   w.addSpacer(3);
