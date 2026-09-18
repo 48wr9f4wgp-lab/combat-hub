@@ -6,6 +6,7 @@ const src = fs.readFileSync('combat-hub.js', 'utf8');
 
 // Keep the performance contract reviewable and explicit.
 assert.match(src, /combat-meta-\$\{ns\}-\$\{safeKey\(url\)\}\.json/, 'event metadata cache namespace missing');
+assert.match(src, /const IMAGE_POLICY_VERSION=1/, 'image cache policy version missing');
 assert.match(src, /combat-profile-\$\{kind\}-\$\{safeKey\(url\)\}\.json/, 'fighter metadata cache namespace missing');
 assert.match(src, /now-Number\(cached\.savedAt\)<12\*3600000/, 'fighter metadata TTL must remain 12h');
 assert.match(src, /cachedMetaImageURL\(current\.source,`\$\{KEY\}-event`,4\*3600000\)/, 'locked-event metadata fallback cache must remain 4h');
@@ -145,7 +146,7 @@ function stringRequests(requests) {
   const { api, fm, requests, now } = await boot('ONE');
   const metaPath = `/docs/combat-meta-one-event-${api.safeKey(source)}.json`;
   const imagePath = `/docs/combat-one-event-${api.safeKey(imageURL)}.jpg`;
-  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 60_000, imageURL }));
+  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 60_000, policy: 1, imageURL }));
   fm.api.writeImage(imagePath, image);
 
   const poster = await api.eventPoster({ source, main: { a: 'A', b: 'B', context: '' } });
@@ -161,7 +162,7 @@ function stringRequests(requests) {
   const { api, fm, requests, now } = await boot('ONE');
   const metaPath = `/docs/combat-meta-one-event-${api.safeKey(source)}.json`;
   const imagePath = `/docs/combat-one-event-${api.safeKey(imageURL)}.jpg`;
-  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 5 * 3600_000, imageURL }));
+  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 5 * 3600_000, policy: 1, imageURL }));
   fm.api.writeImage(imagePath, image);
 
   const poster = await api.eventPoster({ source, main: { a: 'A', b: 'B', context: '' } });
