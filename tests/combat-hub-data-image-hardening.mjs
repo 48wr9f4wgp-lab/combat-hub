@@ -44,8 +44,8 @@ async function boot(parameter,{now=Date.parse('2026-09-18T12:00:00+09:00'),runsI
 const stringRequests=r=>r.filter(x=>x.kind==='string');
 const imageRequests=r=>r.filter(x=>x.kind==='image');
 
-assert.match(src,/const VERSION='7\.22\.5-github'/);
-assert.match(src,/const IMAGE_POLICY_VERSION=1/);
+assert.match(src,/const VERSION='7\.22\.6-github'/);
+assert.match(src,/const IMAGE_POLICY_VERSION=2/);
 assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=6/);
 assert.match(src,/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/);
 assert.doesNotMatch(src,/ufc\.com\/news\/garcia-vs-benn-official-fight-card/,'stale noncanonical BOXING source must be gone');
@@ -109,6 +109,42 @@ assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]
   const bouts=api.linkedFighterBouts(html,source);
   assert.equal(bouts[2].officialLabel,'','K-1 broad-context 注目 noise must not become FEATURED');
   assert.equal(api.supportLabelFor({support:[]},bouts[2],1),'MAIN CARD','third K-1 bout must fall back to MAIN CARD / 本戦');
+}
+
+// K-1 poster gallery must outrank stale event-hero/meta candidates on the first render.
+{
+  const source='https://www.k-1.co.jp/k-1wgp/schedule/16687';
+  const stale='https://img.example/k1-hero.jpg';
+  const poster='https://www.k-1.co.jp/images/sangju-poster.jpg';
+  const posterImage={size:{width:1200,height:1600},id:'k1-poster'};
+  const staleImage={size:{width:1200,height:800},id:'stale-hero'};
+  const html=`<div class="event-hero"><img src="${stale}"></div><h3>ポスターギャラリー</h3><img src="${poster}" alt="K-1 Sangju poster"><h3>ニュース</h3>`;
+  const {api,requests}=await boot('K1',{textResponses:{[source]:html},imageResponses:{[stale]:staleImage,[poster]:posterImage}});
+  const result=await api.eventPosterResult({
+    source,
+    posterURL:stale,
+    posterSource:'event_hero',
+    posterCandidates:[{url:stale,source:'event_hero'}],
+    name:'K-1 FIGHTING NETWORK in Sangju Korea 2026',
+    main:{a:'キム・ヒョンジュン',b:'小田 尋久'},
+  });
+  assert.equal(result.image?.id,'k1-poster');
+  assert.equal(result.source,'poster_gallery');
+  assert.equal(result.url,poster);
+  assert.ok(stringRequests(requests).some(x=>x.url===source),'K-1 resolver must re-resolve official source before accepting stale hero when no poster-gallery candidate is cached');
+  assert.equal(imageRequests(requests)[0]?.url,poster,'poster-gallery image must be attempted before stale hero');
+}
+
+// Generic K-1 logo/icon URLs must not become event artwork.
+{
+  const source='https://www.k-1.co.jp/k-1wgp/schedule/16687';
+  const logo='https://www.k-1.co.jp/assets/images/k-1-logo.png';
+  const poster='https://www.k-1.co.jp/images/sangju-poster.jpg';
+  const html=`<h3>ポスターギャラリー</h3><img src="${poster}"><h3>ニュース</h3>`;
+  const {api,requests}=await boot('K1',{textResponses:{[source]:html},imageResponses:{[poster]:{size:{width:1200,height:1600},id:'poster'}}});
+  const result=await api.eventPosterResult({source,posterURL:logo,posterSource:'event_hero',posterCandidates:[]});
+  assert.equal(result.url,poster);
+  assert.equal(imageRequests(requests).some(x=>x.url===logo),false,'generic K-1 logo must be filtered from event artwork candidates');
 }
 
 // Image candidate fallback: failed first candidate must fall through to second.

@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.22.5-github — normalize cached support roles by card position; visuals frozen
+// v7.22.6-github — enforce K-1 poster-gallery priority over stale hero/meta candidates; visuals frozen
 
 (async()=>{
-const VERSION='7.22.5-github';
+const VERSION='7.22.6-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -60,7 +60,7 @@ function stripHTML(s){return decodeEntities(String(s||'').replace(/<script\b[^>]
 function safeKey(s){let h=2166136261;for(const ch of String(s||'')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return(h>>>0).toString(16);}
 function absoluteURL(url,base){const raw=decodeEntities(String(url||'').trim());if(!raw)return null;if(/^https?:\/\//i.test(raw))return raw;const b=String(base||'').trim(),scheme=(b.match(/^(https?):/i)||[])[1]||'https';if(raw.startsWith('//'))return scheme+':'+raw;const bm=b.match(/^(https?:\/\/[^/?#]+)([^?#]*)?(\?[^#]*)?(#.*)?$/i);if(!bm)return raw;const origin=bm[1],basePath=bm[2]||'/';if(raw.startsWith('#'))return origin+basePath+(bm[3]||'')+raw;if(raw.startsWith('?'))return origin+basePath+raw;const q=raw.search(/[?#]/),pathPart=q>=0?raw.slice(0,q):raw,suffix=q>=0?raw.slice(q):'',trailing=pathPart.endsWith('/');let path=pathPart.startsWith('/')?pathPart:(basePath.endsWith('/')?basePath:basePath.replace(/\/[^/]*$/,'/'))+pathPart;const out=[];for(const seg of path.split('/')){if(!seg||seg==='.')continue;if(seg==='..'){out.pop();continue;}out.push(seg);}const normalized='/'+out.join('/');return origin+(trailing&&normalized!=='/'?normalized+'/':normalized)+suffix;}
 async function reqText(url,timeout=10){const r=new Request(url);r.timeoutInterval=timeout;r.headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'};return await r.loadString();}
-const IMAGE_POLICY_VERSION=1;
+const IMAGE_POLICY_VERSION=2;
 function attr(tag,name){const m=tag.match(new RegExp(`${name}=["']([^"']+)["']`,'i'));return m?decodeEntities(m[1]):null;}
 function cacheFile(name){return fm.joinPath(DOC,name);}
 function readJSON(path){try{return fm.fileExists(path)?JSON.parse(fm.readString(path)):null;}catch(_){return null;}}
@@ -220,9 +220,14 @@ function profileImageCandidates(html,url,name,kind){const out=[];if(kind==='rizi
 async function profileImage(url,name,kind,allowNetwork=true){if(!url)return{name,image:null,profileURL:null,imageURL:null,cacheHit:false};const path=cacheFile(`combat-profile-${kind}-${safeKey(url)}.json`),cached=readJSON(path),now=Date.now();if(cached?.imageURL&&now-Number(cached.savedAt)<12*3600000){const got=await cachedImageResult(cached.imageURL,kind,allowNetwork);if(got.image)return{name:cached.name||name,image:got.image,profileURL:url,imageURL:cached.imageURL,cacheHit:got.cacheHit};}
   let candidates=[],jp=cached?.name||name;try{if(allowNetwork){const h=await reqText(url,8);candidates=profileImageCandidates(h,url,name,kind);if(kind==='ufc'){try{const alt=url.includes('://www.ufc.com/')?url.replace('://www.ufc.com/','://jp.ufc.com/'):url;const j=await reqText(alt,8),m=j.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i);if(m)jp=stripHTML(m[1])||jp;}catch(_){}}}}catch(_){}
   if(cached?.imageURL)addImageCandidate(candidates,cached.imageURL,'profile_cache',url);for(const c of candidates){const got=await cachedImageResult(c.url,kind,allowNetwork);if(got.image){writeJSON(path,{savedAt:now,imageURL:c.url,name:jp,source:c.source,policy:IMAGE_POLICY_VERSION});return{name:jp,image:got.image,profileURL:url,imageURL:c.url,cacheHit:got.cacheHit,imageSource:c.source};}}return{name:jp,image:null,profileURL:url,imageURL:null,cacheHit:false};}
-async function eventPosterResult(D,{localOnly=false}={}){const candidates=[],attempted=new Set();if(D?.posterURL)addImageCandidate(candidates,D.posterURL,D.posterSource||'data',D.source);for(const c of (D?.posterCandidates||[]))addImageCandidate(candidates,c.url,c.source||'data',D.source);let last='no_candidate',sourceError='';const tryCandidates=async allowNetwork=>{for(const c of candidates){if(attempted.has(c.url))continue;attempted.add(c.url);const got=await cachedImageResult(c.url,`${KEY}-event`,allowNetwork);if(got.image)return{image:got.image,url:c.url,source:c.source||'unknown',cacheHit:got.cacheHit,fallbackReason:null};last=got.error||'load_failed';}return null;};
+function k1ImageRank(source){const v=String(source||'').toLowerCase();if(v==='poster_gallery')return 0;if(v==='event_hero')return 1;if(v==='jsonld')return 2;if(v==='og'||v==='twitter'||v==='meta_cache')return 3;return 4;}
+function k1GenericArtworkURL(url){return /(?:^|[\/_-])(?:logo|favicon|icon|noimage|placeholder|loading)(?:[\/_\-.]|$)/i.test(String(url||''));}
+async function eventPosterResult(D,{localOnly=false}={}){const candidates=[],attempted=new Set(),add=(url,source)=>{if(KEY==='k1'&&k1GenericArtworkURL(url))return;addImageCandidate(candidates,url,source||'data',D?.source);};if(D?.posterURL)add(D.posterURL,D.posterSource||'data');for(const c of (D?.posterCandidates||[]))add(c.url,c.source||'data');let last='no_candidate',sourceError='',sourceResolved=false;
+  if(KEY==='k1'&&D?.source&&!localOnly&&!candidates.some(c=>c.source==='poster_gallery')){try{const h=await reqText(D.source,8);for(const c of sourceImageCandidates(h,D.source,D))add(c.url,c.source);sourceResolved=true;}catch(_){sourceError='source_fetch_failed';}}
+  if(KEY==='k1')candidates.sort((a,b)=>k1ImageRank(a.source)-k1ImageRank(b.source));
+  const tryCandidates=async allowNetwork=>{for(const c of candidates){if(attempted.has(c.url))continue;attempted.add(c.url);const got=await cachedImageResult(c.url,`${KEY}-event`,allowNetwork);if(got.image)return{image:got.image,url:c.url,source:c.source||'unknown',cacheHit:got.cacheHit,fallbackReason:null};last=got.error||'load_failed';}return null;};
   let hit=await tryCandidates(!localOnly);if(hit||localOnly)return hit||{image:null,url:candidates[0]?.url||null,source:candidates[0]?.source||'none',cacheHit:false,fallbackReason:last};
-  if(D?.source){const cachedURL=await cachedMetaImageURL(D.source,`${KEY}-event`,4*3600000);if(cachedURL)addImageCandidate(candidates,cachedURL,'meta_cache',D.source);hit=await tryCandidates(true);if(hit)return hit;try{const h=await reqText(D.source,8);for(const c of sourceImageCandidates(h,D.source,D))addImageCandidate(candidates,c.url,c.source,D.source);}catch(_){sourceError='source_fetch_failed';}hit=await tryCandidates(true);if(hit)return hit;}
+  if(D?.source){const cachedURL=await cachedMetaImageURL(D.source,`${KEY}-event`,4*3600000);if(cachedURL)add(cachedURL,'meta_cache');if(KEY==='k1')candidates.sort((a,b)=>k1ImageRank(a.source)-k1ImageRank(b.source));hit=await tryCandidates(true);if(hit)return hit;if(!sourceResolved){try{const h=await reqText(D.source,8);for(const c of sourceImageCandidates(h,D.source,D))add(c.url,c.source);sourceResolved=true;}catch(_){sourceError='source_fetch_failed';}}if(KEY==='k1')candidates.sort((a,b)=>k1ImageRank(a.source)-k1ImageRank(b.source));hit=await tryCandidates(true);if(hit)return hit;}
   return{image:null,url:candidates[0]?.url||null,source:candidates[0]?.source||'none',cacheHit:false,fallbackReason:sourceError||last};}
 async function eventPoster(D,opts){return(await eventPosterResult(D,opts)).image;}
 function ctxBase(a,b){return{a,b,poster:null,imageMode:'gradient',posterURLResolved:null,posterSource:'none',imageCacheHit:false,imageFallbackReason:null};}
