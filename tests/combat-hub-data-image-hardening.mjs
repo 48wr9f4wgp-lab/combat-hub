@@ -98,12 +98,12 @@ assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]
   const html=`
     <h3>対戦カード</h3>
     <h4>-70kg級/3分3R・延長1R</h4>
-    <a href="/fighter/1">A</a><span>VS</span><a href="/fighter/2">B</a>
+    <a href="/fighter/1">Alpha</a><span>VS</span><a href="/fighter/2">Bravo</a>
     <div>注目選手インタビュー</div>
     <h4>-70kg級/3分3R・延長1R</h4>
-    <a href="/fighter/3">C</a><span>VS</span><a href="/fighter/4">D</a>
+    <a href="/fighter/3">Charlie</a><span>VS</span><a href="/fighter/4">Delta</a>
     <h4>-63kg級/3分3R・延長1R</h4>
-    <a href="/fighter/5">E</a><span>VS</span><a href="/fighter/6">F</a>
+    <a href="/fighter/5">Echo</a><span>VS</span><a href="/fighter/6">Foxtrot</a>
     <h3>ポスターギャラリー</h3>`;
   const {api}=await boot('K1');
   const bouts=api.linkedFighterBouts(html,source);
