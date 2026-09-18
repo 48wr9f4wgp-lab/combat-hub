@@ -54,7 +54,7 @@ assert.match(src,/a:'ヤン・ホンチョル',b:'大石 昌輝'/,'verified K-1 
   const {api,requests}=await boot('UFC',{textResponses:{[jp]:new Error('jp unavailable'),[www]:html}});
   assert.equal(api.supportsLiveCardRefresh(),true);
   const pairs=api.officialPagePairs(html,www);
-  assert.deepEqual(pairs.slice(0,2).map(p=>({a:p.a,b:p.b})),[
+  assert.deepEqual(JSON.parse(JSON.stringify(pairs.slice(0,2).map(p=>({a:p.a,b:p.b})))),[
     {a:'Joshua Van',b:'Alexandre Pantoja'},
     {a:'Arman Tsarukyan',b:'Mauricio Ruffy'},
   ]);
@@ -85,7 +85,7 @@ assert.match(src,/a:'ヤン・ホンチョル',b:'大石 昌輝'/,'verified K-1 
   const {api}=await boot('K1',{textResponses:{[source]:html}});
   assert.equal(api.supportsLiveCardRefresh(),true);
   const pairs=api.currentPagePairs(html,source);
-  assert.deepEqual(pairs.slice(0,3).map(p=>({a:p.a,b:p.b})),[
+  assert.deepEqual(JSON.parse(JSON.stringify(pairs.slice(0,3).map(p=>({a:p.a,b:p.b})))),[
     {a:'キム・ヒョンジュン',b:'小田 尋久'},
     {a:'ヤン・ホンチョル',b:'大石 昌輝'},
     {a:'イ・ヒョンソク',b:'原田 闘鬼'},
