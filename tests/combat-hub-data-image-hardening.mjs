@@ -44,9 +44,9 @@ async function boot(parameter,{now=Date.parse('2026-09-18T12:00:00+09:00'),runsI
 const stringRequests=r=>r.filter(x=>x.kind==='string');
 const imageRequests=r=>r.filter(x=>x.kind==='image');
 
-assert.match(src,/const VERSION='7\.22\.4-github'/);
+assert.match(src,/const VERSION='7\.22\.5-github'/);
 assert.match(src,/const IMAGE_POLICY_VERSION=1/);
-assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=5/);
+assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=6/);
 assert.match(src,/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/);
 assert.doesNotMatch(src,/ufc\.com\/news\/garcia-vs-benn-official-fight-card/,'stale noncanonical BOXING source must be gone');
 assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]*?cardSourceType:'official-discovery'\}\);/,'fresh strictNextEvent discovery must be sanitized before first render/cache write');
@@ -147,7 +147,7 @@ for(const fixture of [
   assert.match(data.main.context,fixture.expected,`${fixture.parameter}: trusted fallback context must replace cached event title`);
   assert.notEqual(data.main.context,fixture.name,`${fixture.parameter}: event title contamination survived cache migration`);
   const saved=JSON.parse(fm.strings.get(fixture.path));
-  assert.equal(saved.cardPolicy,5,`${fixture.parameter}: v7.22.1 cache migration must persist policy 5`);
+  assert.equal(saved.cardPolicy,6,`${fixture.parameter}: support-role migration must persist policy 6`);
   assert.match(saved.data.main.context,fixture.expected,`${fixture.parameter}: sanitized context must be persisted`);
 }
 
@@ -194,6 +194,24 @@ for(const fixture of [
   assert.equal(bouts[1].a,'Jesus Ramos');
   assert.equal(bouts[1].b,'Meiirim Nursultanov');
   assert.match(bouts[1].context,/WBC interim middleweight world title/i);
+}
+
+// Existing cached MAIN CARD labels are positional, not authoritative: first support must normalize to CO-MAIN.
+{
+  const {api}=await boot('K1');
+  assert.equal(api.normalizedExistingSupportLabel('MAIN CARD',0),'CO-MAIN');
+  assert.equal(api.normalizedExistingSupportLabel('MAIN CARD',1),'MAIN CARD');
+  const data=api.sanitizeEventFightContext({
+    name:'K-1 FIGHTING NETWORK in Sangju Korea 2026',
+    source:'https://www.k-1.co.jp/k-1wgp/schedule/16687',
+    main:{a:'キム・ヒョンジュン',b:'小田 尋久',context:'-70kg級'},
+    support:[
+      {label:'MAIN CARD',a:'ヤン・ホンチョル',b:'大石 昌輝'},
+      {label:'MAIN CARD',a:'イ・ヒョンソク',b:'原田 闘鬼'},
+    ],
+  });
+  assert.equal(data.support[0].label,'CO-MAIN');
+  assert.equal(data.support[1].label,'MAIN CARD');
 }
 
 // Label semantics: legacy inferred Featured normalizes away, authoritative Featured is preserved.
