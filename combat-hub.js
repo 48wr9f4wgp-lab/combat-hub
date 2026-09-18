@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.22.2-github — finalize fresh-discovery bout context before first render; visuals frozen
+// v7.22.3-github — locale-aware fight identity + Small context fallback; visuals frozen
 
 (async()=>{
-const VERSION='7.22.2-github';
+const VERSION='7.22.3-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -149,7 +149,8 @@ function ufcDetailName(html){if(KEY!=='ufc'||!html)return'';const og=(html.match
 function ufcDetailLocation(html){if(KEY!=='ufc'||!html)return'';const m=html.match(/["']addressLocality["']\s*:\s*["']([^"']+)["']/i);if(m)return decodeEntities(m[1]);const plain=stripHTML(html);for(const city of ['Paris','Las Vegas','Glendale','London','New York','Miami','Abu Dhabi','Perth','Sydney','Vancouver','Toronto','Shanghai'])if(new RegExp(`\\b${city.replace(/ /g,'\\s+')}\\b`,'i').test(plain))return city;return'';}
 function currentGraceMs(e){return e?.timeTba?36*3600000:12*3600000;}
 function currentLocked(snap){const end=new Date(snap.startAt).getTime()+currentGraceMs(snap);return Date.now()<end;}
-function sameFight(a,b,x,y){const n=v=>String(v||'').toLowerCase().replace(/[\s・.'’_-]+/g,'');return(n(a)===n(x)&&n(b)===n(y))||(n(a)===n(y)&&n(b)===n(x));}
+function fighterIdentity(v){return String(jpDisplay(v)||'').toLowerCase().replace(/[\s・.'’_-]+/g,'');}
+function sameFight(a,b,x,y){const A=fighterIdentity(a),B=fighterIdentity(b),X=fighterIdentity(x),Y=fighterIdentity(y);return(A===X&&B===Y)||(A===Y&&B===X);}
 function fallbackSupportLabel(index){return index===0?'CO-MAIN':'MAIN CARD';}
 function normalizedExistingSupportLabel(label,index){const v=String(label||'').trim().toUpperCase();if(v==='TITLE FIGHT'||v==='UNDERCARD')return v;if(v==='CO-MAIN')return index===0?'CO-MAIN':'MAIN CARD';if(v==='MAIN CARD')return'MAIN CARD';return fallbackSupportLabel(index);}
 function normalizedOfficialSupportLabel(label,index){const v=String(label||'').trim().toUpperCase();if(v==='TITLE FIGHT'||v==='UNDERCARD'||v==='FEATURED')return v;if(v==='CO-MAIN')return index===0?'CO-MAIN':'MAIN CARD';if(v==='MAIN CARD')return'MAIN CARD';return fallbackSupportLabel(index);}
@@ -347,7 +348,7 @@ function renderSmall(w,D,ctx){
     smallName(w,ctx.a.name);
     const vs=tx(w,'VS',SMALL_UI.vs,new Color(S.accent),'black',1);vs.centerAlignText();
     smallName(w,ctx.b.name);
-    const dv=tx(w,division(D.main.context),SMALL_UI.division,new Color(C.sub),'semibold',1);dv.minimumScaleFactor=.58;dv.centerAlignText();
+    const dv=tx(w,division(D.main.context||trustedMainContext(D)),SMALL_UI.division,new Color(C.sub),'semibold',1);dv.minimumScaleFactor=.58;dv.centerAlignText();
   }
   w.addSpacer();
   const meta=w.addStack();meta.layoutVertically();
