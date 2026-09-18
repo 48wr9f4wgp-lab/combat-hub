@@ -31,15 +31,15 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime before this branch: **v7.22.4-github**.
-- Latest merged runtime-changing PR: **#71 — prevent false K-1 Featured labels**.
-- Runtime merge commit: `4bff78b44a243bd7130a8830120df47d845629c4`.
-- Main Regression after PR #71: **#717 success**.
+- Production runtime: **v7.22.5-github**.
+- Latest runtime-changing PR: **#73 — normalize cached support roles by card position**.
+- Runtime merge commit: `9b5761c10db0cbba7ac23899590a698068ebae71`.
+- Main Regression after PR #73: **#729 success**.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=5` remains correct; no additional cache migration is required.
 - Small/Medium/Large geometry and Loader v4.2.0 remain unchanged.
-- K-1 Large recheck showed `注目` was removed, but the first support row still rendered as `本戦` instead of `セミ`. Current WORKING_HEAD is v7.22.5-github on `chatgpt/support-position-normalization-v7225`; do not promote v7.22.4.
+- v7.22.5 corrects the remaining K-1 Large support-role defect by normalizing cached/trusted support labels by position and migrating to `CARD_POLICY_VERSION=6`. One final K-1 Large physical recheck remains before promotion to `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -433,29 +433,25 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 
 ## 14. Current branch / work state
 
-Canonical production before this branch:
+Canonical production:
 
 - `main`
-- runtime `v7.22.4-github`
-- Loader `v4.2.0`
-- runtime PR `#71`
-- runtime merge `4bff78b44a243bd7130a8830120df47d845629c4`
-- main Regression `#717 success`
-
-Current WORKING_HEAD:
-
-- branch `chatgpt/support-position-normalization-v7225`
 - runtime `v7.22.5-github`
+- Loader `v4.2.0`
+- runtime PR `#73`
+- runtime merge `9b5761c10db0cbba7ac23899590a698068ebae71`
+- main Regression `#729 success`
 - `CARD_POLICY_VERSION=6`
-- branch Regression `#726 success`
-- runtime PR / merge / main CI pending
-- only K-1 Large support-label recheck remains before `VERIFIED_BASELINE`
+- all five Small categories physically accepted
+- BOXING Medium physically accepted
+- only K-1 Large support-role recheck remains
+- do **not** label v7.22.5 `VERIFIED_BASELINE` until that recheck passes
 
-No temporary implementation workflow or patch script is intended to remain in production.
+No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
 
 ---
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.4-github（PR #71 / main Regression #717 success）ですが、K-1 Large実機recheckで1番目supportまで`本戦`になる欠陥が見つかり、v7.22.5 hotfixが進行中です。Small 5カテゴリとBOXING Mediumは実機確認済みです。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.5-github（PR #73 / main Regression #729 success）です。Small 5カテゴリとBOXING Mediumは実機確認済みで、残る確認はK-1 Largeが`セミ / 本戦`へ正規化されたことだけです。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
