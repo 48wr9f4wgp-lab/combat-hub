@@ -44,11 +44,12 @@ async function boot(parameter,{now=Date.parse('2026-09-18T12:00:00+09:00'),runsI
 const stringRequests=r=>r.filter(x=>x.kind==='string');
 const imageRequests=r=>r.filter(x=>x.kind==='image');
 
-assert.match(src,/const VERSION='7\.22\.1-github'/);
+assert.match(src,/const VERSION='7\.22\.2-github'/);
 assert.match(src,/const IMAGE_POLICY_VERSION=1/);
 assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=5/);
 assert.match(src,/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/);
 assert.doesNotMatch(src,/ufc\.com\/news\/garcia-vs-benn-official-fight-card/,'stale noncanonical BOXING source must be gone');
+assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]*?cardSourceType:'official-discovery'\}\);/,'fresh strictNextEvent discovery must be sanitized before first render/cache write');
 
 // UFC structured bouts: official profile URLs + bout context.
 {
@@ -129,6 +130,21 @@ for(const fixture of [
   const saved=JSON.parse(fm.strings.get(fixture.path));
   assert.equal(saved.cardPolicy,5,`${fixture.parameter}: v7.22.1 cache migration must persist policy 5`);
   assert.match(saved.data.main.context,fixture.expected,`${fixture.parameter}: sanitized context must be persisted`);
+}
+
+// Fresh discovered event data with an empty official context must still recover trusted bout context before first render.
+{
+  const {api}=await boot('UFC');
+  const data=api.sanitizeEventFightContext({
+    name:'Crypto.com UFC 331: Van vs Pantoja 2',
+    source:'https://www.ufc.com/event/cryptocom-ufc-331',
+    startAt:'2026-09-20T10:00:00+09:00',
+    main:{a:'Joshua Van',b:'Alexandre Pantoja',context:''},
+    support:[],
+    cardTba:false,
+    cardSourceType:'official-discovery',
+  });
+  assert.equal(data.main.context,'フライ級タイトル戦');
 }
 
 // Ring detail must extract main + co-main and reject broadcast copy as fight context.
