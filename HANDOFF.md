@@ -31,14 +31,15 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.22.3-github**.
-- Latest runtime-changing PR: **#69 — locale-aware UFC bout identity / Small context fallback**.
-- Runtime merge commit: `e8eb1e64e09eddf195f99f885339f7eff036259f`.
-- Main Regression after PR #69: **#706 success**.
-- v7.22.3 keeps all v7.22.0-v7.22.2 data/image/BOXING/context hardening, canonicalizes fighter identity through `jpDisplay()` so English/Japanese UFC names compare as the same bout, and gives Small a semantic fallback to trusted bout context without changing geometry.
+- Production runtime: **v7.22.4-github**.
+- Latest runtime-changing PR: **#71 — prevent false K-1 Featured labels**.
+- Runtime merge commit: `4bff78b44a243bd7130a8830120df47d845629c4`.
+- Main Regression after PR #71: **#717 success**.
+- v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
+- K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=5` remains correct; no additional cache migration is required.
 - Small/Medium/Large geometry and Loader v4.2.0 remain unchanged.
-- Targeted physical recheck is still required before v7.22.3 becomes `VERIFIED_BASELINE`.
+- Only the K-1 Large label recheck remains before v7.22.4 becomes `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -362,21 +363,21 @@ The v7.12-v7.14 white-screen investigation established the non-negotiable BOXING
 
 Physical iPhone QA on 2026-09-18 confirmed:
 
+- UFC Small on v7.22.3: Van vs Pantoja, official imagery and `フライ級タイトル戦` all render correctly.
 - K-1 Small: Kim vs Oda, official poster and correct `-70kg級` context.
 - RIZIN Small: current main event and image presentation normal.
 - ONE Small: current main event and image presentation normal.
 - BOXING Small: Cruz vs Bravo, safe gradient fallback and no white screen.
-- UFC Small on v7.22.2: Van vs Pantoja and official imagery render correctly, but the bout-context line remained absent.
+- BOXING Medium: Cruz vs Bravo main, Jesus Ramos vs Meiirim Nursultanov co-main/セミ, safe gradient, no white screen.
+- K-1 Large: main/context/poster/co-main were correct, but Lee Hyun Seok vs Harada Toki rendered as `注目` rather than `本戦`.
 
-The remaining UFC case was traced to cross-language bout identity. Trusted UFC data uses English names while the JP official source can provide Japanese names. v7.22.3 canonicalizes fighter identity through `jpDisplay()` and also lets Small fall back directly to trusted bout context when `D.main.context` is empty.
+The K-1 Large defect was verified against the official Sangju event page: the third bout is listed as a normal `-63kg級/3分3R・延長1R` fight and no `注目` label is present. v7.22.4 therefore disables broad-context K-1 Featured inference while preserving explicit trusted title/undercard semantics.
 
-After Loader refresh on production v7.22.3, check only:
+After Loader refresh on production v7.22.4, only one physical recheck remains:
 
-- UFC Small or Medium: Van vs Pantoja and `フライ級タイトル戦`, never blank and never the event title.
-- K-1 Large: Kim vs Oda main, Yang vs Oishi as co-main/セミ, Lee vs Harada as main-card/本戦, no invented `注目`, `-70kg級` context, poster retained.
-- BOXING Medium: Cruz vs Bravo, Ramos vs Nursultanov support if available from verified Ring cache, no white screen; verified poster or safe gradient are both acceptable.
+- K-1 Large: Kim vs Oda main, Yang vs Oishi as `セミ`, Lee vs Harada as `本戦`, no invented `注目`, `-70kg級` context, poster retained.
 
-RIZIN / ONE Small are physically accepted for this pass and do not need repeated screenshots unless a regression appears.
+All five Small categories and BOXING Medium are accepted for this pass. RIZIN / ONE do not need repeated screenshots unless a regression appears.
 
 ## 11. Known debt / risks
 
@@ -428,15 +429,16 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.22.3-github`
+- runtime `v7.22.4-github`
 - Loader `v4.2.0`
-- runtime PR `#69`
-- runtime merge `e8eb1e64e09eddf195f99f885339f7eff036259f`
-- main Regression `#706 success`
+- runtime PR `#71`
+- runtime merge `4bff78b44a243bd7130a8830120df47d845629c4`
+- main Regression `#717 success`
 - `CARD_POLICY_VERSION=5`
-- physical Small accepted for K-1 / RIZIN / ONE / BOXING
-- targeted UFC context recheck + K-1 Large + BOXING Medium physical QA pending
-- do **not** label v7.22.3 `VERIFIED_BASELINE` until that recheck passes
+- all five Small categories physically accepted
+- BOXING Medium physically accepted
+- only K-1 Large label recheck remains
+- do **not** label v7.22.4 `VERIFIED_BASELINE` until that recheck passes
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -445,4 +447,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.3-github（PR #69 / main Regression #706 success）です。UFCの英語名↔日本語名混在でtrusted context復元が落ちる経路をlocale-aware identityでhotfix済みですが、対象実機recheckはまだ必要です。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.4-github（PR #71 / main Regression #717 success）です。Small 5カテゴリとBOXING Mediumは実機確認済みで、残る実機確認はK-1 Largeの3試合目が`本戦`になり`注目`が消えることだけです。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。CIだけで完成扱いせず、HANDOFFのtargeted physical QAを完了してから VERIFIED_BASELINE にしてください。
