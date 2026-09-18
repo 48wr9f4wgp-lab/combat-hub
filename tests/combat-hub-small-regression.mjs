@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 
 const src=fs.readFileSync('combat-hub.js','utf8');
 
-assert.match(src,/const VERSION='7\.20\.0-github'/,'Small pass runtime version missing');
+assert.match(src,/const VERSION='7\.20\.1-github'/,'Small pass runtime version missing');
 assert.match(src,/const MODE_MAP=\{UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'\}/,'five-series mode map changed');
 assert.match(src,/const SMALL_UI=\{/,'SMALL_UI token set missing');
 assert.match(src,/function renderSmall\(w,D,ctx\)/,'renderSmall missing');
 assert.match(src,/function smallCountdown\(D\)/,'small countdown helper missing');
+assert.match(src,/function smallStatusHeading\(D\)\{if\(D\?\.nextPending\|\|D\?\.timeTba\)return'開催'/,'Small pending/time-TBA heading contract missing');
+assert.match(src,/tx\(right,smallStatusHeading\(D\),SMALL_UI\.status/,'Small must use the Small-specific status heading');
 assert.match(src,/function smallDate\(D\)/,'small date helper missing');
 assert.match(src,/function smallLocation\(D\)/,'small location helper missing');
 assert.match(src,/c\.size=new Size\(338,338\)/,'square Small background canvas missing');
@@ -22,5 +24,6 @@ assert.match(src,/smallDate\(D\).*smallLocation\(D\)/s,'Small footer metadata mi
 
 const smallBody=src.slice(src.indexOf('function renderSmall(w,D,ctx){'),src.indexOf("function mediumRightText",src.indexOf('function renderSmall(w,D,ctx){')));
 assert.doesNotMatch(smallBody,/if\(KEY===/,'Small renderer geometry must remain organization-agnostic');
+assert.doesNotMatch(smallBody,/largeStatusHeading\(D\)/,'Small must not inherit Large status wording');
 
 console.log('COMBAT HUB Small five-series regression: OK');
