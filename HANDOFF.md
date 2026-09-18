@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.21.0-github**
+- Runtime: **v7.21.1-github**
 - Latest runtime-changing PR: **#58 — unified Small widget for all five series**
 - Runtime verification policy: branch / PR / main CI must pass, and physical Small-device QA is required before v7.20.0 is promoted to `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
@@ -175,6 +175,16 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - A successful detail refresh updates main/support cards and poster metadata while preserving the event identity/time/location already validated by roll-forward logic.
 - If detail refresh fails or yields no card pairs, the last known valid cached event/card is preserved.
 - BOXING verified-cache-only Widget safety, Loader v4.2.0, Large v7.16.1 geometry, Medium v7.17.x geometry, and friends-stable are unchanged.
+
+## 6H. Card-label normalization in v7.21.1
+
+- Physical review raised a semantic consistency issue: `本戦` and `注目` could change depending on which refresh path produced the same support card.
+- Root cause: locked-current refresh labeled support rows after the co-main as `MAIN CARD`, while roll-forward refresh labeled them `FEATURED`; the distinction was code-path-driven, not based on a full-card semantic classification.
+- Policy is now deterministic: parsed card order gives main event first, co-main second, and remaining parsed support fights default to `MAIN CARD`.
+- Existing `TITLE FIGHT` and `UNDERCARD` labels remain preserved. Legacy inferred `FEATURED` labels normalize to `MAIN CARD`.
+- `注目` remains a rendering capability for future explicit/authoritative Featured designations, but the runtime no longer invents it from ordinal position.
+- `CARD_POLICY_VERSION` is bumped so stale cached label semantics are refreshed once.
+- Visual geometry is unchanged.
 
 ## 6G. UFC / K-1 live-card freshness in v7.21.0
 
@@ -440,7 +450,7 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `7.21.0-github`
+- runtime `7.21.1-github`
 - Loader `4.2.0`
 - latest runtime PR `#58`
 - Small physical-device QA pending

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 const src=fs.readFileSync('combat-hub.js','utf8');
 const marker='const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudit(D,ctx);const w=new ListWidget();';
 assert.ok(src.includes(marker),'Runtime instrumentation marker changed');
-const instrumented=src.replace(marker,`globalThis.__cardInternals={linkedFighterPairs,semanticVsPairs,officialPagePairs,currentPagePairs,supportsLiveCardRefresh,eventDetailSources,refreshKnownRollforwardEvent,trustedRollforward};if(globalThis.__TEST_ONLY__)return;${marker}`);
+const instrumented=src.replace(marker,`globalThis.__cardInternals={linkedFighterPairs,semanticVsPairs,officialPagePairs,currentPagePairs,supportsLiveCardRefresh,eventDetailSources,refreshKnownRollforwardEvent,trustedRollforward,fallbackSupportLabel,normalizedExistingSupportLabel,supportLabelFor,supportRowsFromPairs};if(globalThis.__TEST_ONLY__)return;${marker}`);
 
 function fm(){
   const strings=new Map(),images=new Map();
@@ -31,8 +31,8 @@ async function boot(parameter,{now,textResponses={}}={}){
   return {api:context.__cardInternals,requests};
 }
 
-assert.match(src,/const VERSION='7\.21\.0-github'/);
-assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=2/);
+assert.match(src,/const VERSION='7\.21\.1-github'/);
+assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=3/);
 assert.match(src,/function supportsLiveCardRefresh\(\)\{return KEY==='ufc'\|\|KEY==='rizin'\|\|KEY==='one'\|\|KEY==='k1';\}/);
 assert.match(src,/Number\(cached\?\.cardPolicy\)!==CARD_POLICY_VERSION/,'old caches must be invalidated once for the new card policy');
 assert.match(src,/const hydrated=supportsLiveCardRefresh\(\)\?await refreshKnownRollforwardEvent\(trusted\):trusted/,'trusted known events must be hydrated immediately');
@@ -64,6 +64,8 @@ assert.match(src,/a:'ヤン・ホンチョル',b:'大石 昌輝'/,'verified K-1 
   assert.equal(refreshed.main.b,'Alexandre Pantoja');
   assert.equal(refreshed.support[0].a,'Arman Tsarukyan');
   assert.equal(refreshed.support[0].b,'Mauricio Ruffy');
+  assert.equal(refreshed.support[0].label,'CO-MAIN');
+  assert.equal(refreshed.support[1].label,'MAIN CARD');
   assert.ok(requests.includes(www),'UFC www fallback detail source must be attempted');
   const trusted=api.trustedRollforward({startAt:'2026-09-13T06:00:00+09:00',name:'Noche UFC',location:'グレンデール',main:{},support:[]});
   assert.equal(trusted.cardTba,false);
@@ -92,9 +94,18 @@ assert.match(src,/a:'ヤン・ホンチョル',b:'大石 昌輝'/,'verified K-1 
   assert.equal(refreshed.main.a,'キム・ヒョンジュン');
   assert.equal(refreshed.main.b,'小田 尋久');
   assert.equal(refreshed.support.length,2);
+  assert.equal(refreshed.support[0].label,'CO-MAIN');
+  assert.equal(refreshed.support[1].label,'MAIN CARD');
   const trusted=api.trustedRollforward({startAt:'2026-09-12T12:00:00+09:00',name:'K-1 WORLD MAX 2026',location:'東京',main:{},support:[]});
   assert.equal(trusted.cardTba,false);
   assert.equal(trusted.main.b,'小田 尋久');
 }
 
+{
+  const {api}=await boot('RIZIN');
+  assert.equal(api.fallbackSupportLabel(0),'CO-MAIN');
+  assert.equal(api.fallbackSupportLabel(1),'MAIN CARD');
+  assert.equal(api.normalizedExistingSupportLabel('FEATURED',1),'MAIN CARD','legacy inferred FEATURED must normalize to MAIN CARD');
+  assert.equal(api.normalizedExistingSupportLabel('TITLE FIGHT',1),'TITLE FIGHT','explicit title-fight labels remain preserved');
+}
 console.log('COMBAT HUB UFC/K-1 live-card freshness regression: OK');
