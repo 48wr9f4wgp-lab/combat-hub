@@ -10,7 +10,7 @@ assert.match(src,/function currentGraceMs\(e\)\{return e\?\.timeTba\?36\*3600000
 assert.match(src,/currentGraceMs\(snap\)/,'currentLocked must use time-aware grace');
 assert.match(src,/t>now-currentGraceMs\(e\)/,'rollforward eligibility must use time-aware grace');
 assert.match(src,/function nextEligible\(/);
-assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=3/,'known-event refresh cadence/policy version missing');
+assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=4/,'known-event refresh cadence/policy version missing');
 assert.match(src,/refreshTtl=KEY==='boxing'\?2\*3600000:30\*60\*1000/,'snapshot-locked UFC/RIZIN/ONE/K-1 cards must refresh every 30 minutes');
 assert.match(src,/async function refreshKnownRollforwardEvent\(data\)/,'direct known-event card refresh helper missing');
 assert.match(src,/function supportsLiveCardRefresh\(\)\{return KEY==='ufc'\|\|KEY==='rizin'\|\|KEY==='one'\|\|KEY==='k1';\}/,'freshness gate must cover all four live-card organizations');
@@ -26,7 +26,8 @@ assert.match(src,/function ringDetailMain\(html\)/,'Ring event-detail parser mis
 assert.match(src,/if\(KEY==='boxing'\)candidates\.push\(\.\.\.ringListingEvents\(listing,S\.listing,now\)\.filter\(eligible\)\)/,'Ring candidates must enter strictNextEvent');
 assert.match(src,/if\(KEY==='boxing'\)\{const ring=ringDetailPairs\(html\);if\(ring\.length\)return ring;\}/,'BOXING detail cards must use Ring parser first');
 assert.match(src,/verifiedBy:'strictNextEvent'/,'BOXING verified-cache marker must remain');
-assert.match(src,/if\(KEY==='boxing'&&config\.runsInWidget\)/,'BOXING widget cache-only gate must remain');
+assert.match(src,/if\(KEY==='boxing'\)\{[\s\S]*?if\(config\.runsInWidget\)/,'BOXING widget cache-only gate must run before any locked-current network refresh');
+assert.match(src,/function boxingCurrentVerifiedCache\(/,'BOXING verified current-cache path missing');
 
 const H=3600000,D=24*H;
 const id=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'');

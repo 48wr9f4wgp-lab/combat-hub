@@ -12,7 +12,7 @@ assert.match(source, /t\+2\*3600000/, 'Friday Fights start must move two hours l
 assert.match(source, /jsonLdEvents\(listing,S\.listing\)\.map\(normalizeOneCompositeEvent\)/, 'listing candidates must be normalized before eligibility checks');
 assert.match(source, /normalizeOneCompositeEvent\(\{\.\.\.e,source:u\}\)/, 'detail-page candidates must be normalized');
 assert.match(source, /cached\?\.data\?normalizeOneCompositeEvent\(cached\.data\):null/, 'cached next-event data must be normalized immediately');
-assert.match(source, /return \{\.\.\.cachedData,stale:true\}/, 'stale cached next-event data must reuse normalized cached data');
+assert.match(source, /return\{\.\.\.cachedData,stale:true/, 'stale cached next-event data must reuse normalized cached data');
 
 const current = {
   name: 'ONE Friday Fights 169 & The Inner Circle 29',

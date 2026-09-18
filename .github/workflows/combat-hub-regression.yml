@@ -57,6 +57,8 @@ jobs:
         run: node --check tests/combat-hub-small-regression.mjs
       - name: Live-card refresh regression syntax check
         run: node --check tests/combat-hub-live-card-refresh.mjs
+      - name: Data/image hardening regression syntax check
+        run: node --check tests/combat-hub-data-image-hardening.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
       - name: COMBAT HUB cache performance suite
@@ -85,3 +87,5 @@ jobs:
         run: node tests/combat-hub-small-regression.mjs
       - name: COMBAT HUB UFC/K-1 live-card freshness suite
         run: node tests/combat-hub-live-card-refresh.mjs
+      - name: COMBAT HUB v7.22 data/image hardening suite
+        run: node tests/combat-hub-data-image-hardening.mjs

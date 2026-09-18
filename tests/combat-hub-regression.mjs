@@ -30,7 +30,7 @@ const expected = {
   ufc: "2026-09-13T06:00:00+09:00",
   rizin: "2026-10-03T14:00:00+09:00",
   one: "2026-09-11T22:30:00+09:00",
-  boxing: "2026-09-13T09:00:00+09:00",
+  boxing: "2026-09-20T00:00:00+09:00",
   k1: "2026-09-12T12:00:00+09:00",
 };
 for (const [key, iso] of Object.entries(expected)) {
@@ -42,34 +42,35 @@ assert.ok(src.includes("name:'RIZIN LANDMARK 16 in NAGASAKI'"), 'RIZIN current e
 assert.ok(src.includes("main:{a:'堀江圭功',b:'宇佐美正パトリック',context:'RIZIN MMA 71kg'}"), 'RIZIN current main card stale');
 assert.ok(src.includes("name:'ONE Friday Fights 170'"), 'ONE current event name stale');
 assert.ok(src.includes("main:{a:'Yodlekpet Or Atchariya',b:'Pompet Pongsuphan PK',context:'フライ級ムエタイ'}"), 'ONE current main card stale');
-assert.ok(src.includes("main:{a:'Ryan Garcia',b:'Conor Benn',context:'WBC ウェルター級タイトル戦'}"), 'BOXING current main card stale');
+assert.ok(src.includes("main:{a:'Isaac Cruz',b:'Nestor Bravo',context:''}"), 'BOXING current main card stale');
+assert.ok(src.includes("{label:'CO-MAIN',a:'Jesus Ramos',b:'Meiirim Nursultanov',context:'WBC interim middleweight world title'}"), 'BOXING current co-main stale');
 assert.ok(src.includes("main:{a:'ジョナス・サルシチャ',b:'ゾーラ・アカピャン',context:'-70kg世界最強決定トーナメント開幕戦'}"), 'K-1 current main event stale');
 
-// BOXING exact main-card clock is confirmed in the current trusted snapshot.
-has(/boxing:\{startAt:'2026-09-13T09:00:00\+09:00',[^\n]*name:'Garcia vs Benn'/, 'BOXING confirmed start time missing');
-assert.equal(/boxing:\{[^\n]*timeTba:true/.test(src), false, 'BOXING must not regress to time-TBA while this trusted snapshot is current');
+// BOXING trusted current baseline is Ring-official; exact broadcast clock remains source-driven.
+has(/boxing:\{startAt:'2026-09-20T00:00:00\+09:00'[^\n]*timeTba:true[^\n]*name:'Cruz vs Bravo'/, 'BOXING Ring current snapshot missing');
+has(/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/, 'BOXING snapshot must use canonical Ring event source');
 
 // Roll-forward safety.
 has(/function currentGraceMs\(e\)\{return e\?\.timeTba\?36\*3600000:12\*3600000;\}/, 'time-aware current-event grace missing');
 has(/function currentLocked\(snap\)\{const end=new Date\(snap\.startAt\)\.getTime\(\)\+currentGraceMs\(snap\);return Date\.now\(\)<end;\}/, 'time-aware current-event lock guard missing');
 has(/async function refreshLockedCurrent\(snap\)/, 'Safe locked-current refresh missing');
 has(/combat-hub-current-\$\{KEY\}\.json/, 'Current-event refresh cache missing');
-has(/pairs=html\?currentPagePairs\(html\):\[\]/, 'ONE-capable detail card parser missing');
+has(/pairs=html\?currentPagePairs\(html,ev\.source\):\[\]/, 'source-aware detail card parser missing');
 has(/new Date\(snap\.startAt\)\.getTime\(\)\+6\*3600000/, 'next-event lower-bound guard missing');
 has(/(?:Date\.now\(\)|now)\+180\*86400000/, 'next-event search horizon changed unexpectedly');
 has(/jsonLdEvents\(listing,S\.listing\)\.map\(normalizeOneCompositeEvent\)\.filter\(eligible\)/, 'listing candidates must be normalized and eligibility-filtered before traversal decision');
 has(/if\(!candidates\.length\)\{for\(const u of links/, 'detail traversal fallback missing');
 
 // Safe fallback behavior: unknown cards must never invent fighters.
-has(/\{a:'対戦カード',b:'発表待ち',context:ev\.name\}/, 'TBA card fallback missing');
-has(/main:\{a:'次大会',b:'確認中',context:S\.label\}/, 'next-event pending fallback missing');
+has(/\{a:'対戦カード',b:'発表待ち',context:''\}/, 'TBA card fallback must not leak event name into bout context');
+has(/main:\{a:'次大会',b:'確認中',context:''\}/, 'next-event pending fallback must keep bout context empty');
 has(/replace\(\/&amp;\/gi,'&'\)/, 'HTML entity decoding regressed');
-has(/async function eventPoster\(D\)/, 'event-poster fallback helper missing');
+has(/async function eventPoster\(D,opts\)/, 'event-poster fallback helper missing');
 
 // Cache behavior must remain bounded and recoverable.
 has(/combat-hub-next-\$\{KEY\}\.json/, 'per-organization next-event cache missing');
 has(/now-Number\(cached\.savedAt\)<4\*3600000/, 'next-event cache TTL changed unexpectedly');
-has(/if\(cachedData&&rollforwardEligible\(snap,cachedData,now\)\)return \{\.\.\.cachedData,stale:true\}/, 'stale-cache fallback missing');
+has(/if\(cachedData&&rollforwardEligible\(snap,cachedData,now\)\)return\{\.\.\.cachedData,stale:true/, 'stale-cache fallback missing');
 
 // Visual regression guards: v7.7 reliability pass must not alter verified v7.6 layout.
 has(/KEY==='k1'\?370:360/, 'K-1 left hero overlap fix missing');

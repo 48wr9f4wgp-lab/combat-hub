@@ -6,6 +6,7 @@ const src = fs.readFileSync('combat-hub.js', 'utf8');
 
 // Keep the performance contract reviewable and explicit.
 assert.match(src, /combat-meta-\$\{ns\}-\$\{safeKey\(url\)\}\.json/, 'event metadata cache namespace missing');
+assert.match(src, /const IMAGE_POLICY_VERSION=1/, 'image cache policy version missing');
 assert.match(src, /combat-profile-\$\{kind\}-\$\{safeKey\(url\)\}\.json/, 'fighter metadata cache namespace missing');
 assert.match(src, /now-Number\(cached\.savedAt\)<12\*3600000/, 'fighter metadata TTL must remain 12h');
 assert.match(src, /cachedMetaImageURL\(current\.source,`\$\{KEY\}-event`,4\*3600000\)/, 'locked-event metadata fallback cache must remain 4h');
@@ -145,7 +146,7 @@ function stringRequests(requests) {
   const { api, fm, requests, now } = await boot('ONE');
   const metaPath = `/docs/combat-meta-one-event-${api.safeKey(source)}.json`;
   const imagePath = `/docs/combat-one-event-${api.safeKey(imageURL)}.jpg`;
-  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 60_000, imageURL }));
+  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 60_000, policy: 1, imageURL }));
   fm.api.writeImage(imagePath, image);
 
   const poster = await api.eventPoster({ source, main: { a: 'A', b: 'B', context: '' } });
@@ -161,7 +162,7 @@ function stringRequests(requests) {
   const { api, fm, requests, now } = await boot('ONE');
   const metaPath = `/docs/combat-meta-one-event-${api.safeKey(source)}.json`;
   const imagePath = `/docs/combat-one-event-${api.safeKey(imageURL)}.jpg`;
-  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 5 * 3600_000, imageURL }));
+  fm.api.writeString(metaPath, JSON.stringify({ savedAt: now - 5 * 3600_000, policy: 1, imageURL }));
   fm.api.writeImage(imagePath, image);
 
   const poster = await api.eventPoster({ source, main: { a: 'A', b: 'B', context: '' } });
@@ -205,8 +206,8 @@ function stringRequests(requests) {
 
 // BOXING widget mode must ignore legacy/unverified next-event cache and perform zero discovery network work.
 {
-  const now=Date.parse('2026-09-14T16:00:00+09:00');
-  const future={name:'Alpha vs Beta Championship',startAt:'2026-09-20T10:00:00+09:00',location:'Las Vegas',source:'https://www.ringmagazine.com/events/alpha-vs-beta',main:{a:'Alpha',b:'Beta',context:'TITLE FIGHT'},support:[],cardTba:false,posterURL:null};
+  const now=Date.parse('2026-09-22T13:00:00+09:00');
+  const future={name:'Alpha vs Beta Championship',startAt:'2026-09-27T10:00:00+09:00',location:'Las Vegas',source:'https://www.ringmagazine.com/events/alpha-vs-beta',main:{a:'Alpha',b:'Beta',context:'TITLE FIGHT'},support:[],cardTba:false,posterURL:null};
   const {api,fm,requests}=await boot('BOXING',{now});
   const path='/docs/combat-hub-next-boxing.json';
   fm.api.writeString(path,JSON.stringify({savedAt:now-60_000,data:future}));
@@ -224,10 +225,10 @@ function stringRequests(requests) {
 
 // Manual BOXING execution should discover from Ring, validate, and persist a verified next-event cache.
 {
-  const now=Date.parse('2026-09-14T16:00:00+09:00');
+  const now=Date.parse('2026-09-22T13:00:00+09:00');
   const listing='https://www.ringmagazine.com/events';
   const event='https://www.ringmagazine.com/events/alpha-vs-beta';
-  const listingHtml=`<script type="application/ld+json">${JSON.stringify({'@type':'Event',name:'Alpha vs Beta Championship',startDate:'2026-09-20T10:00:00+09:00',location:{name:'Las Vegas'},url:event})}</script>`;
+  const listingHtml=`<script type="application/ld+json">${JSON.stringify({'@type':'Event',name:'Alpha vs Beta Championship',startDate:'2026-09-27T10:00:00+09:00',location:{name:'Las Vegas'},url:event})}</script>`;
   const detailHtml='<title>Alpha vs Beta</title><meta property="og:image" content="https://img.example/alpha-beta.jpg">';
   const {api,fm}=await boot('BOXING',{now,runsInWidget:false,textResponses:{[listing]:listingHtml,[event]:detailHtml}});
   const data=await api.loadData();
