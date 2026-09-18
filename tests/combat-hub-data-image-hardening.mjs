@@ -7,7 +7,7 @@ const marker='const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudi
 assert.ok(src.includes(marker),'runtime instrumentation marker changed');
 const instrumented=src.replace(
   marker,
-  `globalThis.__hardening={safeKey,sourceImageCandidates,jsonLdImageCandidates,k1PosterCandidates,linkedFighterBouts,currentPagePairs,fightContext,ringDetailBouts,refreshKnownRollforwardEvent,eventPosterResult,heroContext,loadData,supportLabelFor,normalizedExistingSupportLabel,normalizedOfficialSupportLabel,writeRuntimeAudit};if(globalThis.__TEST_ONLY__)return;${marker}`,
+  `globalThis.__hardening={safeKey,sourceImageCandidates,jsonLdImageCandidates,k1PosterCandidates,linkedFighterBouts,currentPagePairs,fightContext,ringDetailBouts,refreshKnownRollforwardEvent,eventPosterResult,heroContext,loadData,supportLabelFor,normalizedExistingSupportLabel,normalizedOfficialSupportLabel,writeRuntimeAudit,sanitizeEventFightContext};if(globalThis.__TEST_ONLY__)return;${marker}`,
 );
 
 function sharedFM(){
@@ -44,9 +44,9 @@ async function boot(parameter,{now=Date.parse('2026-09-18T12:00:00+09:00'),runsI
 const stringRequests=r=>r.filter(x=>x.kind==='string');
 const imageRequests=r=>r.filter(x=>x.kind==='image');
 
-assert.match(src,/const VERSION='7\.22\.0-github'/);
+assert.match(src,/const VERSION='7\.22\.1-github'/);
 assert.match(src,/const IMAGE_POLICY_VERSION=1/);
-assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=4/);
+assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=5/);
 assert.match(src,/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/);
 assert.doesNotMatch(src,/ufc\.com\/news\/garcia-vs-benn-official-fight-card/,'stale noncanonical BOXING source must be gone');
 
@@ -110,6 +110,25 @@ assert.doesNotMatch(src,/ufc\.com\/news\/garcia-vs-benn-official-fight-card/,'st
   assert.equal(data.main.a,'Joshua Van');
   assert.match(data.main.context,/Flyweight Title Bout/i);
   assert.notEqual(data.main.context,data.name);
+}
+
+// Stale v7.22 cache must never re-authorize an event title as fight context when refresh fails.
+for(const fixture of [
+  {parameter:'UFC',path:'/docs/combat-hub-next-ufc.json',name:'Crypto.com UFC 331: Van vs Pantoja 2',source:'https://jp.ufc.com/event/cryptocom-ufc-331',a:'Joshua Van',b:'Alexandre Pantoja',expected:/UFCフライ級タイトル戦/},
+  {parameter:'K1',path:'/docs/combat-hub-next-k1.json',name:'K-1 FIGHTING NETWORK in Sangju Korea 2026',source:'https://www.k-1.co.jp/k-1wgp/schedule/16687',a:'キム・ヒョンジュン',b:'小田 尋久',expected:/-70kg級/},
+]){
+  const now=Date.parse('2026-09-18T12:00:00+09:00'),fm=sharedFM();
+  fm.strings.set(fixture.path,JSON.stringify({
+    savedAt:now-60_000,cardCheckedAt:now-60_000,cardRefreshedAt:now-60_000,cardPolicy:4,
+    data:{name:fixture.name,source:fixture.source,startAt:fixture.parameter==='UFC'?'2026-09-20T10:00:00+09:00':'2026-09-19T00:00:00+09:00',location:'QA',timeTba:fixture.parameter==='K1',main:{a:fixture.a,b:fixture.b,context:fixture.name},support:[],cardTba:false}
+  }));
+  const {api}=await boot(fixture.parameter,{now,fm,textResponses:{}});
+  const data=await api.loadData();
+  assert.match(data.main.context,fixture.expected,`${fixture.parameter}: trusted fallback context must replace cached event title`);
+  assert.notEqual(data.main.context,fixture.name,`${fixture.parameter}: event title contamination survived cache migration`);
+  const saved=JSON.parse(fm.strings.get(fixture.path));
+  assert.equal(saved.cardPolicy,5,`${fixture.parameter}: v7.22.1 cache migration must persist policy 5`);
+  assert.match(saved.data.main.context,fixture.expected,`${fixture.parameter}: sanitized context must be persisted`);
 }
 
 // Ring detail must extract main + co-main and reject broadcast copy as fight context.
