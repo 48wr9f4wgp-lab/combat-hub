@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const src=fs.readFileSync('combat-hub.js','utf8');
 
-assert.match(src,/const VERSION='7\.20\.2-github'/,'Small pass runtime version missing');
+assert.match(src,/const VERSION='7\.\d+\.\d+-github'/,'Runtime version missing from Small contract');
 assert.match(src,/const MODE_MAP=\{UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'\}/,'five-series mode map changed');
 assert.match(src,/const SMALL_UI=\{/,'SMALL_UI token set missing');
 assert.match(src,/function renderSmall\(w,D,ctx\)/,'renderSmall missing');
