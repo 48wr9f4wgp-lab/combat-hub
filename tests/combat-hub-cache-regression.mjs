@@ -6,7 +6,7 @@ const src = fs.readFileSync('combat-hub.js', 'utf8');
 
 // Keep the performance contract reviewable and explicit.
 assert.match(src, /combat-meta-\$\{ns\}-\$\{safeKey\(url\)\}\.json/, 'event metadata cache namespace missing');
-assert.match(src, /const IMAGE_POLICY_VERSION=1/, 'image cache policy version missing');
+assert.match(src, /const IMAGE_POLICY_VERSION=2/, 'image cache policy version missing');
 assert.match(src, /combat-profile-\$\{kind\}-\$\{safeKey\(url\)\}\.json/, 'fighter metadata cache namespace missing');
 assert.match(src, /now-Number\(cached\.savedAt\)<12\*3600000/, 'fighter metadata TTL must remain 12h');
 assert.match(src, /cachedMetaImageURL\(current\.source,`\$\{KEY\}-event`,4\*3600000\)/, 'locked-event metadata fallback cache must remain 4h');
