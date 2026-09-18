@@ -20,6 +20,7 @@ assert.match(src,/D\.nextPending\?'次大会情報\\n確認中':'対戦カード
 assert.match(src,/tx\(w,'メインイベント',SMALL_UI\.mainLabel/,'Small confirmed main-event hierarchy missing');
 assert.match(src,/smallDate\(D\).*smallLocation\(D\)/s,'Small footer metadata missing');
 
-const smallBody=src.slice(src.indexOf('function renderSmall(w,D,ctx){'),src.indexOf("function mediumRightText",src.indexOf('function renderSmall(w,D,ctx){')));\nassert.doesNotMatch(smallBody,/if\(KEY===/,'Small renderer geometry must remain organization-agnostic');
+const smallBody=src.slice(src.indexOf('function renderSmall(w,D,ctx){'),src.indexOf("function mediumRightText",src.indexOf('function renderSmall(w,D,ctx){')));
+assert.doesNotMatch(smallBody,/if\(KEY===/,'Small renderer geometry must remain organization-agnostic');
 
 console.log('COMBAT HUB Small five-series regression: OK');
