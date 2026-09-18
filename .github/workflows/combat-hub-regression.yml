@@ -53,6 +53,8 @@ jobs:
         run: node --check tests/combat-hub-transition-timeline.mjs
       - name: Transition integration QA syntax check
         run: node --check tests/combat-hub-transition-integration.mjs
+      - name: Small widget regression syntax check
+        run: node --check tests/combat-hub-small-regression.mjs
       - name: COMBAT HUB regression suite
         run: node tests/combat-hub-regression.mjs
       - name: COMBAT HUB cache performance suite
@@ -77,3 +79,5 @@ jobs:
         run: node tests/combat-hub-transition-timeline.mjs
       - name: COMBAT HUB transition integration QA
         run: node tests/combat-hub-transition-integration.mjs
+      - name: COMBAT HUB Small five-series suite
+        run: node tests/combat-hub-small-regression.mjs

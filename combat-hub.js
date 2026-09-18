@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.19.1-github — transition timeline hardening; frozen visual geometry preserved
+// v7.20.0-github — unified Small widget for all five series; Medium/Large frozen
 
 (async()=>{
-const VERSION='7.19.1-github';
+const VERSION='7.20.0-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -33,6 +33,7 @@ const VISUAL={
 const V=VISUAL[KEY];
 const LARGE_UI={org:24,event:10.0,meta:9.2,status:6.8,countdown:12.4,statusDate:8.2,statusLoc:8.2,heroLabel:7.4,pending:17.2,pendingSub:10.0,main:16.0,vs:17.0,division:9.0,section:8.8,fightLabel:8.4,fightName:10.2,nextLabel:8.4,nextTitle:11.0,nextMeta:8.8,nextCountdown:9.2,dashH:150,leftW:192,rightW:103,headerW:198,statusW:122,heroGap:24,pendingOffset:32};
 const MEDIUM_UI={org:20.5,event:8.8,status:6.7,countdown:13.1,statusDate:7.5,statusLoc:7.5,heroGap:12,pending:14.4,pendingSub:7.5,main:14.3,mainLabel:7.5,vs:15.2,division:8.0,supportLabel:7.5,supportName:8.8,headerW:205,statusW:105};
+const SMALL_UI={org:17.8,event:8.0,status:6.2,countdown:10.8,pending:12.6,pendingSub:7.1,mainLabel:6.7,main:11.8,vs:7.2,division:7.0,meta:7.2,pad:11};
 
 const SNAPSHOT={
   ufc:{startAt:'2026-09-13T06:00:00+09:00',location:'グレンデール',name:'Noche UFC',main:{a:'Jean Silva',b:'Jose Miguel Delgado',context:'FEATHERWEIGHT'},support:[{label:'CO-MAIN',a:'Brandon Moreno',b:'Joseph Morales'},{label:'MAIN CARD',a:'Tommy McMillen',b:'Marwan Rahiki'},{label:'MAIN CARD',a:'Manon Fiorot',b:'Alexa Grasso'},{label:'MAIN CARD',a:'Waldo Cortes Acosta',b:'Curtis Blaydes'},{label:'MAIN CARD',a:'David Martinez',b:'Dan Ige'}],source:'https://www.ufc.com/event/ufc-fight-night-september-12-2026'},
@@ -177,6 +178,9 @@ function softCenter(c,color,alpha){const bands=[84,60,40,24,10];for(let i=0;i<ba
 function boxingCenterBand(c){if(KEY!=='boxing')return;const bands=[190,158,126,96,68];for(let i=0;i<bands.length;i++){const w=bands[i],a=.050+i*.022;c.setFillColor(new Color('#000000',a));c.fillRect(new Rect(360-w/2,64,w,236));}}
 function heroBg(a,b){const c=new DrawContext();c.size=new Size(720,338);c.opaque=true;c.respectScreenScale=false;c.setFillColor(new Color('#040506'));c.fillRect(new Rect(0,0,720,338));if(a)c.drawImageInRect(a,imageRect(a,-5,KEY==='k1'?370:360,'left'));if(b)c.drawImageInRect(b,imageRect(b,KEY==='k1'?350:365,KEY==='k1'?375:360,'right'));c.setFillColor(new Color('#000000',V.heroShade));c.fillRect(new Rect(0,0,720,338));if(KEY==='k1'){c.setFillColor(new Color(S.accent,.045));c.fillRect(new Rect(0,0,720,338));}softBand(c,0,112,V.headerShade,24);softBand(c,96,232,V.mainShade,24);softBand(c,214,338,V.footShade,24);boxingCenterBand(c);softCenter(c,S.accent,V.veil);return c.getImage();}
 function posterBg(image){const c=new DrawContext();c.size=new Size(720,338);c.opaque=true;c.respectScreenScale=false;c.setFillColor(new Color('#050609'));c.fillRect(new Rect(0,0,720,338));if(image?.size){const iw=image.size.width,ih=image.size.height,scale=Math.max(720/iw,338/ih),dw=iw*scale,dh=ih*scale;c.drawImageInRect(image,new Rect((720-dw)/2,(338-dh)/2,dw,dh));}c.setFillColor(new Color('#000000',V.posterShade));c.fillRect(new Rect(0,0,720,338));if(KEY==='k1'){c.setFillColor(new Color(S.accent,.028));c.fillRect(new Rect(0,0,720,338));}softBand(c,0,112,V.headerShade,24);softBand(c,96,232,V.mainShade,24);softBand(c,214,338,V.footShade,24);boxingCenterBand(c);softCenter(c,S.accent,V.veil);return c.getImage();}
+function smallCropRect(image,x,width){if(!image?.size)return new Rect(x,0,width,338);const iw=image.size.width,ih=image.size.height,scale=Math.max(width/iw,338/ih),dw=iw*scale,dh=ih*scale;return new Rect(x+(width-dw)/2,(338-dh)/2,dw,dh);}
+function smallHeroBg(a,b){const c=new DrawContext();c.size=new Size(338,338);c.opaque=true;c.respectScreenScale=false;c.setFillColor(new Color('#040506'));c.fillRect(new Rect(0,0,338,338));if(a)c.drawImageInRect(a,smallCropRect(a,0,176));if(b)c.drawImageInRect(b,smallCropRect(b,162,176));c.setFillColor(new Color('#000000',Math.min(.82,V.heroShade+.07)));c.fillRect(new Rect(0,0,338,338));c.setFillColor(new Color(S.accent,.055));c.fillRect(new Rect(0,0,338,2));c.setFillColor(new Color('#000000',.18));c.fillRect(new Rect(0,224,338,114));return c.getImage();}
+function smallPosterBg(image){const c=new DrawContext();c.size=new Size(338,338);c.opaque=true;c.respectScreenScale=false;c.setFillColor(new Color('#050609'));c.fillRect(new Rect(0,0,338,338));if(image?.size)c.drawImageInRect(image,smallCropRect(image,0,338));c.setFillColor(new Color('#000000',Math.min(.86,V.posterShade+.14)));c.fillRect(new Rect(0,0,338,338));c.setFillColor(new Color(S.accent,.055));c.fillRect(new Rect(0,0,338,2));c.setFillColor(new Color('#000000',.20));c.fillRect(new Rect(0,224,338,114));return c.getImage();}
 function gradient(){const g=new LinearGradient();g.startPoint=new Point(0,0);g.endPoint=new Point(1,1);g.colors=[new Color('#050609'),new Color(S.accent,.14)];g.locations=[0,1];return g;}
 function dateOnly(d){const f=new DateFormatter();f.locale='ja_JP';f.timeZone='Asia/Tokyo';f.dateFormat='M/d (E)';return f.string(new Date(d));}
 function dateText(D){if(D.timeTba)return`${D.displayDate||dateOnly(D.startAt)} ・ 時刻未定`;const f=new DateFormatter();f.locale='ja_JP';f.timeZone='Asia/Tokyo';f.dateFormat="M/d (E) HH:mm 'JST'";return f.string(new Date(D.startAt));}
@@ -254,6 +258,41 @@ function renderLarge(w,D,ctx,next,nextPoster){
   w.addSpacer(2);
 }
 
+function smallCountdown(D){if(D?.nextPending)return'確認中';if(D?.timeTba)return'時刻未定';const q=new Date(D?.startAt||0).getTime()-Date.now();if(!Number.isFinite(q))return'確認中';if(q<=0)return q>-6*3600000?'開催中':'終了';if(q>=86400000)return'あと'+Math.max(1,Math.ceil(q/86400000))+'日';return'あと'+Math.max(1,Math.ceil(q/3600000))+'時間';}
+function smallDate(D){if(D?.nextPending)return'日程未定';if(D?.displayDate)return String(D.displayDate);const t=new Date(D?.startAt||0).getTime();return Number.isFinite(t)?dateOnly(D.startAt):'日程未定';}
+function smallLocation(D){if(D?.nextPending)return'会場未定';return shortLoc(D?.location||'')||'会場未定';}
+function smallName(st,name){const t=tx(st,jpDisplay(name),SMALL_UI.main,new Color(C.text),'black',1);t.minimumScaleFactor=.54;t.centerAlignText();return t;}
+function renderSmall(w,D,ctx){
+  const pending=!!D.cardTba;
+  const top=w.addStack();top.centerAlignContent();
+  const left=top.addStack();left.layoutVertically();left.size=new Size(86,0);
+  tx(left,S.label,SMALL_UI.org,new Color(C.text),'black');
+  const right=top.addStack();right.layoutVertically();right.size=new Size(48,0);
+  const state=tx(right,largeStatusHeading(D),SMALL_UI.status,new Color(C.muted),'bold',1);state.rightAlignText();
+  right.addSpacer(1);
+  const cd=tx(right,smallCountdown(D),SMALL_UI.countdown,new Color(S.accent),'black',1);cd.minimumScaleFactor=.64;cd.rightAlignText();
+  w.addSpacer(3);
+  const ev=tx(w,jpDisplay(D.name||S.label),SMALL_UI.event,new Color(C.sub),'semibold',2);ev.minimumScaleFactor=.60;ev.centerAlignText();
+  w.addSpacer(7);
+  if(pending){
+    const title=tx(w,D.nextPending?'次大会情報\n確認中':'対戦カード\n発表待ち',SMALL_UI.pending,new Color(C.text),'black',2);title.minimumScaleFactor=.72;title.centerAlignText();
+    w.addSpacer(4);
+    const sub=tx(w,D.nextPending?'公式発表を待機中':'公式カード更新待ち',SMALL_UI.pendingSub,new Color(S.accent),'semibold',1);sub.minimumScaleFactor=.70;sub.centerAlignText();
+  }else{
+    const lab=tx(w,'メインイベント',SMALL_UI.mainLabel,new Color(S.accent),'bold',1);lab.centerAlignText();
+    w.addSpacer(2);
+    smallName(w,ctx.a.name);
+    const vs=tx(w,'VS',SMALL_UI.vs,new Color(S.accent),'black',1);vs.centerAlignText();
+    smallName(w,ctx.b.name);
+    const dv=tx(w,division(D.main.context),SMALL_UI.division,new Color(C.sub),'semibold',1);dv.minimumScaleFactor=.58;dv.centerAlignText();
+  }
+  w.addSpacer();
+  const meta=w.addStack();meta.layoutVertically();
+  const dt=tx(meta,smallDate(D),SMALL_UI.meta,new Color(C.sub),'semibold',1);dt.centerAlignText();
+  meta.addSpacer(1);
+  const loc=tx(meta,smallLocation(D),SMALL_UI.meta,new Color(C.muted),'semibold',1);loc.minimumScaleFactor=.64;loc.centerAlignText();
+}
+
 function mediumRightText(st,text,size,color,weight='semibold'){const row=st.addStack();row.addSpacer();const t=tx(row,text,size,color,weight,1);t.minimumScaleFactor=.68;t.rightAlignText();return t;}
 function renderMediumMainName(box,name){const parts=largeNameParts(jpDisplay(name));for(const part of parts){const t=tx(box,part,MEDIUM_UI.main,new Color(C.text),'black',1);t.minimumScaleFactor=.68;t.centerAlignText();}return parts;}
 function mediumSupportRow(w,row){const r=w.addStack();r.centerAlignContent();const l=r.addStack();l.size=new Size(58,0);const lt=tx(l,jpCardLabel(row.label),MEDIUM_UI.supportLabel,new Color(S.accent),'bold');lt.minimumScaleFactor=.72;r.addSpacer(4);const a=r.addStack();a.size=new Size(112,0);const at=tx(a,jpDisplay(row.a),MEDIUM_UI.supportName,new Color(C.text),'semibold',1);at.minimumScaleFactor=.62;r.addSpacer(4);tx(r,'VS',MEDIUM_UI.supportLabel,new Color(S.accent),'bold');r.addSpacer(4);const b=r.addStack();b.size=new Size(112,0);const bt=tx(b,jpDisplay(row.b),MEDIUM_UI.supportName,new Color(C.text),'semibold',1);bt.minimumScaleFactor=.62;bt.rightAlignText();}
@@ -296,11 +335,14 @@ function renderMedium(w,D,ctx){
   }
 }
 
-const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudit(D,ctx);const w=new ListWidget();const IS_LARGE=config.widgetFamily==='large';const BOXING_LARGE=IS_LARGE&&KEY==='boxing';const NEXT=BOXING_LARGE?null:(IS_LARGE?await loadLargeNext(D):null);const NEXT_POSTER=null;if(IS_LARGE){w.setPadding(14,16,12,16);if(BOXING_LARGE){if(ctx.poster)w.backgroundImage=ctx.poster;else w.backgroundGradient=gradient();renderLarge(w,D,ctx,NEXT,null);}else{try{w.backgroundImage=largeBackground(ctx);renderLarge(w,D,ctx,NEXT,NEXT_POSTER);}catch(_){w.backgroundColor=new Color('#020305');renderLarge(w,D,{a:{name:D.main.a,image:null},b:{name:D.main.b,image:null},poster:null},NEXT,null);}}}else{w.setPadding(10,14,8,14);
+const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudit(D,ctx);const w=new ListWidget();const IS_LARGE=config.widgetFamily==='large',IS_SMALL=config.widgetFamily==='small';const BOXING_LARGE=IS_LARGE&&KEY==='boxing';const NEXT=BOXING_LARGE?null:(IS_LARGE?await loadLargeNext(D):null);const NEXT_POSTER=null;if(IS_LARGE){w.setPadding(14,16,12,16);if(BOXING_LARGE){if(ctx.poster)w.backgroundImage=ctx.poster;else w.backgroundGradient=gradient();renderLarge(w,D,ctx,NEXT,null);}else{try{w.backgroundImage=largeBackground(ctx);renderLarge(w,D,ctx,NEXT,NEXT_POSTER);}catch(_){w.backgroundColor=new Color('#020305');renderLarge(w,D,{a:{name:D.main.a,image:null},b:{name:D.main.b,image:null},poster:null},NEXT,null);}}}else if(IS_SMALL){w.setPadding(SMALL_UI.pad,SMALL_UI.pad,9,SMALL_UI.pad);
+if(KEY==='boxing')w.backgroundGradient=gradient();else if(ctx.poster)w.backgroundImage=smallPosterBg(ctx.poster);else if(ctx.a.image||ctx.b.image)w.backgroundImage=smallHeroBg(ctx.a.image,ctx.b.image);else w.backgroundGradient=gradient();
+renderSmall(w,D,ctx);
+}else{w.setPadding(10,14,8,14);
 if(ctx.poster)w.backgroundImage=posterBg(ctx.poster);else if(ctx.a.image||ctx.b.image)w.backgroundImage=heroBg(ctx.a.image,ctx.b.image);else w.backgroundGradient=gradient();
 renderMedium(w,D,ctx);
 }
 w.url=D.source||S.listing;w.refreshAfterDate=new Date(Date.now()+30*60*1000);
-if(config.runsInWidget)Script.setWidget(w);else if(IS_LARGE)await w.presentLarge();else await w.presentMedium();
+if(config.runsInWidget)Script.setWidget(w);else if(IS_LARGE)await w.presentLarge();else if(IS_SMALL)await w.presentSmall();else await w.presentMedium();
 Script.complete();
 })();
