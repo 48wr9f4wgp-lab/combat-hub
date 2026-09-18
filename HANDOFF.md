@@ -32,9 +32,8 @@ Target quality:
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
 - Runtime: **v7.20.0-github**
-- Latest runtime-changing PR: **#56 — harden multi-event transition timeline**
-- Runtime merge commit: `d9d44577e60861893694b5e1ee4a5a10aee9233b`
-- Main Regression after runtime PR #56: **#595 success**
+- Latest runtime-changing PR: **#58 — unified Small widget for all five series**
+- Runtime verification policy: branch / PR / main CI must pass, and physical Small-device QA is required before v7.20.0 is promoted to `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -414,8 +413,8 @@ Canonical production:
 - `main`
 - runtime `7.20.0-github`
 - Loader `4.2.0`
-- runtime merge commit `cb6358396a5493b98f1a7c486d17fba957aa92a4`
-- main Regression `#486 success`
+- latest runtime PR `#58`
+- Small physical-device QA pending
 
 Recent completed PRs:
 
@@ -424,6 +423,7 @@ Recent completed PRs:
 - PR #43 — Large readability/hierarchy pass -> v7.13.0
 - PR #44 — Large lower-dashboard readability polish -> v7.13.1
 - PR #45 — official Ring listing/detail parser -> v7.14.0
+- PR #58 — unified five-series Small widget -> v7.20.0
 
 No temporary implementation workflow is intended to remain in production.
 `friends-stable` remains intentionally isolated.
