@@ -31,7 +31,7 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Runtime: **v7.20.2-github**
+- Runtime: **v7.21.0-github**
 - Latest runtime-changing PR: **#58 — unified Small widget for all five series**
 - Runtime verification policy: branch / PR / main CI must pass, and physical Small-device QA is required before v7.20.0 is promoted to `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
@@ -175,6 +175,17 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - A successful detail refresh updates main/support cards and poster metadata while preserving the event identity/time/location already validated by roll-forward logic.
 - If detail refresh fails or yields no card pairs, the last known valid cached event/card is preserved.
 - BOXING verified-cache-only Widget safety, Loader v4.2.0, Large v7.16.1 geometry, Medium v7.17.x geometry, and friends-stable are unchanged.
+
+## 6G. UFC / K-1 live-card freshness in v7.21.0
+
+- Physical review on 2026-09-18 revealed an information-freshness defect rather than a visual defect: UFC 331 and K-1 Sangju were still showing `対戦カード発表待ち` even though official sources had already published meaningful card information.
+- Product rule is now explicit: **do not wait for the full card**. Once an official source exposes at least the leading matchup, the widget should leave pending state; additional official matchups populate support rows as they become available.
+- UFC / RIZIN / ONE / K-1 all use the 30-minute known-event card refresh path. BOXING keeps its separate verified-cache safety architecture.
+- UFC and K-1 now have event-detail parsers that first use official fighter-profile links and then a semantic `VS` fallback before the older heading/title parser.
+- UFC event refresh tries both `jp.ufc.com` and `www.ufc.com` detail hosts to reduce locale-host fragility.
+- A `CARD_POLICY_VERSION` invalidates pre-v7.21 card cache behavior once so an installed v7.21 runtime does not wait behind an otherwise-fresh stale pending cache.
+- Current official UFC 331 and K-1 Sangju leading-card data are also stored in `NEXT_SNAPSHOT` as a verified fallback. Live official parsing remains preferred.
+- Frozen Small/Medium/Large geometry is unchanged.
 
 ## 6F. Small footer contrast polish in v7.20.2
 
@@ -429,7 +440,7 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `7.20.2-github`
+- runtime `7.21.0-github`
 - Loader `4.2.0`
 - latest runtime PR `#58`
 - Small physical-device QA pending
