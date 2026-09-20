@@ -1,22 +1,30 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+
 const src=fs.readFileSync('combat-hub.js','utf8');
 const preview=fs.readFileSync('combat-hub-preview-loader.js','utf8');
-assert.match(src,/const VERSION='7\.\d+\.\d+-github'/);
-assert.match(src,/ufc:\{startAt:'2026-09-13T06:00:00\+09:00'[^\n]*name:'Noche UFC'[^\n]*Jean Silva[^\n]*Jose Miguel Delgado/);
-assert.match(src,/rizin:\{startAt:'2026-10-03T14:00:00\+09:00'[^\n]*name:'RIZIN LANDMARK 16 in NAGASAKI'[^\n]*堀江圭功[^\n]*宇佐美正パトリック/);
-assert.match(src,/one:\{startAt:'2026-09-11T22:30:00\+09:00'[^\n]*name:'ONE Friday Fights 170'[^\n]*Yodlekpet Or Atchariya[^\n]*Pompet Pongsuphan PK/);
-assert.match(src,/boxing:\{startAt:'2026-09-20T00:00:00\+09:00'[^\n]*name:'Cruz vs Bravo'[^\n]*Isaac Cruz[^\n]*Nestor Bravo[^\n]*Jesus Ramos[^\n]*Meiirim Nursultanov[^\n]*ringmagazine\.com\/events\/pitbull-vs-bravo/);
+
+assert.match(src,/const VERSION='7\.22\.7-github'/);
+assert.match(src,/const TRUSTED_FUTURE=\{/,'verified future fallback set missing');
+assert.match(src,/UFC Fight Night: Rosas Jr\. vs Barcelos/,'verified post-UFC331 fallback missing');
+assert.match(src,/K-1 2026\.11\.23/,'verified K-1 11\/23 fallback missing');
+assert.match(src,/K-1 2026\.12\.29/,'verified K-1 12\/29 fallback missing');
+assert.match(src,/function ufcListingEvents\(html,base,min,max\)/,'UFC current-markup listing parser missing');
+assert.match(src,/function k1ListingEvents\(html,base,now=Date\.now\(\)\)/,'K-1 schedule listing parser missing');
+assert.match(src,/function oneBoutContext\(raw\)/,'ONE discipline context parser missing');
+assert.match(src,/function safePendingEvent\(now=Date\.now\(\),lightweight=false\)/,'neutral pending helper missing');
+assert.match(src,/if\(D\?\.nextPending\).*imageMode:'gradient'/s,'pending must not reuse stale event artwork');
+assert.match(src,/same=!!\(old\.a&&old\.b&&p\?\.a&&p\?\.b&&sameFight/,'main bout fallback must be fight-identity scoped');
+assert.match(src,/LaLa\\s\*arena\\s\*TOKYO-BAY[\s\S]*return'千葉・船橋'/,'LaLa arena must not normalize to Tokyo');
+assert.match(src,/Flyweight\|Bantamweight[\s\S]*Kickboxing\|Muay Thai\|MMA/,'discipline-aware context normalization missing');
+assert.match(src,/boxing:\{startAt:'2026-09-20T00:00:00\+09:00'[^\n]*name:'Cruz vs Bravo'[^\n]*ringmagazine\.com\/events\/pitbull-vs-bravo/);
 assert.match(src,/boxing:\{[^\n]*timeTba:true/);
-assert.match(src,/k1:\{startAt:'2026-09-12T12:00:00\+09:00'[^\n]*ジョナス・サルシチャ[^\n]*ゾーラ・アカピャン/);
 assert.match(src,/function currentPagePairs\(html,base=S\.listing\)/);
-assert.match(src,/String\(html\)\.split\('<tr class=\"vs\">'\)/);
 assert.match(src,/async function refreshLockedCurrent\(snap\)/);
 assert.match(src,/sameFight\(pairs\[0\]\.a,pairs\[0\]\.b,snap\.main\.a,snap\.main\.b\)/);
-assert.match(src,/JEANSILVA:'https:\/\/www\.ufc\.com\/athlete\/jean-silva'/);
-assert.match(src,/JOSEMIGUELDELGADO:'https:\/\/www\.ufc\.com\/athlete\/jose-miguel-delgado'/);
 assert.match(src,/elapsed>=6\*3600000\?'終了':'開催中'/);
 assert.match(src,/function statusLabel\(D\)/);
 assert.doesNotMatch(preview,/chatgpt\/reliability-v7\.7/);
 assert.match(preview,/combat-hub\/main\/combat-hub\.js/);
-console.log('COMBAT HUB current-data audit regression: OK');
+
+console.log('COMBAT HUB current-data/source-drift audit regression: OK');
