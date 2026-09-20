@@ -41,7 +41,7 @@ assert.match(src, /largeNextTitle\(next\),LARGE_UI\.nextTitle/);
 assert.match(src, /largeNextMeta\(next\),LARGE_UI\.nextMeta/);
 assert.match(src, /'公式情報を確認中',LARGE_UI\.nextMeta/);
 assert.match(src, /const BOXING_LARGE=IS_LARGE&&KEY==='boxing'/);
-assert.match(src, /lightweightPending:true/);
+assert.match(src, /return safePendingEvent\(now,true\)/,'BOXING Widget pending must use the lightweight safe-pending path');
 assert.match(src, /function boxingPrefetchValid\(snap,e,now=Date\.now\(\)\)/);
 assert.match(src, /function boxingVerifiedCache\(cached,snap,now\)/);
 assert.match(src, /verifiedBy:'strictNextEvent'/);
