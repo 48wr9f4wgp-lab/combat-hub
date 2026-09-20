@@ -7,7 +7,7 @@ const renderMarker='const D=await loadData(),ctx=await heroContext(D);writeRunti
 assert.ok(src.includes(renderMarker),'runtime instrumentation marker changed');
 const instrumented=src.replace(
   renderMarker,
-  `globalThis.__transitionIntegration={loadData,loadLargeNext,currentLocked,rollforwardEligible,nextEligible};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
+  `globalThis.__transitionIntegration={loadData,loadLargeNext,currentLocked,rollforwardEligible,nextEligible,ufcListingEvents,k1ListingEvents,currentPagePairs,safePendingEvent,mainFromBout,shortLoc,trustedLargeNext};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
 );
 
 function makeSharedFileManager(){
@@ -57,6 +57,92 @@ function jsonLdListing(events){
 }
 function evt(name,startAt,source,location='QA Venue'){return{name,startAt,source,location};}
 function stringRequests(requests){return requests.filter(r=>r.kind==='string').map(r=>r.url);}
+
+// v7.22.7 source-drift fixtures: current public markup shapes + event isolation.
+{
+  const now=Date.parse('2026-09-20T20:45:00+09:00'),fm=makeSharedFileManager();
+  const {api}=await boot('UFC',{now,fm,textResponses:{}});
+  const html=`
+    <article class="event-card">
+      <a href="/event/ufc-fight-night-september-26-2026">
+        <h3>Rosas Jr. vs Barcelos</h3>
+        <div>Sat, Sep 26 / 8:00 PM EDT / Main Card</div>
+      </a>
+    </article>`;
+  const min=Date.parse('2026-09-20T16:00:00+09:00'),max=now+180*86400000;
+  const cards=api.ufcListingEvents(html,'https://www.ufc.com/events',min,max);
+  assert.equal(cards.length,1,'UFC anchor-card markup must be discoverable without legacy data-main-card');
+  assert.equal(cards[0].source,'https://www.ufc.com/event/ufc-fight-night-september-26-2026');
+  assert.equal(cards[0].startAt,'2026-09-27T00:00:00.000Z');
+  const trustedNext=api.trustedLargeNext({
+    name:'Crypto.com UFC 331: Van vs Pantoja 2',
+    source:'https://jp.ufc.com/event/cryptocom-ufc-331',
+    startAt:'2026-09-20T10:00:00+09:00',
+    main:{a:'Joshua Van',b:'Alexandre Pantoja'},
+  });
+  assert.equal(trustedNext?.name,'UFC Fight Night: Rosas Jr. vs Barcelos','UFC Large must have a verified next-event fallback');
+}
+
+{
+  const now=Date.parse('2026-09-20T20:45:00+09:00'),fm=makeSharedFileManager();
+  const {api}=await boot('K1',{now,fm,textResponses:{}});
+  const html=`
+    <section>
+      <h4>2026年11月23日（月・祝）K-1</h4>
+      <div>日時・会場</div><div>2026.11.23 (MON)</div><div>後楽園ホール</div>
+      <a href="/k-1wgp/schedule/16670">詳細</a>
+    </section>
+    <section>
+      <h4>2026年12月29日（火）K-1</h4>
+      <div>日時・会場</div><div>2026.12.29 (TUE)</div><div>横浜BUNTAI</div>
+      <a href="/k-1wgp/schedule/16678">詳細</a>
+    </section>`;
+  const events=api.k1ListingEvents(html,'https://www.k-1.co.jp/k-1wgp/schedule',now);
+  assert.equal(events.length,2,'K-1 schedule markup must yield both future K-1 events');
+  assert.equal(events[0].name,'K-1 2026.11.23');
+  assert.equal(events[0].location,'後楽園ホール');
+  assert.equal(events[1].name,'K-1 2026.12.29');
+  assert.equal(events[1].location,'横浜BUNTAI');
+
+  const current=await api.loadData();
+  assert.equal(current.name,'K-1 2026.11.23','expired Sangju event must roll to verified 11/23 fallback when network is unavailable');
+  assert.equal(current.location,'後楽園ホール');
+  const next=await api.loadLargeNext(current);
+  assert.equal(next?.name,'K-1 2026.12.29','K-1 Large next panel must fall through to verified 12/29 event');
+  assert.equal(next?.location,'横浜BUNTAI');
+}
+
+{
+  const now=Date.parse('2026-09-20T20:45:00+09:00'),fm=makeSharedFileManager();
+  const {api}=await boot('ONE',{now,fm,textResponses:{}});
+  const html=`
+    <div class="fight">
+      <div class="discipline">Flyweight Kickboxing</div>
+      <tr class="vs"><td><a title="Panpayak Jitmuangnon"></a></td><td><a title="Lamnamoonlek Torfunfarm"></a></td></tr>
+    </div>`;
+  const pairs=api.currentPagePairs(html,'https://www.onefc.com/events/one-friday-fights-172/');
+  assert.equal(pairs.length,1);
+  assert.equal(pairs[0].context,'フライ級キックボクシング','ONE discipline must survive card parsing');
+
+  const isolated=api.mainFromBout(
+    {name:'New Event',main:{a:'Old A',b:'Old B',context:'フライ級ムエタイ',aProfileURL:'https://old/a',bProfileURL:'https://old/b'}},
+    {a:'New A',b:'New B',context:''},
+  );
+  assert.equal(isolated.context,'','new event/bout must not inherit old fight context');
+  assert.equal(isolated.aProfileURL,null,'new event/bout must not inherit old fighter profile URL');
+}
+
+{
+  const now=Date.parse('2026-09-20T20:45:00+09:00'),fm=makeSharedFileManager();
+  const {api}=await boot('RIZIN',{now,fm,textResponses:{}});
+  assert.equal(api.shortLoc('LaLa arena TOKYO-BAY'),'千葉・船橋','LaLa arena TOKYO-BAY must not normalize to Tokyo');
+  const pending=api.safePendingEvent(now,false);
+  assert.equal(pending.name,'次大会');
+  assert.equal(pending.location,'会場未定');
+  assert.equal(pending.posterURL,null);
+  assert.equal(pending.source,null);
+  assert.equal(pending.nextPending,true);
+}
 
 const SERIES={
   UFC:{listing:'https://www.ufc.com/events',prefix:'UFC Fight Night: QA'},
