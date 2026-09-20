@@ -46,7 +46,7 @@ const imageRequests=r=>r.filter(x=>x.kind==='image');
 
 assert.match(src,/const VERSION='7\.22\.6-github'/);
 assert.match(src,/const IMAGE_POLICY_VERSION=2/);
-assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=6/);
+assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=7/);
 assert.match(src,/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/);
 assert.doesNotMatch(src,/ufc\.com\/news\/garcia-vs-benn-official-fight-card/,'stale noncanonical BOXING source must be gone');
 assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]*?cardSourceType:'official-discovery'\}\);/,'fresh strictNextEvent discovery must be sanitized before first render/cache write');
@@ -183,7 +183,7 @@ for(const fixture of [
   assert.match(data.main.context,fixture.expected,`${fixture.parameter}: trusted fallback context must replace cached event title`);
   assert.notEqual(data.main.context,fixture.name,`${fixture.parameter}: event title contamination survived cache migration`);
   const saved=JSON.parse(fm.strings.get(fixture.path));
-  assert.equal(saved.cardPolicy,6,`${fixture.parameter}: support-role migration must persist policy 6`);
+  assert.equal(saved.cardPolicy,7,`${fixture.parameter}: transition/context migration must persist policy 7`);
   assert.match(saved.data.main.context,fixture.expected,`${fixture.parameter}: sanitized context must be persisted`);
 }
 
