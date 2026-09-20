@@ -1,6 +1,6 @@
 # COMBAT HUB — Development Handoff
 
-Updated: 2026-09-18 JST
+Updated: 2026-09-20 JST
 
 > **This file is the canonical handoff for the current project state.**
 > Always fetch current GitHub `main` first. Actual code + this file take priority over old chat logs and `HANDOFF_CODEX.md`.
@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large are stable at the currently verified physical-iPhone baselines; the targeted v7.22.6 K-1 Large physical QA is complete.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.22.6 is the previous physical VERIFIED_BASELINE scope; v7.22.7 changes only data-transition/source handling and requires targeted physical QA before promotion.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -31,15 +31,16 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.22.6-github**.
-- Latest runtime-changing PR: **#75 — restore K-1 poster-gallery priority**.
-- Runtime merge commit: `43c2d6c084567f0f4316e4020991012b562bac7b`.
-- Main Regression after PR #75: **#741 success**.
+- Production runtime: **v7.22.7-github**.
+- Latest runtime-changing PR: **#79 — harden v7.22.7 event transitions after source drift**.
+- Runtime merge commit: `6aacb0f6ffeb15d53e91c4fcf651b4daee74945f`.
+- Main Regression after PR #79: **#766 success**.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
-- `CARD_POLICY_VERSION=6` is the current canonical card-policy version.
+- `CARD_POLICY_VERSION=7` is the current canonical card-policy version.
 - Small/Medium/Large geometry and Loader v4.2.0 remain unchanged.
-- v7.22.5 corrects K-1 Large support-role normalization and migrates to `CARD_POLICY_VERSION=6`. v7.22.6 additionally enforces K-1 poster-gallery priority, rejects generic logo/icon artwork, and migrates image metadata to `IMAGE_POLICY_VERSION=2`. Physical iPhone QA on 2026-09-18 passed, so v7.22.6 is promoted to `VERIFIED_BASELINE` for the validated scope below.
+- v7.22.5 corrects K-1 Large support-role normalization and migrates to `CARD_POLICY_VERSION=6`. v7.22.6 additionally enforces K-1 poster-gallery priority, rejects generic logo/icon artwork, and migrates image metadata to `IMAGE_POLICY_VERSION=2`. Physical iPhone QA on 2026-09-18 passed, so v7.22.6 remains the previous `VERIFIED_BASELINE` for that validated scope.
+- v7.22.7 hardens live-source transition discovery and event isolation: current UFC anchor-card markup, K-1 schedule parsing, verified future fallbacks, neutral safe-pending state, cross-event context/profile isolation, ONE discipline context, and LaLa arena TOKYO-BAY -> 千葉・船橋 normalization. Geometry and Loader are unchanged. Automated branch/PR/main regressions #764/#765/#766 are success; physical verification is pending.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -396,6 +397,26 @@ Final physical iPhone QA on production v7.22.6 passed on 2026-09-18:
 
 All five Small categories, BOXING Medium, and K-1 Large are now physically accepted for v7.22.6. `v7.22.6-github` is the `VERIFIED_BASELINE` for this validated scope.
 
+2026-09-20 physical audit then exposed new live-data/source-transition defects outside that earlier verified scope:
+- K-1 had expired-event leakage and failed to surface published 11/23 + 12/29 events.
+- UFC Large failed to surface the published 9/27 Rosas Jr. vs Barcelos next event.
+- RIZIN.55 next-event location normalized LaLa arena TOKYO-BAY to Tokyo instead of Chiba/Funabashi.
+- ONE FF172 lost the official Kickboxing discipline and could inherit old bout context across event identity changes.
+
+v7.22.7 production fixes those four layers without geometry changes.
+
+Automated evidence:
+- branch push Regression #764 SUCCESS
+- PR #79 Regression #765 SUCCESS
+- merge-to-main Regression #766 SUCCESS
+
+Targeted physical QA still required before v7.22.7 VERIFIED_BASELINE promotion:
+- UFC Large: UFC 331 remains current during grace and next panel shows Rosas Jr. vs Barcelos / 9/27 09:00 JST / Las Vegas.
+- K-1 Large: current becomes K-1 2026.11.23 / 後楽園ホール / time TBA; next panel shows K-1 2026.12.29 / 横浜BUNTAI; no stale WORLD MAX/Sangju artwork or identity leakage.
+- ONE Large: Panpayak vs Lamnamoonlek context shows `フライ級キックボクシング`.
+- RIZIN Large: RIZIN.55 next-event location shows `千葉・船橋` rather than 東京.
+- BOXING current verified-cache/network-free behavior must remain unchanged; no new BOXING physical check is required unless symptoms appear.
+
 ## 11. Known debt / risks
 
 ### BOXING source availability / timing
@@ -446,18 +467,17 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.22.6-github`
+- runtime `v7.22.7-github`
 - Loader `v4.2.0`
-- runtime PR `#75`
-- runtime merge `43c2d6c084567f0f4316e4020991012b562bac7b`
-- main Regression `#741 success`
-- `CARD_POLICY_VERSION=6`
+- runtime PR `#79`
+- runtime merge `6aacb0f6ffeb15d53e91c4fcf651b4daee74945f`
+- main Regression `#766 success`
+- `CARD_POLICY_VERSION=7`
 - `IMAGE_POLICY_VERSION=2`
-- all five Small categories physically accepted
-- BOXING Medium physically accepted
-- K-1 Large support-role + poster physical recheck passed on 2026-09-18
-- `v7.22.6-github` is `VERIFIED_BASELINE` for: all five Small categories, BOXING Medium, and K-1 Large targeted role/context/poster/geometry verification
-- v7.22 residual defect-fix phase is **CLOSED** after physical QA + docs-only PR #77 + successful PR/main regression
+- validation status: **PARTIAL** — automated regression green, v7.22.7 targeted physical QA pending
+- previous VERIFIED_BASELINE: `v7.22.6-github` for all five Small categories, BOXING Medium, and K-1 Large targeted role/context/poster/geometry verification
+- v7.22.7 affected physical scope: UFC Large next-event, K-1 Large current/next transition, ONE Large discipline context, RIZIN Large next-event location
+- Small/Medium/Large geometry remains frozen; BOXING cache-only architecture unchanged
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -466,4 +486,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.6-github（PR #75 / main Regression #741 success）です。Small 5カテゴリ、BOXING Medium、K-1 Largeのtargeted physical QAは実機合格済みで、v7.22.6は当該検証範囲のVERIFIED_BASELINEです。Small/Medium/Largeのgeometryは凍結です。UFC/RIZIN/ONE/K-1は30分card refreshと4時間event discoveryを分離し、BOXINGはmanual verify/prefetch -> verified local cache -> Widget network-free consumptionをHard Lockとします。公式カードが1試合以上出た時点でpendingを解除し、support labelは公式明示を優先しつつ、推測時は2試合目=CO-MAIN/セミ、3試合目以降=MAIN CARD/本戦、ordinalだけでFEATURED/注目を作りません。v7.22ではsource-aware image resolver、dynamic fighter profile URL、bout context、canonical Ring Cruz vs Bravo baseline、BOXING current/future verified cache、拡張runtime auditを追加しています。異常時は推測patchではなくruntime auditと現在の公式sourceを根拠に原因層を特定してください。`friends-stable` は明示承認なしに変更禁止です。v7.22.6のtargeted physical QAは完了済みでVERIFIED_BASELINEへ昇格済みです。新しい実機証拠やsource driftがない限り、この完了済みQAへ理由なく戻らず、次の未完了タスクから進めてください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.7-github（PR #79 / merge `6aacb0f6ffeb15d53e91c4fcf651b4daee74945f` / main Regression #766 success）です。v7.22.6は直前のVERIFIED_BASELINEで、v7.22.7はsource drift/data-transition hardening後のWORKING_HEADです。Small/Medium/Large geometry、Loader v4.2.0、friends-stable、BOXING manual verify/prefetch -> verified local cache -> Widget network-free architectureは変更していません。残る未完了はv7.22.7 targeted physical QAだけです。Loaderを手動実行後、UFC Large / K-1 Large / ONE Large / RIZIN Largeを実機確認し、HANDOFFの期待値を全て満たしたらv7.22.7をVERIFIED_BASELINEへ昇格してください。失敗時はruntime audit + current main + current official sourceで原因層を特定し、推測patchは禁止です。
