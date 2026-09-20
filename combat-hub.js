@@ -139,6 +139,7 @@ function cardFighterName(v){let n=cleanName(v).replace(/^#\d+\s*/,'').trim();if(
 function fightContext(raw,eventName=''){
   let v=stripHTML(raw||'').replace(/\s+/g,' ').trim();if(!v)return'';if(eventIdentityText(v)===eventIdentityText(eventName))return'';if(/(?:live\s+on|watch\s+on|stream|broadcast|dazn|espn|paramount|fight\s*pass|youtube)/i.test(v))return'';
   const k=v.match(/-?\d+(?:\.\d+)?kg級/i);if(k)return k[0];
+  const jpDiscipline=v.match(/(?:女子)?(?:ストロー|フライ|バンタム|フェザー|ライト|ウェルター|ミドル|ライトヘビー|ヘビー)級\s*(?:キックボクシング|ムエタイ|MMA)/i);if(jpDiscipline)return jpDiscipline[0].replace(/\s+/g,'');
   const jp=v.match(/(?:女子)?(?:ストロー|フライ|バンタム|フェザー|ライト|ウェルター|ミドル|ライトヘビー|ヘビー)級(?:\s*(?:タイトル(?:マッチ|戦)|マッチ))?/i);if(jp)return jp[0].replace(/\s+/g,' ');
   const discipline=v.match(/(?:Women's\s+)?(Strawweight|Flyweight|Bantamweight|Featherweight|Lightweight|Welterweight|Middleweight|Light Heavyweight|Heavyweight)\s+(Kickboxing|Muay Thai|MMA)\b/i);
   if(discipline){const w={strawweight:'ストロー級',flyweight:'フライ級',bantamweight:'バンタム級',featherweight:'フェザー級',lightweight:'ライト級',welterweight:'ウェルター級',middleweight:'ミドル級','light heavyweight':'ライトヘビー級',heavyweight:'ヘビー級'}[discipline[1].toLowerCase()]||discipline[1],d={kickboxing:'キックボクシング','muay thai':'ムエタイ',mma:'MMA'}[discipline[2].toLowerCase()]||discipline[2],female=/^Women's\b/i.test(v)?'女子':'';return female+w+d;}
