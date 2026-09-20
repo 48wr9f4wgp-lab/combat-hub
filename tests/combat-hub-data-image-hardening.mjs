@@ -44,9 +44,9 @@ async function boot(parameter,{now=Date.parse('2026-09-18T12:00:00+09:00'),runsI
 const stringRequests=r=>r.filter(x=>x.kind==='string');
 const imageRequests=r=>r.filter(x=>x.kind==='image');
 
-assert.match(src,/const VERSION='7\.22\.8-github'/);
+assert.match(src,/const VERSION='7\.22\.9-github'/);
 assert.match(src,/const IMAGE_POLICY_VERSION=2/);
-assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=8/);
+assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=9/);
 assert.match(src,/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/);
 assert.doesNotMatch(src,/ufc\.com\/news\/garcia-vs-benn-official-fight-card/,'stale noncanonical BOXING source must be gone');
 assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]*?cardSourceType:pairs\.length\?'official-discovery':'verified-fallback'\}\);/,'fresh strictNextEvent discovery/fallback must be sanitized before first render/cache write');
@@ -164,7 +164,7 @@ assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]
   const {api}=await boot('UFC',{textResponses:{[source]:html}});
   const data=await api.refreshKnownRollforwardEvent({source,name:'Crypto.com UFC 331: Van vs Pantoja 2',main:{a:'対戦カード',b:'発表待ち',context:'Crypto.com UFC 331: Van vs Pantoja 2'},support:[],cardTba:true});
   assert.equal(data.main.a,'Joshua Van');
-  assert.match(data.main.context,/Flyweight Title Bout/i);
+  assert.equal(data.main.context,'フライ級タイトル戦');
   assert.notEqual(data.main.context,data.name);
 }
 
@@ -183,7 +183,7 @@ for(const fixture of [
   assert.match(data.main.context,fixture.expected,`${fixture.parameter}: trusted fallback context must replace cached event title`);
   assert.notEqual(data.main.context,fixture.name,`${fixture.parameter}: event title contamination survived cache migration`);
   const saved=JSON.parse(fm.strings.get(fixture.path));
-  assert.equal(saved.cardPolicy,8,`${fixture.parameter}: transition/context migration must persist policy 8`);
+  assert.equal(saved.cardPolicy,9,`${fixture.parameter}: transition/context migration must persist policy 9`);
   assert.match(saved.data.main.context,fixture.expected,`${fixture.parameter}: sanitized context must be persisted`);
 }
 
