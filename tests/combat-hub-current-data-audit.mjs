@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const src=fs.readFileSync('combat-hub.js','utf8');
 const preview=fs.readFileSync('combat-hub-preview-loader.js','utf8');
 
-assert.match(src,/const VERSION='7\.22\.7-github'/);
+assert.match(src,/const VERSION='7\.22\.8-github'/);
 assert.match(src,/const TRUSTED_FUTURE=\{/,'verified future fallback set missing');
 assert.match(src,/UFC Fight Night: Rosas Jr\. vs Barcelos/,'verified post-UFC331 fallback missing');
 assert.match(src,/K-1 2026\.11\.23/,'verified K-1 11\/23 fallback missing');
@@ -13,6 +13,9 @@ assert.match(src,/function ufcListingEvents\(html,base,min,max\)/,'UFC current-m
 assert.match(src,/function k1ListingEvents\(html,base,now=Date\.now\(\)\)/,'K-1 schedule listing parser missing');
 assert.match(src,/function oneBoutContext\(raw\)/,'ONE discipline context parser missing');
 assert.match(src,/function safePendingEvent\(now=Date\.now\(\),lightweight=false\)/,'neutral pending helper missing');
+assert.match(src,/function enrichTrustedEventMeta\(ev\)/,'verified metadata hydration helper missing');
+assert.match(src,/LARGE_NEXT_POLICY_VERSION=2/,'large-next cache policy invalidation missing');
+assert.match(src,/disc=\/Kickboxing\|キックボクシング/,'discipline-preserving display normalization missing');
 assert.match(src,/if\(D\?\.nextPending\).*imageMode:'gradient'/s,'pending must not reuse stale event artwork');
 assert.match(src,/same=!!\(old\.a&&old\.b&&p\?\.a&&p\?\.b&&sameFight/,'main bout fallback must be fight-identity scoped');
 assert.match(src,/LaLa\\s\*arena\\s\*TOKYO-BAY[\s\S]*return'千葉・船橋'/,'LaLa arena must not normalize to Tokyo');

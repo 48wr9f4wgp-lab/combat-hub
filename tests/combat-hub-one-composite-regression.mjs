@@ -11,7 +11,7 @@ assert.match(source, /jh===20&&jm===30/, '20:30 JST composite start must be reco
 assert.match(source, /t\+2\*3600000/, 'Friday Fights start must move two hours later when composite source is 20:30 JST');
 assert.match(source, /jsonLdEvents\(listing,S\.listing\)\.map\(normalizeOneCompositeEvent\)/, 'listing candidates must be normalized before eligibility checks');
 assert.match(source, /normalizeOneCompositeEvent\(\{\.\.\.e,source:u\}\)/, 'detail-page candidates must be normalized');
-assert.match(source, /cached\?\.data\?normalizeOneCompositeEvent\(cached\.data\):null/, 'cached next-event data must be normalized immediately');
+assert.match(source, /cached\?\.data\?enrichTrustedEventMeta\(normalizeOneCompositeEvent\(cached\.data\)\):null/, 'cached next-event data must be normalized and metadata-hydrated immediately');
 assert.match(source, /return\{\.\.\.cachedData,stale:true/, 'stale cached next-event data must reuse normalized cached data');
 
 const current = {

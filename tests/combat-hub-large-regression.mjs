@@ -39,6 +39,8 @@ assert.match(src, /largeSlotName\(row\.a\),LARGE_UI\.fightName/);
 assert.match(src, /largeSlotName\(row\.b\),LARGE_UI\.fightName/);
 assert.match(src, /largeNextTitle\(next\),LARGE_UI\.nextTitle/);
 assert.match(src, /largeNextMeta\(next\),LARGE_UI\.nextMeta/);
+assert.match(src, /LARGE_NEXT_POLICY_VERSION=2/,'Large next cache must carry an explicit policy version');
+assert.match(src, /next\.timeTba\?'時刻未定':'あと '\+countdown\(next\)/,'time-TBA next event must not render as あと 時刻未定');
 assert.match(src, /'公式情報を確認中',LARGE_UI\.nextMeta/);
 assert.match(src, /const BOXING_LARGE=IS_LARGE&&KEY==='boxing'/);
 assert.match(src, /return safePendingEvent\(now,true\)/,'BOXING Widget pending must use the lightweight safe-pending path');
