@@ -7,7 +7,7 @@ const renderMarker='const D=await loadData(),ctx=await heroContext(D);writeRunti
 assert.ok(src.includes(renderMarker),'runtime instrumentation marker changed');
 const instrumented=src.replace(
   renderMarker,
-  `globalThis.__transitionIntegration={loadData,loadLargeNext,currentLocked,rollforwardEligible,nextEligible,ufcListingEvents,k1ListingEvents,currentPagePairs,safePendingEvent,mainFromBout,shortLoc,trustedLargeNext};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
+  `globalThis.__transitionIntegration={loadData,loadLargeNext,currentLocked,rollforwardEligible,nextEligible,ufcListingEvents,k1ListingEvents,currentPagePairs,safePendingEvent,mainFromBout,shortLoc,trustedLargeNext,enrichTrustedEventMeta,division,largeNextTitle};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
 );
 
 function makeSharedFileManager(){
@@ -58,7 +58,7 @@ function jsonLdListing(events){
 function evt(name,startAt,source,location='QA Venue'){return{name,startAt,source,location};}
 function stringRequests(requests){return requests.filter(r=>r.kind==='string').map(r=>r.url);}
 
-// v7.22.7 source-drift fixtures: current public markup shapes + event isolation.
+// v7.22.8 source-drift fixtures: metadata hydration, display preservation, and event isolation.
 {
   const now=Date.parse('2026-09-20T20:45:00+09:00'),fm=makeSharedFileManager();
   const {api}=await boot('UFC',{now,fm,textResponses:{}});
@@ -81,6 +81,15 @@ function stringRequests(requests){return requests.filter(r=>r.kind==='string').m
     main:{a:'Joshua Van',b:'Alexandre Pantoja'},
   });
   assert.equal(trustedNext?.name,'UFC Fight Night: Rosas Jr. vs Barcelos','UFC Large must have a verified next-event fallback');
+  const hydrated=api.enrichTrustedEventMeta({
+    name:'UFC Fight Night',
+    startAt:'2026-09-27T09:00:00+09:00',
+    source:'https://www.ufc.com/event/ufc-fight-night-september-26-2026',
+    location:'',
+  });
+  assert.equal(hydrated.name,'UFC Fight Night: Rosas Jr. vs Barcelos','generic UFC live candidate must hydrate a verified event identity');
+  assert.equal(hydrated.location,'ラスベガス','generic UFC live candidate must hydrate verified venue metadata');
+  assert.equal(api.largeNextTitle(hydrated),'Rosas Jr. vs Barcelos','UFC Large next title must remove the generic promotion prefix');
 }
 
 {
@@ -103,6 +112,8 @@ function stringRequests(requests){return requests.filter(r=>r.kind==='string').m
   assert.equal(events[0].location,'後楽園ホール');
   assert.equal(events[1].name,'K-1 2026.12.29');
   assert.equal(events[1].location,'横浜BUNTAI');
+  const sparseK1=api.enrichTrustedEventMeta({name:'K-1 2026.11.23',startAt:'2026-11-23T00:00:00+09:00',source:'https://www.k-1.co.jp/k-1wgp/schedule/16670',location:'',timeTba:true});
+  assert.equal(sparseK1.location,'後楽園ホール','sparse K-1 live candidate must hydrate verified venue metadata');
 
   const current=await api.loadData();
   assert.equal(current.name,'K-1 2026.11.23','expired Sangju event must roll to verified 11/23 fallback when network is unavailable');
@@ -123,6 +134,7 @@ function stringRequests(requests){return requests.filter(r=>r.kind==='string').m
   const pairs=api.currentPagePairs(html,'https://www.onefc.com/events/one-friday-fights-172/');
   assert.equal(pairs.length,1);
   assert.equal(pairs[0].context,'フライ級キックボクシング','ONE discipline must survive card parsing');
+  assert.equal(api.division(pairs[0].context),'フライ級キックボクシング','Large division rendering must preserve ONE Kickboxing discipline');
 
   const isolated=api.mainFromBout(
     {name:'New Event',main:{a:'Old A',b:'Old B',context:'フライ級ムエタイ',aProfileURL:'https://old/a',bProfileURL:'https://old/b'}},
