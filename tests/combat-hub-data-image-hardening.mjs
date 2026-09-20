@@ -44,7 +44,7 @@ async function boot(parameter,{now=Date.parse('2026-09-18T12:00:00+09:00'),runsI
 const stringRequests=r=>r.filter(x=>x.kind==='string');
 const imageRequests=r=>r.filter(x=>x.kind==='image');
 
-assert.match(src,/const VERSION='7\.22\.6-github'/);
+assert.match(src,/const VERSION='7\.22\.7-github'/);
 assert.match(src,/const IMAGE_POLICY_VERSION=2/);
 assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=7/);
 assert.match(src,/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/);
