@@ -164,7 +164,7 @@ assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]
   const {api}=await boot('UFC',{textResponses:{[source]:html}});
   const data=await api.refreshKnownRollforwardEvent({source,name:'Crypto.com UFC 331: Van vs Pantoja 2',main:{a:'対戦カード',b:'発表待ち',context:'Crypto.com UFC 331: Van vs Pantoja 2'},support:[],cardTba:true});
   assert.equal(data.main.a,'Joshua Van');
-  assert.match(data.main.context,/Flyweight Title Bout/i);
+  assert.equal(data.main.context,'フライ級タイトル戦');
   assert.notEqual(data.main.context,data.name);
 }
 
