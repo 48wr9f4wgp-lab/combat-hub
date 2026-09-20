@@ -49,7 +49,7 @@ assert.match(src,/const IMAGE_POLICY_VERSION=2/);
 assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=8/);
 assert.match(src,/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/);
 assert.doesNotMatch(src,/ufc\.com\/news\/garcia-vs-benn-official-fight-card/,'stale noncanonical BOXING source must be gone');
-assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]*?cardSourceType:'official-discovery'\}\);/,'fresh strictNextEvent discovery must be sanitized before first render/cache write');
+assert.match(src,/return sanitizeEventFightContext\(\{\.\.\.snap,\.\.\.ev,[\s\S]*?cardSourceType:pairs\.length\?'official-discovery':'verified-fallback'\}\);/,'fresh strictNextEvent discovery/fallback must be sanitized before first render/cache write');
 
 // UFC structured bouts: official profile URLs + bout context.
 {
