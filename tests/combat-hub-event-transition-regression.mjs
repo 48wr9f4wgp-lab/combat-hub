@@ -10,7 +10,7 @@ assert.match(src,/function currentGraceMs\(e\)\{return e\?\.timeTba\?36\*3600000
 assert.match(src,/currentGraceMs\(snap\)/,'currentLocked must use time-aware grace');
 assert.match(src,/t>now-currentGraceMs\(e\)/,'rollforward eligibility must use time-aware grace');
 assert.match(src,/function nextEligible\(/);
-assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=8,LARGE_NEXT_POLICY_VERSION=2/,'known-event refresh cadence/policy version missing');
+assert.match(src,/const KNOWN_EVENT_CARD_REFRESH_MS=30\*60\*1000,CARD_POLICY_VERSION=9,LARGE_NEXT_POLICY_VERSION=3/,'known-event refresh cadence/policy version missing');
 assert.match(src,/refreshTtl=KEY==='boxing'\?2\*3600000:30\*60\*1000/,'snapshot-locked UFC/RIZIN/ONE/K-1 cards must refresh every 30 minutes');
 assert.match(src,/async function refreshKnownRollforwardEvent\(data\)/,'direct known-event card refresh helper missing');
 assert.match(src,/function supportsLiveCardRefresh\(\)\{return KEY==='ufc'\|\|KEY==='rizin'\|\|KEY==='one'\|\|KEY==='k1';\}/,'freshness gate must cover all four live-card organizations');
