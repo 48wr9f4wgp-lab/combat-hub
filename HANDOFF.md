@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.22.6 is the previous physical VERIFIED_BASELINE scope; v7.22.9 changes only live-data metadata/context resolution and requires targeted physical QA before promotion.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.22.9 has completed targeted physical iPhone QA and is the current VERIFIED_BASELINE for the validated production scope.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -44,7 +44,7 @@ Target quality:
 - v7.22.7 hardens live-source transition discovery and event isolation: current UFC anchor-card markup, K-1 schedule parsing, verified future fallbacks, neutral safe-pending state, cross-event context/profile isolation, ONE discipline context, and LaLa arena TOKYO-BAY -> 千葉・船橋 normalization. Geometry and Loader are unchanged.
 - Physical iPhone QA on v7.22.7 (2026-09-20) showed: RIZIN Large PASS; UFC Large selected 9/27 correctly but lost bout/Las Vegas metadata; K-1 transitioned to 11/23 and 12/29 but lost both venue strings; ONE still rendered only `フライ級`.
 - v7.22.8 targets only those remaining layers: sparse live metadata hydration from verified first-party event metadata, Large-next cache policy v2, CARD_POLICY_VERSION 8, verified UFC fallback-card preservation, discipline-preserving `division()`, compact UFC next-title cleanup, and K-1 TBA copy cleanup. Geometry/Loader/BOXING/friends-stable remain unchanged. Branch/PR/main regressions #784/#785/#786 are success; physical iPhone QA on 2026-09-20 remained PARTIAL: UFC still showed generic title/no Las Vegas, K-1 current still showed 会場未定 while 12/29 横浜BUNTAI + TBA copy passed, and ONE still showed only フライ級.
-- v7.22.9 fixes the remaining root causes only: canonical trusted-source/date matching, placeholder-location override, verified ONE FF172 discipline baseline, richer-context preference for identical fighters, Japanese combat-discipline preservation inside `fightContext()`, CARD_POLICY_VERSION 9, and LARGE_NEXT_POLICY_VERSION 3. Geometry/Loader/BOXING/friends-stable remain unchanged. Branch/PR/main regressions #800/#801/#802 are success; targeted physical verification is pending.
+- v7.22.9 fixes the remaining root causes only: canonical trusted-source/date matching, placeholder-location override, verified ONE FF172 discipline baseline, richer-context preference for identical fighters, Japanese combat-discipline preservation inside `fightContext()`, CARD_POLICY_VERSION 9, and LARGE_NEXT_POLICY_VERSION 3. Geometry/Loader/BOXING/friends-stable remain unchanged. Branch/PR/main regressions #800/#801/#802 are success. Final targeted physical iPhone QA on 2026-09-20 passed, so v7.22.9 is promoted to `VERIFIED_BASELINE` for the validated scope below.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -426,12 +426,15 @@ v7.22.8 physical QA evidence on 2026-09-20:
 - ONE Large FAIL: Panpayak vs Lamnamoonlek still rendered `フライ級`.
 - RIZIN Large remained previously accepted and was not re-tested.
 
-Targeted physical QA still required before v7.22.9 VERIFIED_BASELINE promotion:
-- UFC Large: next panel = `Rosas Jr. vs Barcelos` / 9/27 09:00 JST / ラスベガス.
-- K-1 Large: current = K-1 2026.11.23 / 後楽園ホール / 時刻未定; next remains K-1 2026.12.29 / 横浜BUNTAI / `時刻未定`.
-- ONE Large: Panpayak vs Lamnamoonlek context = `フライ級キックボクシング`.
-- RIZIN Large does not require another screenshot unless `千葉・船橋` regresses.
-- BOXING current verified-cache/network-free behavior remains hard-locked; no new BOXING physical check unless symptoms appear.
+Final targeted physical iPhone QA on v7.22.9 passed on 2026-09-20:
+- UFC Large PASS: next panel shows `Rosas Jr. vs Barcelos`, `9/27 (日) 09:00 JST`, and `ラスベガス`.
+- K-1 Large PASS: current shows `K-1 2026.11.23`, `11/23`, `後楽園ホール`, and `時刻未定`; next shows `K-1 2026.12.29`, `12/29 (火)`, `横浜BUNTAI`, and `時刻未定`.
+- ONE Large PASS: Panpayak Jitmuangnon vs Lamnamoonlek Torfunfarm shows `フライ級キックボクシング`.
+- RIZIN Large remains accepted from v7.22.7: RIZIN.55 next-event location = `千葉・船橋`.
+- BOXING current verified-cache/network-free behavior remains hard-locked and unchanged.
+- No clipping, blank/white widget, stale prior-event leakage, or frozen-geometry regression was observed in the submitted Large screenshots.
+
+`v7.22.9-github` is now the `VERIFIED_BASELINE` for the validated production scope.
 
 ## 11. Known debt / risks
 
@@ -491,11 +494,12 @@ Canonical production:
 - `CARD_POLICY_VERSION=9`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
-- validation status: **PARTIAL** — automated regression green; v7.22.8 physical QA failed UFC title/location, K-1 current venue, and ONE discipline; v7.22.9 targeted physical QA pending
-- previous VERIFIED_BASELINE: `v7.22.6-github` for all five Small categories, BOXING Medium, and K-1 Large targeted role/context/poster/geometry verification
-- v7.22.9 pending physical scope: UFC Large next title/location, K-1 Large current venue, ONE Large discipline rendering
-- RIZIN Large `千葉・船橋` passed on v7.22.7; K-1 next `横浜BUNTAI` + TBA copy passed on v7.22.8; no recheck required absent regression
+- validation status: **VERIFIED_BASELINE** — automated regression green and targeted physical iPhone QA passed on 2026-09-20
+- current VERIFIED_BASELINE: `v7.22.9-github`
+- accepted targeted Large scope: UFC next-event title/time/location; K-1 current + next event venue/TBA transition; ONE main-event discipline; RIZIN next-event location
+- previous v7.22.6 physical baseline evidence remains historical support for all five Small categories, BOXING Medium, and K-1 Large role/context/poster/geometry verification
 - Small/Medium/Large geometry remains frozen; BOXING cache-only architecture unchanged
+- v7.22.7-v7.22.9 source-transition defect-fix cycle is **CLOSED** unless new device evidence or official-source drift appears
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -504,4 +508,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.9-github（PR #83 / merge `25e5d9126f829b67bf0e38995dd41c85c2f17cc8` / main Regression #802 success）です。v7.22.6は直前のVERIFIED_BASELINEです。v7.22.8 device QAではUFC generic title/no Las Vegas、K-1 current 会場未定、ONE フライ級-onlyが残存しました。v7.22.9はその3根因だけをtargeted fixしたWORKING_HEADで、geometry、Loader v4.2.0、friends-stable、BOXING cache-only architectureは変更していません。Loaderを手動実行後、UFC Large / K-1 Large / ONE Largeだけを再確認してください。UFCはRosas Jr. vs Barcelos + ラスベガス、K-1 currentは後楽園ホール、ONEは `フライ級キックボクシング` がacceptance targetです。K-1 next 横浜BUNTAI + `時刻未定` とRIZIN 千葉・船橋は既にpass済みです。全て通ればv7.22.9をVERIFIED_BASELINEへ昇格してください。失敗時はruntime audit + current main + official sourceで原因層を特定し、推測patchは禁止です。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.9-github（PR #83 / merge `25e5d9126f829b67bf0e38995dd41c85c2f17cc8` / main Regression #802 success）です。v7.22.9は2026-09-20のtargeted physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。UFC LargeはRosas Jr. vs Barcelos / 9/27 09:00 JST / ラスベガス、K-1 Largeは11/23 後楽園ホール + 12/29 横浜BUNTAI + TBA copy、ONE Largeはフライ級キックボクシング、RIZIN Largeは千葉・船橋を実機確認済みです。Small/Medium/Large geometry、Loader v4.2.0、friends-stable、BOXING manual verify/prefetch -> verified local cache -> Widget network-free architectureは変更していません。この完了済みQAへ理由なく戻らず、新しいdevice evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
