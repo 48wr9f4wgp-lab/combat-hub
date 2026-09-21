@@ -7,7 +7,7 @@ const marker = 'const D=await loadData(),ctx=await heroContext(D);writeRuntimeAu
 assert.ok(src.includes(marker), 'Runtime instrumentation marker changed');
 const instrumented = src.replace(
   marker,
-  `globalThis.__ufcInternals={ufcCardTime,ufcListingEvents,ufcDetailName,ufcDetailLocation,strictNextEvent};if(globalThis.__TEST_ONLY__)return;${marker}`,
+  `globalThis.__ufcInternals={ufcCardTime,ufcListingEvents,ufcDetailName,ufcDetailLocation,strictNextEvent,currentPagePairs,sanitizeFighter,sanitizeEventFightContext};if(globalThis.__TEST_ONLY__)return;${marker}`,
 );
 
 function fileManager() {
@@ -70,6 +70,24 @@ assert.equal(cards[0].source, detail);
 assert.equal(cards[0].startAt, '2026-09-05T19:00:00.000Z');
 assert.equal(api.ufcDetailName(detailHtml), 'UFC Fight Night: Hooker vs Parnasse');
 assert.equal(api.ufcDetailLocation(detailHtml), 'Paris');
+
+const jpTitleHtml = '<title>UFCファイトナイト・ラスベガス121 | ロサスJr. vs バルセロシュ | UFC</title>';
+const jpPairs = api.currentPagePairs(jpTitleHtml,'https://jp.ufc.com/event/ufc-fight-night-september-26-2026');
+assert.equal(jpPairs.length,1,'Japanese UFC title fallback must yield one fight');
+assert.equal(jpPairs[0].a,'ロサスJr.','Japanese UFC event prefix must not contaminate fighter A');
+assert.equal(jpPairs[0].b,'バルセロシュ','UFC suffix must not contaminate fighter B');
+assert.equal(api.sanitizeFighter('UFCファイトナイト・ラスベガス121 | ロサスJr.'),'ロサスJr.');
+
+const healed = api.sanitizeEventFightContext({
+  name:'UFCファイトナイト・ラスベガス121',
+  source:'https://jp.ufc.com/event/ufc-fight-night-september-26-2026',
+  startAt:'2026-09-27T09:00:00+09:00',
+  main:{a:'UFCファイトナイト・ラスベガス121 | ロサスJr.',b:'バルセロシュ | UFC',context:'バンタム級'},
+  support:[],
+  cardTba:false,
+});
+assert.equal(healed.main.a,'ロサスJr.','cached polluted fighter A must self-heal without network');
+assert.equal(healed.main.b,'バルセロシュ','cached polluted fighter B must self-heal without network');
 
 const next = await api.strictNextEvent({
   startAt: '2026-08-29T19:00:00+09:00',

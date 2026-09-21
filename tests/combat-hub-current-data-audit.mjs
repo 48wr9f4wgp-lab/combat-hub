@@ -4,12 +4,13 @@ import assert from 'node:assert/strict';
 const src=fs.readFileSync('combat-hub.js','utf8');
 const preview=fs.readFileSync('combat-hub-preview-loader.js','utf8');
 
-assert.match(src,/const VERSION='7\.22\.9-github'/);
+assert.match(src,/const VERSION='7\.22\.10-github'/);
 assert.match(src,/const TRUSTED_FUTURE=\{/,'verified future fallback set missing');
 assert.match(src,/UFC Fight Night: Rosas Jr\. vs Barcelos/,'verified post-UFC331 fallback missing');
 assert.match(src,/K-1 2026\.11\.23/,'verified K-1 11\/23 fallback missing');
 assert.match(src,/K-1 2026\.12\.29/,'verified K-1 12\/29 fallback missing');
 assert.match(src,/function ufcListingEvents\(html,base,min,max\)/,'UFC current-markup listing parser missing');
+assert.match(src,/replace\(\/\^UFC\[\^\|\]\{0,120\}\\\|\\s\*\/i,''\)/,'Japanese UFC event-title fighter sanitizer missing');
 assert.match(src,/function k1ListingEvents\(html,base,now=Date\.now\(\)\)/,'K-1 schedule listing parser missing');
 assert.match(src,/function oneBoutContext\(raw\)/,'ONE discipline context parser missing');
 assert.match(src,/function safePendingEvent\(now=Date\.now\(\),lightweight=false\)/,'neutral pending helper missing');
