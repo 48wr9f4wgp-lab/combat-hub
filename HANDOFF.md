@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.22.9 remains the previous VERIFIED_BASELINE; v7.22.10 changes only UFC fighter-name sanitization/cache healing and requires one targeted UFC Medium physical recheck before promotion.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.22.10 has passed the targeted UFC Medium physical recheck and is the current VERIFIED_BASELINE.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -45,7 +45,7 @@ Target quality:
 - Physical iPhone QA on v7.22.7 (2026-09-20) showed: RIZIN Large PASS; UFC Large selected 9/27 correctly but lost bout/Las Vegas metadata; K-1 transitioned to 11/23 and 12/29 but lost both venue strings; ONE still rendered only `フライ級`.
 - v7.22.8 targets only those remaining layers: sparse live metadata hydration from verified first-party event metadata, Large-next cache policy v2, CARD_POLICY_VERSION 8, verified UFC fallback-card preservation, discipline-preserving `division()`, compact UFC next-title cleanup, and K-1 TBA copy cleanup. Geometry/Loader/BOXING/friends-stable remain unchanged. Branch/PR/main regressions #784/#785/#786 are success; physical iPhone QA on 2026-09-20 remained PARTIAL: UFC still showed generic title/no Las Vegas, K-1 current still showed 会場未定 while 12/29 横浜BUNTAI + TBA copy passed, and ONE still showed only フライ級.
 - v7.22.9 fixes the remaining root causes only: canonical trusted-source/date matching, placeholder-location override, verified ONE FF172 discipline baseline, richer-context preference for identical fighters, Japanese combat-discipline preservation inside `fightContext()`, CARD_POLICY_VERSION 9, and LARGE_NEXT_POLICY_VERSION 3. Geometry/Loader/BOXING/friends-stable remain unchanged. Branch/PR/main regressions #800/#801/#802 are success. Final targeted physical iPhone QA on 2026-09-20 passed, so v7.22.9 is promoted to `VERIFIED_BASELINE` for the validated scope below.
-- 2026-09-21 physical evidence exposed a new UFC-only source-drift defect outside that verified Large scope: the Japanese page title `UFCファイトナイト・ラスベガス121 | ロサスJr. vs バルセロシュ | UFC` was parsed as a fight fallback and polluted fighter A with the event-title prefix. v7.22.10 strips leading UFC event-title segments before `|`, re-sanitizes UFC fighter names when reading cached event data so polluted cache self-heals, and bumps CARD_POLICY_VERSION to 10. No geometry, Loader, RIZIN/ONE/K-1/BOXING behavior, or friends-stable changes. Branch/PR/main regressions #817/#818/#819 are success; one targeted UFC Medium physical recheck remains.
+- 2026-09-21 physical evidence exposed a new UFC-only source-drift defect outside that verified Large scope: the Japanese page title `UFCファイトナイト・ラスベガス121 | ロサスJr. vs バルセロシュ | UFC` was parsed as a fight fallback and polluted fighter A with the event-title prefix. v7.22.10 strips leading UFC event-title segments before `|`, re-sanitizes UFC fighter names when reading cached event data so polluted cache self-heals, and bumps CARD_POLICY_VERSION to 10. No geometry, Loader, RIZIN/ONE/K-1/BOXING behavior, or friends-stable changes. Branch/PR/main regressions #817/#818/#819 are success. Targeted UFC Medium physical QA on 2026-09-21 passed, so v7.22.10 is promoted to `VERIFIED_BASELINE`.
 - `friends-stable` remains isolated and must not be changed/promoted/deleted without explicit user approval.
 
 Main `.github/workflows` should contain only the canonical `combat-hub-regression.yml`. One-shot implementation/inspection workflows must never remain on `main`.
@@ -437,11 +437,14 @@ Final targeted physical iPhone QA on v7.22.9 passed on 2026-09-20:
 
 `v7.22.9-github` is now the `VERIFIED_BASELINE` for the validated production scope.
 
-2026-09-21 new physical evidence (outside the v7.22.9 validated Large scope):
-- UFC Medium FAIL: event/date/time/location/background were correct, but fighter A rendered as `UFCファイトナイト・ラスベガス121 | ロサスJr.` instead of `ロサスJr.`.
+2026-09-21 UFC Medium source-drift cycle:
+- Initial physical evidence FAIL: fighter A rendered as `UFCファイトナイト・ラスベガス121 | ロサスJr.` instead of `ロサスJr.` while event/date/time/location/background remained correct.
 - Root cause confirmed against the current official Japanese UFC title shape and runtime fallback parser.
-- v7.22.10 automated fix is merged; targeted acceptance = UFC Medium shows clean fighter labels `ロサスJr.` vs `バルセロシュ` with the existing event/date/time/location/geometry intact.
-- v7.22.9 remains the previous VERIFIED_BASELINE until that v7.22.10 device recheck passes.
+- v7.22.10 automated fix merged with branch/PR/main regressions #817/#818/#819 success.
+- Final physical iPhone QA PASS: `ロサスJr.` vs `バルセロシュ` renders cleanly; `UFCファイトナイト・ラスベガス121`, `9/27 (日) 09:00 JST`, `ラスベガス`, background imagery, and Medium geometry remain intact.
+- No clipping, stale title-prefix contamination, or blank/white widget was observed.
+
+`v7.22.10-github` is now the current `VERIFIED_BASELINE`.
 
 ## 11. Known debt / risks
 
@@ -501,11 +504,12 @@ Canonical production:
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
-- validation status: **PARTIAL** — automated regression green; one targeted UFC Medium physical recheck pending
-- previous/current verified reference: `v7.22.9-github` VERIFIED_BASELINE for the validated production scope
-- v7.22.10 pending physical scope: UFC Medium current main-event fighter labels only (`ロサスJr.` vs `バルセロシュ`); event/date/time/location/background/geometry must remain unchanged
+- validation status: **VERIFIED_BASELINE** — automated regression green and targeted UFC Medium physical iPhone QA passed on 2026-09-21
+- current VERIFIED_BASELINE: `v7.22.10-github`
+- accepted v7.22.10 scope: UFC Medium clean fighter labels `ロサスJr.` vs `バルセロシュ` with event/date/time/location/background/geometry preserved
+- all previously accepted v7.22.9 scopes remain accepted
 - Small/Medium/Large geometry remains frozen; BOXING cache-only architecture unchanged
-- other v7.22.9 verified scopes remain accepted unless new device evidence shows regression
+- v7.22.10 UFC Japanese-title source-drift defect-fix cycle is **CLOSED** unless new device evidence or official-source drift appears
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -514,4 +518,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.10-github（PR #86 / merge `22414b38e0d863b741a51ef22d4f1ad234ff047b` / main Regression #819 success）です。v7.22.9は直前のVERIFIED_BASELINEです。2026-09-21のUFC Medium実機で、日本語UFCページtitle fallbackがfighter Aへ大会名prefixを混入するsource driftを確認しました。v7.22.10はUFC fighter sanitizer + cached data self-heal + CARD_POLICY_VERSION 10だけを変更したWORKING_HEADです。geometry、Loader v4.2.0、RIZIN/ONE/K-1/BOXING、friends-stableは変更していません。Loaderを手動実行後、UFC Mediumだけを再確認し、`ロサスJr.` vs `バルセロシュ` が綺麗に表示され、event/date/time/location/background/geometryが維持されていればv7.22.10をVERIFIED_BASELINEへ昇格してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.10-github（PR #86 / merge `22414b38e0d863b741a51ef22d4f1ad234ff047b` / main Regression #819 success）です。v7.22.10は2026-09-21のtargeted UFC Medium physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。`ロサスJr.` vs `バルセロシュ`、`UFCファイトナイト・ラスベガス121`、`9/27 09:00 JST`、`ラスベガス`、背景、Medium geometryを実機確認済みです。Small/Medium/Large geometry、Loader v4.2.0、RIZIN/ONE/K-1/BOXING、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいdevice evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
