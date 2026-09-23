@@ -49,6 +49,9 @@ assert.ok(src.includes("main:{a:'ジョナス・サルシチャ',b:'ゾーラ・
 // BOXING trusted current baseline is Ring-official; exact broadcast clock remains source-driven.
 has(/boxing:\{startAt:'2026-09-20T00:00:00\+09:00'[^\n]*timeTba:true[^\n]*name:'Cruz vs Bravo'/, 'BOXING Ring current snapshot missing');
 has(/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/, 'BOXING snapshot must use canonical Ring event source');
+has(/const BOXING_SOURCE_POLICY_VERSION=1/, 'BOXING highlight source policy missing');
+has(/boxingHighlightDiscovery/, 'BOXING highlight verified-cache provenance missing');
+has(/注目興行/, 'BOXING highlighted-event copy missing');
 
 // Roll-forward safety.
 has(/function currentGraceMs\(e\)\{return e\?\.timeTba\?36\*3600000:12\*3600000;\}/, 'time-aware current-event grace missing');
@@ -63,7 +66,7 @@ has(/if\(!candidates\.length\)\{for\(const u of links/, 'detail traversal fallba
 
 // Safe fallback behavior: unknown cards must never invent fighters.
 has(/\{a:'対戦カード',b:'発表待ち',context:''\}/, 'TBA card fallback must not leak event name into bout context');
-has(/main:\{a:'次大会',b:'確認中',context:''\}/, 'next-event pending fallback must keep bout context empty');
+has(/main:\{a:name,b:'確認中',context:''\}/, 'pending fallback must keep bout context empty while allowing BOXING highlight semantics');
 has(/replace\(\/&amp;\/gi,'&'\)/, 'HTML entity decoding regressed');
 has(/async function eventPoster\(D,opts\)/, 'event-poster fallback helper missing');
 
