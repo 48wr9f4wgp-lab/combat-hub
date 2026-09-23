@@ -25,9 +25,11 @@ assert.match(src,/function ringListingEvents\(html,base,now=Date\.now\(\)\)/,'Ri
 assert.match(src,/function ringDetailMain\(html\)/,'Ring event-detail parser missing');
 assert.match(src,/if\(KEY==='boxing'\)candidates\.push\(\.\.\.ringListingEvents\(listing,S\.listing,now\)\.filter\(eligible\)\)/,'Ring candidates must enter strictNextEvent');
 assert.match(src,/if\(KEY==='boxing'\)\{const ring=ringDetailPairs\(html\);if\(ring\.length\)return ring;\}/,'BOXING detail cards must use Ring parser first');
-assert.match(src,/verifiedBy:'strictNextEvent'/,'BOXING verified-cache marker must remain');
+assert.match(src,/verifiedBy:'boxingHighlightDiscovery'/,'BOXING highlighted-event verified-cache marker must remain');
 assert.match(src,/if\(KEY==='boxing'\)\{[\s\S]*?if\(config\.runsInWidget\)/,'BOXING widget cache-only gate must run before any locked-current network refresh');
 assert.match(src,/function boxingCurrentVerifiedCache\(/,'BOXING verified current-cache path missing');
+assert.match(src,/function discoverBoxingHighlight\(now=Date\.now\(\)\)/,'BOXING official multi-source discovery missing');
+assert.match(src,/BOXING_SOURCE_POLICY_VERSION=1/,'BOXING source policy version missing');
 
 const H=3600000,D=24*H;
 const id=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
