@@ -19,7 +19,7 @@ assert.match(src,/else if\(IS_SMALL\)\{w\.setPadding\(SMALL_UI\.pad,SMALL_UI\.pa
 assert.match(src,/renderSmall\(w,D,ctx\);\n\}else\{w\.setPadding\(10,14,8,14\)/,'Small must not fall through to Medium renderer');
 assert.match(src,/if\(ctx\.poster\)w\.backgroundImage=smallPosterBg\(ctx\.poster\);else if\(KEY==='boxing'\)w\.backgroundGradient=gradient\(\)/,'BOXING Small may use only verified cached poster, otherwise gradient');
 assert.match(src,/else if\(IS_SMALL\)await w\.presentSmall\(\)/,'manual Small preview routing missing');
-assert.match(src,/D\.nextPending\?'次大会情報\\n確認中':'対戦カード\\n発表待ち'/,'Small pending copy contract missing');
+assert.match(src,/D\.nextPending\?\(KEY==='boxing'\?'注目興行\\n確認中':'次大会情報\\n確認中'\):'対戦カード\\n発表待ち'/,'Small pending copy contract missing');
 assert.match(src,/tx\(w,'メインイベント',SMALL_UI\.mainLabel/,'Small confirmed main-event hierarchy missing');
 assert.match(src,/smallDate\(D\).*smallLocation\(D\)/s,'Small footer metadata missing');
 assert.match(src,/const loc=tx\(meta,smallLocation\(D\),SMALL_UI\.meta,new Color\(C\.sub\)/,'Small location must keep readable footer contrast');
