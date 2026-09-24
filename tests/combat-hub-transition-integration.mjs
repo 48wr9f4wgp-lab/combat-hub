@@ -239,7 +239,7 @@ for(const [parameter,cfg] of Object.entries(SERIES)){
   assert.equal(currentB.cacheVerified,true,'BOXING manual: discovered B must be marked verified');
   const verified1=JSON.parse(fm.strings.get('/docs/combat-hub-next-boxing.json'));
   assert.equal(verified1.verifiedBy,'boxingHighlightDiscovery','BOXING manual: verified cache provenance must be highlighted-event discovery');
-  assert.equal(verified1.sourcePolicy,2,'BOXING manual: highlighted-event cache must carry source policy');
+  assert.equal(verified1.sourcePolicy,3,'BOXING manual: highlighted-event cache must carry source policy');
 
   const widget1=await boot(parameter,{now:now1,runsInWidget:true,fm,textResponses:{}});
   const widgetB=await widget1.api.loadData();

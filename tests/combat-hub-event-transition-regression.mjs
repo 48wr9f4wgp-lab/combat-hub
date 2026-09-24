@@ -29,7 +29,7 @@ assert.match(src,/verifiedBy:'boxingHighlightDiscovery'/,'BOXING highlighted-eve
 assert.match(src,/if\(KEY==='boxing'\)\{[\s\S]*?if\(config\.runsInWidget\)/,'BOXING widget cache-only gate must run before any locked-current network refresh');
 assert.match(src,/function boxingCurrentVerifiedCache\(/,'BOXING verified current-cache path missing');
 assert.match(src,/function discoverBoxingHighlight\(now=Date\.now\(\)\)/,'BOXING official multi-source discovery missing');
-assert.match(src,/BOXING_SOURCE_POLICY_VERSION=2/,'BOXING source policy version missing');
+assert.match(src,/BOXING_SOURCE_POLICY_VERSION=3/,'BOXING source policy version missing');
 
 const H=3600000,D=24*H;
 const id=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'');

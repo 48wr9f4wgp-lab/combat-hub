@@ -7,7 +7,7 @@ const marker='const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudi
 assert.ok(src.includes(marker),'runtime instrumentation marker changed');
 const instrumented=src.replace(
   marker,
-  `globalThis.__boxingHighlight={boxingSourceId,boxingOfficialSource,boxingOfficialListingEvents,boxingHighlightValid,boxingHighlightScore,boxingTrustedHighlights,dedupeBoxingCandidates,discoverBoxingHighlight,safePendingEvent,loadData,boxingSourcePriority};if(globalThis.__TEST_ONLY__)return;${marker}`,
+  `globalThis.__boxingHighlight={boxingSourceId,boxingOfficialSource,boxingOfficialListingEvents,boxingHighlightValid,boxingHighlightScore,boxingTrustedHighlights,dedupeBoxingCandidates,discoverBoxingHighlight,safePendingEvent,loadData,boxingSourcePriority,boxingCleanFighterName,boxingCandidateMatch};if(globalThis.__TEST_ONLY__)return;${marker}`,
 );
 
 function sharedFM(){
@@ -40,8 +40,8 @@ async function boot({now=Date.parse('2026-09-23T12:00:00+09:00'),runsInWidget=fa
   return{api:context.__boxingHighlight,fm,requests};
 }
 
-assert.match(src,/const VERSION='7\.23\.1-github'/);
-assert.match(src,/const BOXING_SOURCE_POLICY_VERSION=2/);
+assert.match(src,/const VERSION='7\.23\.2-github'/);
+assert.match(src,/const BOXING_SOURCE_POLICY_VERSION=3/);
 for(const host of ['ringmagazine.com','matchroomboxing.com','premierboxingchampions.com','toprank.com','queensberry.co.uk','teiken.com'])assert.ok(src.includes(host),`missing official BOXING source: ${host}`);
 assert.doesNotMatch(src,/goldenboypromotions\.com/,'Golden Boy must stay disabled until a stable public schedule surface is verified');
 assert.match(src,/verifiedBy:'boxingHighlightDiscovery'/);
@@ -59,6 +59,8 @@ assert.match(src,/KEY==='boxing'\?'注目興行':'次大会'/);
   assert.equal(api.boxingSourceId('https://www.teiken.com/bout/'),'teiken');
   assert.ok(api.boxingSourcePriority({sourceId:'teiken'})>api.boxingSourcePriority({sourceId:'ring'}),'local promoter truth must outrank Ring metadata');
   assert.equal(api.boxingOfficialSource({source:'https://example.com/fight'}),false);
+  assert.equal(api.boxingCleanFighterName('Nasukawa Sep'),'Nasukawa','trailing month contamination must be removed from fighter names');
+  assert.equal(api.boxingCleanFighterName('Nasukawa September'),'Nasukawa');
 }
 
 {
@@ -68,6 +70,17 @@ assert.match(src,/KEY==='boxing'\?'注目興行':'次大会'/);
   assert.equal(trusted[0].promoter,'帝拳');
   assert.equal(trusted[0].startAt,'2026-09-27T16:30:00+09:00');
   assert.equal(trusted[0].location,'TOYOTA ARENA TOKYO');
+
+  const ringPolluted={name:'Inoue vs Nasukawa Sep',startAt:'2026-09-27T15:00:00+09:00',timeTba:true,location:'東京',source:'https://www.ringmagazine.com/events/inoue-vs-nasukawa',sourceId:'ring',promoter:'The Ring',main:{a:'Inoue',b:'Nasukawa Sep',context:''},support:[],cardTba:false,liveSource:true,verifiedSources:['ring']};
+  assert.equal(api.boxingCandidateMatch(trusted[0],ringPolluted),true,'Ring surname/month candidate must match Teiken canonical aliases on the same date');
+  const merged=api.dedupeBoxingCandidates([ringPolluted,trusted[0]]);
+  assert.equal(merged.length,1,'same fight from Ring and Teiken must dedupe to one highlighted event');
+  assert.equal(merged[0].sourceId,'teiken','local promoter record must own merged event truth');
+  assert.equal(merged[0].startAt,'2026-09-27T16:30:00+09:00');
+  assert.equal(merged[0].location,'TOYOTA ARENA TOKYO');
+  assert.equal(merged[0].main.a,'井上拓真');
+  assert.equal(merged[0].main.b,'那須川天心');
+  assert.equal(merged[0].visualSource,'https://www.ringmagazine.com/events/inoue-vs-nasukawa','lower-authority verified source may remain visual fallback');
 }
 
 {
@@ -101,7 +114,7 @@ assert.match(src,/KEY==='boxing'\?'注目興行':'次大会'/);
   assert.equal(data.main.b,'那須川天心');
   const saved=JSON.parse(fm.strings.get('/docs/combat-hub-next-boxing.json'));
   assert.equal(saved.verifiedBy,'boxingHighlightDiscovery');
-  assert.equal(saved.sourcePolicy,2);
+  assert.equal(saved.sourcePolicy,3);
   assert.equal(saved.data.highlight,true);
 
   const widget=await boot({now,runsInWidget:true,fm,textResponses:{}});
