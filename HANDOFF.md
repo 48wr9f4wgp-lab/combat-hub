@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.22.10 has passed the targeted UFC Medium physical recheck and is the current VERIFIED_BASELINE.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.22.10 remains the current VERIFIED_BASELINE; v7.23.0 changes BOXING event discovery semantics/data sources only and requires targeted BOXING Medium + Large physical QA before promotion.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -31,10 +31,10 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.22.10-github**.
-- Latest runtime-changing PR: **#86 — sanitize Japanese UFC event-title fighter contamination**.
-- Runtime merge commit: `22414b38e0d863b741a51ef22d4f1ad234ff047b`.
-- Main Regression after PR #86: **#819 success**.
+- Production runtime: **v7.23.0-github**.
+- Latest runtime-changing PR: **#89 — add verified multi-source BOXING highlighted events**.
+- Runtime merge commit: `1e42170a9cda16a0235bf0f2cd931a4176ce24fd`.
+- Main Regression after PR #89: **#845 success**.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=10` is the current canonical card-policy version.
@@ -55,7 +55,13 @@ Main `.github/workflows` should contain only the canonical `combat-hub-regressio
 - UFC: `https://www.ufc.com/events`
 - RIZIN: `https://jp.rizinff.com/`
 - ONE: `https://www.onefc.com/events/`
-- BOXING: `https://www.ringmagazine.com/events`
+- BOXING aggregation sources:
+  - The Ring: `https://www.ringmagazine.com/events`
+  - Matchroom Boxing: `https://www.matchroomboxing.com/events/`
+  - Premier Boxing Champions: `https://www.premierboxingchampions.com/boxing-schedule`
+  - Top Rank: `https://toprank.com/news?categories=fight-announcements`
+  - Queensberry: `https://queensberry.co.uk/pages/events`
+  - Golden Boy: intentionally excluded until a stable public schedule surface is verified
 - K-1: `https://www.k-1.co.jp/k-1wgp/schedule`
 
 No backend/database/auth/paid service is required. Runtime is standalone Scriptable JavaScript using public HTTP GETs and `FileManager.local()` cache.
@@ -126,7 +132,7 @@ Physical iPhone QA passed for Medium and Large after the architecture changed to
 
 **manual Scriptable BOXING run -> verified cache -> Widget reads cache only**
 
-Safe pending remained stable when no verified future Ring event was available.
+Safe pending remained stable when no verified future BOXING event was available. v7.23.0 keeps the same network-free Widget safety model while broadening only the manual verification sources.
 
 ### v7.13.0 / v7.13.1 — Large readability Visual Pass
 
@@ -245,9 +251,9 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - Image acquisition is source-aware. It can use fighter profile imagery, event/poster imagery, JSON-LD images, social metadata, and K-1 poster-gallery imagery with deterministic fallback.
 - `IMAGE_POLICY_VERSION` allows old positive image metadata to be reconsidered after resolver changes. Null image results are not treated as successful positive cache entries.
 - UFC prefers a complete official fighter pair, then official event artwork. K-1 prefers official poster/event artwork, then fighter imagery.
-- BOXING uses the canonical Ring event source. The trusted current baseline is Cruz vs Bravo at Pechanga Arena, with Ramos vs Nursultanov as the co-main baseline.
-- BOXING current and future Widget execution are network-free for Ring discovery and poster retrieval: manual/non-widget execution verifies official Ring data and prefetches approved poster bytes; the Widget reads only verified/local cache, otherwise it degrades to the safe gradient/pending path.
-- BOXING current-cache provenance uses `verifiedBy:'refreshLockedCurrent'`; future verified discovery retains `verifiedBy:'strictNextEvent'`.
+- BOXING current-event verification keeps the canonical Ring current snapshot path. The trusted current baseline remains Cruz vs Bravo at Pechanga Arena, with Ramos vs Nursultanov as the co-main baseline.
+- BOXING future/highlighted-event discovery is multi-source from first-party official promotion/event surfaces, but only during manual/non-widget execution. Home-screen Widget execution remains network-free for BOXING discovery and poster retrieval.
+- BOXING current-cache provenance remains `verifiedBy:'refreshLockedCurrent'`. Highlighted-event cache uses `verifiedBy:'boxingHighlightDiscovery'` plus `BOXING_SOURCE_POLICY_VERSION=1`.
 - `CARD_POLICY_VERSION=4` migrates pre-v7.22 card/context semantics once.
 - Small / Medium / Large geometry and typography remain frozen.
 
@@ -258,21 +264,24 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 When COMBAT HUB is run manually with BOXING:
 
 1. If the trusted current Ring event is still inside its grace window, `refreshLockedCurrent(...)` may refresh the official event detail.
-2. The official poster resolver may download and cache verified Ring image bytes.
-3. Current verified cache is written to `combat-hub-current-boxing.json` with `verifiedBy:'refreshLockedCurrent'`.
-4. After current expiry, `strictNextEvent(...)` may discover the next official Ring event and write `combat-hub-next-boxing.json` with `verifiedBy:'strictNextEvent'`.
+2. After current expiry, `discoverBoxingHighlight(...)` queries the approved official-source registry: Ring / Matchroom / PBC / Top Rank / Queensberry.
+3. Candidates require an identifiable official main-event pair, are deduplicated by fight identity/date, and are ranked as **注目興行** rather than pretending BOXING has one canonical next event.
+4. Ranking favors near-term events, title/unification/world context, live official-source confirmation, and multi-source verification.
+5. `BOXING_TRUSTED_HIGHLIGHTS` may provide short, time-bounded first-party verified fallback records when current official listing markup cannot be parsed. These are not invented data.
+6. The selected highlighted event is written to `combat-hub-next-boxing.json` with `verifiedBy:'boxingHighlightDiscovery'` and `sourcePolicy:BOXING_SOURCE_POLICY_VERSION`.
+7. Official poster bytes may be prefetched only on the manual/non-widget path.
 
 ### Home-screen Widget path
 
-BOXING Widget execution is deliberately network-free for heavy official discovery and image acquisition:
+BOXING Widget execution remains deliberately network-free for heavy official discovery and image acquisition:
 
-- current event -> verified current cache when available, otherwise trusted local snapshot
-- future event -> verified future cache when available, otherwise safe lightweight pending
+- current event -> verified Ring current cache when available, otherwise trusted local snapshot
+- highlighted event -> verified highlighted-event cache when available, otherwise safe lightweight `注目興行を確認中`
 - poster -> local verified image cache only
 - cache miss -> safe gradient; never force a remote image fetch inside the Widget
-- unverified/legacy BOXING future cache never reaches Widget output
+- unverified/legacy BOXING future/highlight cache never reaches Widget output
 
-This is a hard safety invariant unless new physical-device evidence justifies changing it.
+This remains a hard safety invariant unless new physical-device evidence justifies changing it.
 
 ## 8. New in v7.14.0 — Ring-specific official parser
 
@@ -306,18 +315,15 @@ It normalizes the listing into normal COMBAT HUB candidate objects and feeds onl
 
 ### Intentional source limitation
 
-**Do not add a broad Ring news/article fallback merely to force a future event onto the widget.**
+**Do not broaden BOXING discovery to arbitrary news/search results merely to force an event onto the widget.**
 
-News articles can describe tentative, cancelled, postponed or superseded fights. The current policy is:
+v7.23.0 permits only the approved first-party official-source registry plus explicitly verified, time-bounded fallback records. Articles or announcements may describe tentative, cancelled, postponed or superseded fights, so source admission is controlled rather than open-ended.
 
-- official Ring `/events` candidate -> eligible -> verified cache -> display
-- otherwise -> safe pending
-
-Wrong certainty is worse than pending.
+Wrong certainty is still worse than pending.
 
 ### Current official-source state
 
-By 2026-09-18 Ring had advanced to an official Cruz vs Bravo event page. v7.22.0 uses that canonical Ring event as the BOXING current baseline and extends detail parsing to support main + additional official fight rows where available. The older noncanonical UFC-domain BOXING snapshot source is removed.
+By 2026-09-18 Ring had advanced to an official Cruz vs Bravo event page. v7.22.0 uses that canonical Ring event as the BOXING current baseline and extends detail parsing to support main + additional official fight rows where available. The older noncanonical UFC-domain BOXING snapshot source is removed. v7.23.0 does not replace the current-event Ring path; it changes only the post-expiry future model from a single `next event` to a verified multi-source `注目興行`.
 
 ## 9. Runtime audit
 
@@ -343,7 +349,7 @@ Do not add visible debug labels to the Widget merely to inspect these values.
 
 ## 10. Regression coverage / current CI
 
-Canonical CI covers runtime/Loader syntax plus general runtime, cache/performance, ONE timing, UFC roll-forward, K-1 layout, typography, current-data audit, Large, Japanese display, event transitions, five-series transition timeline/integration, Small, UFC/K-1 live-card freshness, and v7.22 data/image hardening.
+Canonical CI covers runtime/Loader syntax plus general runtime, cache/performance, BOXING highlighted-event aggregation, ONE timing, UFC roll-forward, K-1 layout, typography, current-data audit, Large, Japanese display, event transitions, five-series transition timeline/integration, Small, UFC/K-1 live-card freshness, and v7.22 data/image hardening.
 
 The v7.22 suite additionally locks:
 
@@ -356,6 +362,7 @@ The v7.22 suite additionally locks:
 - Ring main + co-main parsing and broadcast-copy rejection
 - BOXING manual current verification/image prefetch
 - BOXING Widget zero-network verified-cache consumption
+- BOXING multi-source highlighted-event source policy, scoring, verified-cache provenance, and safe pending semantics
 - image refresh not mutating event-discovery timestamps
 - expanded runtime-audit diagnostics
 
@@ -446,15 +453,40 @@ Final targeted physical iPhone QA on v7.22.9 passed on 2026-09-20:
 
 `v7.22.10-github` is now the current `VERIFIED_BASELINE`.
 
+## 10B. v7.23.0 — BOXING highlighted-event aggregation
+
+Product semantics change:
+- BOXING future state is now **注目興行**, not a single canonical `次大会`.
+- The manual/non-widget path aggregates approved official promoter/event sources, deduplicates candidates, applies a deterministic relevance score, and writes one verified highlight to local cache.
+- Approved source registry: The Ring / Matchroom / PBC / Top Rank / Queensberry. Golden Boy remains excluded until a stable schedule surface is verified.
+- Home-screen Widget BOXING discovery remains zero-network and cache-only.
+- `BOXING_SOURCE_POLICY_VERSION=1` invalidates legacy future cache semantics.
+- Pending BOXING copy is `注目興行を確認中` / `検証済み情報のみ表示`.
+- Large BOXING provenance panel shows promoter and verification state rather than another linear `次大会` claim.
+- Small/Medium/Large geometry tokens are unchanged.
+
+Automated evidence:
+- branch Regression #843 SUCCESS
+- PR #89 Regression #844 SUCCESS
+- merge-to-main Regression #845 SUCCESS
+- new `combat-hub-boxing-highlight-regression.mjs` PASS
+
+Physical iPhone QA still required before v7.23.0 VERIFIED_BASELINE promotion:
+- run Loader manually once so official BOXING sources can be checked and verified cache written
+- BOXING Medium: selected highlighted event, fighter names, date/location/countdown, background/gradient, no white screen, no clipping
+- BOXING Large: same highlighted event plus provenance panel shows `注目興行` semantics and official promoter/verification state; no geometry regression or white screen
+- Small is not required unless a symptom appears
+- v7.22.10 remains the VERIFIED_BASELINE until these Medium + Large checks pass.
+
 ## 11. Known debt / risks
 
 ### BOXING source availability / timing
 
-Ring remains the only authoritative BOXING event source used for promotion. If its listing/detail lags announcements, safe pending is preferred over inferred certainty. The current Cruz vs Bravo snapshot intentionally keeps `timeTba=true` until an exact trusted clock is verified for the baseline; do not manufacture precision.
+BOXING no longer assumes one promotion-wide canonical `次大会`. Current-event truth still uses the trusted Ring path where applicable; future selection is one verified **注目興行** chosen from the approved official-source registry. If no candidate meets the verification gate, safe pending is preferred. Do not manufacture exact times, venues, or cards that the admitted official sources do not support.
 
 ### Source markup drift
 
-UFC / K-1 / Ring page markup can change. Structured parsers, image fallbacks and runtime audit should be used to diagnose source drift before patching.
+UFC / K-1 / Ring / Matchroom / PBC / Top Rank / Queensberry page markup can change. Structured parsers, source-policy fallbacks, image fallbacks and runtime audit should be used to diagnose source drift before patching.
 
 ### README / historical handoff
 
@@ -468,7 +500,7 @@ UFC / K-1 / Ring page markup can change. Structured parsers, image fallbacks and
 - Do not restore heavy BOXING DrawContext work without physical-device evidence.
 - Do not display unverified event imagery.
 - Do not invent event/card/time/location data.
-- Do not use broad news scraping to manufacture certainty when official Ring events data is absent.
+- Do not use broad news/search scraping to manufacture BOXING certainty outside the approved official-source registry.
 - Do not leave one-shot workflows on `main`.
 - Do not route production to preview loaders.
 - Do not add unnecessary backend/PWA/Vercel dependencies.
@@ -496,20 +528,20 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.22.10-github`
+- runtime `v7.23.0-github`
 - Loader `v4.2.0`
-- runtime PR `#86`
-- runtime merge `22414b38e0d863b741a51ef22d4f1ad234ff047b`
-- main Regression `#819 success`
+- runtime PR `#89`
+- runtime merge `1e42170a9cda16a0235bf0f2cd931a4176ce24fd`
+- main Regression `#845 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
-- validation status: **VERIFIED_BASELINE** — automated regression green and targeted UFC Medium physical iPhone QA passed on 2026-09-21
-- current VERIFIED_BASELINE: `v7.22.10-github`
-- accepted v7.22.10 scope: UFC Medium clean fighter labels `ロサスJr.` vs `バルセロシュ` with event/date/time/location/background/geometry preserved
-- all previously accepted v7.22.9 scopes remain accepted
-- Small/Medium/Large geometry remains frozen; BOXING cache-only architecture unchanged
-- v7.22.10 UFC Japanese-title source-drift defect-fix cycle is **CLOSED** unless new device evidence or official-source drift appears
+- `BOXING_SOURCE_POLICY_VERSION=1`
+- validation status: **PARTIAL** — automated regression green; BOXING Medium + Large physical QA pending
+- previous/current verified reference: `v7.22.10-github` VERIFIED_BASELINE
+- v7.23.0 pending physical scope: BOXING highlighted-event selection + cache-only rendering in Medium/Large, including no white screen/clipping and correct `注目興行` provenance semantics
+- UFC / RIZIN / ONE / K-1 verified scopes remain accepted; their runtime behavior/geometry was not intentionally changed
+- Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -518,4 +550,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.22.10-github（PR #86 / merge `22414b38e0d863b741a51ef22d4f1ad234ff047b` / main Regression #819 success）です。v7.22.10は2026-09-21のtargeted UFC Medium physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。`ロサスJr.` vs `バルセロシュ`、`UFCファイトナイト・ラスベガス121`、`9/27 09:00 JST`、`ラスベガス`、背景、Medium geometryを実機確認済みです。Small/Medium/Large geometry、Loader v4.2.0、RIZIN/ONE/K-1/BOXING、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいdevice evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.0-github（PR #89 / merge `1e42170a9cda16a0235bf0f2cd931a4176ce24fd` / main Regression #845 success）です。v7.22.10は直前のVERIFIED_BASELINEです。v7.23.0はBOXINGだけを変更し、未来表示を単一の`次大会`から、Ring / Matchroom / PBC / Top Rank / Queensberryの一次公式sourceを手動Loader実行時に集約・検証して1件選ぶ`注目興行`へ変更しました。BOXING Home Screen Widgetのdiscoveryは従来どおりnetwork-freeで、verified local cacheのみを消費します。`BOXING_SOURCE_POLICY_VERSION=1`。Small/Medium/Large geometry、Loader v4.2.0、UFC/RIZIN/ONE/K-1、friends-stableは変更していません。残る未完了はBOXING Medium + Largeのtargeted physical QAだけです。Loaderを手動実行後、Medium/Largeで注目興行・promoter/verification表示・no white screen/clippingを確認し、通ればv7.23.0をVERIFIED_BASELINEへ昇格してください。
