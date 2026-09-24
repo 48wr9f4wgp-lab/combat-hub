@@ -223,12 +223,12 @@ function stringRequests(requests) {
   assert.equal(stringRequests(requests).length,0,'BOXING widget verified-cache path must remain network-free');
 }
 
-// Manual BOXING execution should discover from Ring, validate, and persist a verified next-event cache.
+// Manual BOXING execution should still accept a live Ring candidate when no nearer trusted highlight remains.
 {
-  const now=Date.parse('2026-09-22T13:00:00+09:00');
+  const now=Date.parse('2027-02-01T13:00:00+09:00');
   const listing='https://www.ringmagazine.com/events';
   const event='https://www.ringmagazine.com/events/alpha-vs-beta';
-  const listingHtml=`<script type="application/ld+json">${JSON.stringify({'@type':'Event',name:'Alpha vs Beta Championship',startDate:'2026-09-27T10:00:00+09:00',location:{name:'Las Vegas'},url:event})}</script>`;
+  const listingHtml=`<script type="application/ld+json">${JSON.stringify({'@type':'Event',name:'Alpha vs Beta Championship',startDate:'2027-02-07T10:00:00+09:00',location:{name:'Las Vegas'},url:event})}</script>`;
   const detailHtml='<title>Alpha vs Beta</title><meta property="og:image" content="https://img.example/alpha-beta.jpg">';
   const {api,fm}=await boot('BOXING',{now,runsInWidget:false,textResponses:{[listing]:listingHtml,[event]:detailHtml}});
   const data=await api.loadData();
