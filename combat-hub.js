@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.23.4-github — align Medium/Large time-TBA status wording with the verified Small/status policy; visuals frozen
+// v7.23.5-github — localize current ONE Friday Fights 172 display using verified Japanese aliases; visuals frozen
 
 (async()=>{
-const VERSION='7.23.4-github';
+const VERSION='7.23.5-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -125,6 +125,9 @@ const JP_DISPLAY={
 'ONE Friday Fights 170':'ONE フライデーファイツ 170',
 'ONE Friday Fights 170 & The Inner Circle 30':'ONE フライデーファイツ 170',
 'ONE Friday Fights 170 & The Inner Circle':'ONE フライデーファイツ 170',
+'ONE Friday Fights 172':'ONE フライデーファイツ 172',
+'ONE Friday Fights 172 & The Inner Circle 32':'ONE フライデーファイツ 172',
+'ONE Friday Fights 172 & The Inner Circle':'ONE フライデーファイツ 172',
 'Garcia vs Benn':'ガルシア vs ベン',
 'Jean Silva':'ジェアン・シウヴァ','Jose Miguel Delgado':'ホセ・ミゲル・デルガド',
 'Brandon Moreno':'ブランドン・モレノ','Joseph Morales':'ジョセフ・モラレス',
@@ -133,6 +136,7 @@ const JP_DISPLAY={
 'Waldo Cortes Acosta':'ワルド・コルテス・アコスタ','Curtis Blaydes':'カーティス・ブレイズ',
 'David Martinez':'ダヴィッド・マルティネス','Dan Ige':'ダン・イゲ',
 'Joshua Van':'ジョシュア・ヴァン','Alexandre Pantoja':'アレシャンドレ・パントージャ','Arman Tsarukyan':'アルマン・ツァルキヤン','Mauricio Ruffy':'マウリシオ・ルフィ','Patricio Pitbull':'パトリシオ・ピットブル','Dooho Choi':'チェ・ドゥホ','Raul Rosas Jr.':'ラウル・ロサスJr.','Raoni Barcelos':'ハオニ・バルセロシュ',
+'Superlek Jitmuangnon':'スーパーレック','Othman Rhouni':'オスマン・ルーニ',
 'Yodlekpet Or Atchariya':'ヨードレックペット','Yodlekpet':'ヨードレックペット',
 'Pompet Pongsuphan PK':'ポンペット','Pompet':'ポンペット',
 'Ayad Albadr':'アヤド・アルバドル','Kongchai Chanaidonmueang':'ゴンチャイ・チャナイドンムラン',
