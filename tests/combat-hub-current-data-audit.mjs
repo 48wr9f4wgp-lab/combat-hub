@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const src=fs.readFileSync('combat-hub.js','utf8');
 const preview=fs.readFileSync('combat-hub-preview-loader.js','utf8');
 
-assert.match(src,/const VERSION='7\.23\.3-github'/);
+assert.match(src,/const VERSION='7\.23\.4-github'/);
 assert.match(src,/const TRUSTED_FUTURE=\{/,'verified future fallback set missing');
 assert.match(src,/UFC Fight Night: Rosas Jr\. vs Barcelos/,'verified post-UFC331 fallback missing');
 assert.match(src,/K-1 2026\.11\.23/,'verified K-1 11\/23 fallback missing');
@@ -41,6 +41,7 @@ assert.match(src,/async function refreshLockedCurrent\(snap\)/);
 assert.match(src,/sameFight\(pairs\[0\]\.a,pairs\[0\]\.b,snap\.main\.a,snap\.main\.b\)/);
 assert.match(src,/elapsed>=6\*3600000\?'終了':'開催中'/);
 assert.match(src,/function statusLabel\(D\)/);
+assert.match(src,/function largeStatusHeading\(D\)\{if\(D\?\.nextPending\|\|D\?\.timeTba\)return'開催';/,'Medium/Large time-TBA wording guard missing');
 assert.doesNotMatch(preview,/chatgpt\/reliability-v7\.7/);
 assert.match(preview,/combat-hub\/main\/combat-hub\.js/);
 
