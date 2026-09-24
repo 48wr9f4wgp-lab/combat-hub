@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.3 remains the current VERIFIED_BASELINE; v7.23.4 changes only Medium/Large time-TBA status wording and requires targeted K-1 Medium + Large physical QA before promotion.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.4 has passed targeted K-1 Medium + Large physical iPhone QA and is the current VERIFIED_BASELINE.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -560,10 +560,12 @@ Automated evidence:
 - merge-to-main Regression #914 SUCCESS
 - Large regression explicitly guards `開催 / 時刻未定` for time-TBA and preserves `開催まで` for exact-time future events
 
-Physical iPhone QA still required before v7.23.4 VERIFIED_BASELINE promotion:
-- K-1 Medium: right header = `開催` / `時刻未定`, existing 11/23 / 後楽園ホール / pending card / geometry unchanged
-- K-1 Large: right header = `開催` / `時刻未定`, existing 11/23 / 後楽園ホール / pending card / next panel / geometry unchanged
-- v7.23.3 remains the VERIFIED_BASELINE until both checks pass.
+Final targeted physical iPhone QA on v7.23.4 passed on 2026-09-24:
+- K-1 Medium PASS: right header = `開催` / `時刻未定`; `11/23`, `後楽園ホール`, pending-card copy, background and geometry remained intact.
+- K-1 Large PASS: right header = `開催` / `時刻未定`; `11/23`, `後楽園ホール`, pending-card copy, and the existing next panel `K-1 2026.12.29 / 横浜BUNTAI / 時刻未定` remained intact.
+- no white/blank widget, clipping, stale event leakage, or geometry regression was observed.
+
+`v7.23.4-github` is now the current `VERIFIED_BASELINE`.
 
 ## 11. Known debt / risks
 
@@ -624,11 +626,12 @@ Canonical production:
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **PARTIAL** — automated regression green; targeted K-1 Medium + Large wording QA pending
-- previous/current verified reference: `v7.23.3-github` VERIFIED_BASELINE
-- v7.23.4 pending physical scope: K-1 time-TBA status heading only (`開催 / 時刻未定`) in Medium/Large; existing event data/pending content/geometry must remain unchanged
+- validation status: **VERIFIED_BASELINE** — automated regression green and targeted K-1 Medium + Large physical iPhone QA passed on 2026-09-24
+- current VERIFIED_BASELINE: `v7.23.4-github`
+- accepted v7.23.4 scope: K-1 Medium/Large time-TBA status heading `開催 / 時刻未定` with event/date/venue/pending content/next-panel/background/geometry preserved
 - all previously accepted BOXING / UFC / RIZIN / ONE scopes remain accepted
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
+- v7.23.4 time-TBA wording alignment cycle is **CLOSED** unless new device evidence or official-source drift appears
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -637,4 +640,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.4-github（PR #99 / merge `affa68fdeb78062f965644d29dfc6cdfe897af67` / main Regression #914 success）です。v7.23.3は直前のVERIFIED_BASELINEです。v7.23.4はMedium/Largeのtime-TBA status wordingだけを修正し、`開催まで / 時刻未定`を`開催 / 時刻未定`へ統一しました。Small/Medium/Large geometry、Loader v4.2.0、データsource/cache policy、BOXING architecture、UFC/RIZIN/ONE、friends-stableは変更していません。残る未完了はK-1 Medium + Largeのtargeted physical QAだけです。Loaderを手動実行後、右上が`開催 / 時刻未定`になり、11/23 / 後楽園ホール / pending card / geometryが維持されていることを確認し、通ればv7.23.4をVERIFIED_BASELINEへ昇格してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.4-github（PR #99 / merge `affa68fdeb78062f965644d29dfc6cdfe897af67` / main Regression #914 success）です。v7.23.4は2026-09-24のtargeted K-1 Medium + Large physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。Medium/Largeとも右上`開催 / 時刻未定`、11/23、後楽園ホール、pending card、背景、geometryを実機確認済みで、Largeは次大会`K-1 2026.12.29 / 横浜BUNTAI / 時刻未定`も維持しています。Small/Medium/Large geometry、Loader v4.2.0、データsource/cache policy、BOXING architecture、UFC/RIZIN/ONE、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいdevice evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
