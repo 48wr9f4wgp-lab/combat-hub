@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const src=fs.readFileSync('combat-hub.js','utf8');
 const preview=fs.readFileSync('combat-hub-preview-loader.js','utf8');
 
-assert.match(src,/const VERSION='7\.23\.4-github'/);
+assert.match(src,/const VERSION='7\.23\.5-github'/);
 assert.match(src,/const TRUSTED_FUTURE=\{/,'verified future fallback set missing');
 assert.match(src,/UFC Fight Night: Rosas Jr\. vs Barcelos/,'verified post-UFC331 fallback missing');
 assert.match(src,/K-1 2026\.11\.23/,'verified K-1 11\/23 fallback missing');
