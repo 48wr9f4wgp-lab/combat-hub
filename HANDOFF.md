@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.22.10 remains the current VERIFIED_BASELINE; v7.23.1 changes BOXING highlighted-event source authority/time/venue normalization only and requires targeted BOXING Medium + Large physical QA before promotion.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.22.10 remains the current VERIFIED_BASELINE; v7.23.2 changes BOXING candidate sanitization/dedupe/cache semantics only and requires targeted BOXING Medium + Large physical QA before promotion.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -31,10 +31,10 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.23.1-github**.
-- Latest runtime-changing PR: **#91 — prioritize local promoter truth for BOXING highlights**.
-- Runtime merge commit: `55444f50803b875c82e9c49c29d12ec21e9619b5`.
-- Main Regression after PR #91: **#862 success**.
+- Production runtime: **v7.23.2-github**.
+- Latest runtime-changing PR: **#93 — canonicalize BOXING candidates before highlight dedupe**.
+- Runtime merge commit: `f4837ba68bfc567de2dc8b22a832def50d45f47f`.
+- Main Regression after PR #93: **#878 success**.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=10` is the current canonical card-policy version.
@@ -454,7 +454,7 @@ Final targeted physical iPhone QA on v7.22.9 passed on 2026-09-20:
 
 `v7.22.10-github` is now the current `VERIFIED_BASELINE`.
 
-## 10B. v7.23.0 / v7.23.1 — BOXING highlighted-event aggregation
+## 10B. v7.23.0 / v7.23.1 / v7.23.2 — BOXING highlighted-event aggregation
 
 v7.23.0 product semantics:
 - BOXING future state is **注目興行**, not a single canonical `次大会`.
@@ -474,21 +474,36 @@ v7.23.0 physical preview on 2026-09-24:
 
 v7.23.1 targeted correction:
 - adds 帝拳 as an approved first-party BOXING source.
-- verified baseline for this event = `Prime Video Boxing 16`, `井上拓真 vs 那須川天心`, `2026-09-27 16:30 JST`, `TOYOTA ARENA TOKYO`.
-- English/Japanese fighter identities are canonicalized so Ring and 帝拳 records dedupe as one fight.
+- intended verified baseline = `Prime Video Boxing 16`, `井上拓真 vs 那須川天心`, `2026-09-27 16:30 JST`, `TOYOTA ARENA TOKYO`.
 - source authority rule: local promoter/organizer > promotion-owned schedule > Ring for event name/time/venue/context.
-- lower-authority verified sources may remain as visual/poster fallback so higher-authority metadata does not unnecessarily degrade imagery.
+- lower-authority verified sources may remain as visual/poster fallback.
 - `BOXING_SOURCE_POLICY_VERSION=2` invalidates the old 15:00 highlighted-event cache.
-- Japanese display normalizes the venue to `トヨタアリーナ東京`.
-- no geometry, Loader, UFC/RIZIN/ONE/K-1, or friends-stable change.
+
+v7.23.1 physical preview on 2026-09-24 still failed:
+- event title rendered `Inoue vs Nasukawa Sep`.
+- fighter labels rendered `Inoue` / `Nasukawa Sep`.
+- time/location fell back to `時刻未定 / 会場未定`.
+- Large provenance still showed `The Ring / 公式確認済み`.
+- background imagery and geometry remained stable.
+- root cause: Ring schedule text leaked the month token `Sep` into fighter B, so Ring and 帝拳 records no longer matched and were never merged.
+
+v7.23.2 targeted correction:
+- strips trailing month/day-name contamination from BOXING fighter strings before candidate identity work.
+- adds explicit Teiken aliases for Takuma Inoue / Tenshin Nasukawa.
+- uses alias-aware same-date candidate matching before merge.
+- merged event must inherit local promoter truth for event/time/venue/context.
+- lower-authority verified Ring source may remain only as `visualSource` fallback.
+- `BOXING_SOURCE_POLICY_VERSION=3` invalidates the polluted v7.23.1 highlight cache.
+- no geometry, Loader, UFC/RIZIN/ONE/K-1, BOXING Widget network-free architecture, or friends-stable change.
 
 Automated evidence:
 - v7.23.0 branch/PR/main Regression #843/#844/#845 SUCCESS
 - v7.23.1 branch/PR/main Regression #860/#861/#862 SUCCESS
+- v7.23.2 branch/PR/main Regression #876/#877/#878 SUCCESS
 - BOXING highlighted-event regression PASS
 
-Physical iPhone QA still required before v7.23.1 VERIFIED_BASELINE promotion:
-- run Loader manually once so source policy v2 rewrites the highlighted-event cache
+Physical iPhone QA still required before v7.23.2 VERIFIED_BASELINE promotion:
+- run Loader manually once so source policy v3 rewrites the highlighted-event cache
 - BOXING Medium: `Prime Video Boxing 16`, `井上拓真 vs 那須川天心`, `9/27 16:30 JST`, `トヨタアリーナ東京`; background/gradient intact; no white screen/clipping
 - BOXING Large: same event truth plus `注目興行` provenance panel and `帝拳 / 公式確認済み`; no geometry regression or white screen
 - Small is not required unless a symptom appears
@@ -544,19 +559,19 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.23.1-github`
+- runtime `v7.23.2-github`
 - Loader `v4.2.0`
-- runtime PR `#91`
-- runtime merge `55444f50803b875c82e9c49c29d12ec21e9619b5`
-- main Regression `#862 success`
+- runtime PR `#93`
+- runtime merge `f4837ba68bfc567de2dc8b22a832def50d45f47f`
+- main Regression `#878 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
-- `BOXING_SOURCE_POLICY_VERSION=2`
-- validation status: **PARTIAL** — automated regression green; corrected BOXING Medium + Large physical QA pending
+- `BOXING_SOURCE_POLICY_VERSION=3`
+- validation status: **PARTIAL** — automated regression green; BOXING Medium + Large physical QA pending
 - previous/current verified reference: `v7.22.10-github` VERIFIED_BASELINE
-- v7.23.0 preview selected the correct highlighted fight but failed time/venue precision; v7.23.1 fixes source authority and cache semantics
-- v7.23.1 acceptance target: Prime Video Boxing 16 / 井上拓真 vs 那須川天心 / 9/27 16:30 JST / トヨタアリーナ東京 + Large provenance `帝拳 / 公式確認済み`
+- v7.23.1 physical preview failed because Ring month-token contamination prevented merge with 帝拳 truth
+- v7.23.2 acceptance target: Prime Video Boxing 16 / 井上拓真 vs 那須川天心 / 9/27 16:30 JST / トヨタアリーナ東京 + Large provenance `帝拳 / 公式確認済み`
 - UFC / RIZIN / ONE / K-1 verified scopes remain accepted; their runtime behavior/geometry was not intentionally changed
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
 
@@ -567,4 +582,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.1-github（PR #91 / merge `55444f50803b875c82e9c49c29d12ec21e9619b5` / main Regression #862 success）です。v7.22.10は直前のVERIFIED_BASELINEです。v7.23.0 BOXING previewでは井上拓真vs那須川天心の選定は正しかった一方、15:00 JST / 東京というtime/venue精度不良があり未昇格でした。v7.23.1は帝拳をapproved sourceへ追加し、local promoter truthをRingより優先、BOXING_SOURCE_POLICY_VERSION=2で旧cacheを失効します。acceptance targetはPrime Video Boxing 16 / 井上拓真 vs 那須川天心 / 9/27 16:30 JST / トヨタアリーナ東京、Largeは注目興行 provenanceで帝拳 / 公式確認済みです。BOXING Widget discoveryはnetwork-freeのままです。Loaderを手動実行後、BOXING Medium + Largeだけを実機確認し、通ればv7.23.1をVERIFIED_BASELINEへ昇格してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.2-github（PR #93 / merge `f4837ba68bfc567de2dc8b22a832def50d45f47f` / main Regression #878 success）です。v7.22.10は直前のVERIFIED_BASELINEです。v7.23.1 BOXING previewではRing由来の`Nasukawa Sep`月名汚染により帝拳の同一興行truthとdedupeできず、The Ring / 時刻未定 / 会場未定が残りました。v7.23.2は月名汚染除去、Teiken aliases、same-date alias-aware dedupe、local promoter truth強制優先、BOXING_SOURCE_POLICY_VERSION=3を追加しました。acceptance targetはPrime Video Boxing 16 / 井上拓真 vs 那須川天心 / 9/27 16:30 JST / トヨタアリーナ東京、Largeは注目興行 provenanceで帝拳 / 公式確認済みです。BOXING Widget discoveryはnetwork-freeのままです。Loaderを手動実行後、BOXING Medium + Largeだけを実機確認し、通ればv7.23.2をVERIFIED_BASELINEへ昇格してください。
