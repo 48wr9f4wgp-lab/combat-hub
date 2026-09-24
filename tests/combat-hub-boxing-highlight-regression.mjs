@@ -34,7 +34,10 @@ async function boot({now=Date.parse('2026-09-23T12:00:00+09:00'),runsInWidget=fa
     async loadString(){requests.push({kind:'string',url:this.url});if(!(this.url in textResponses))throw new Error('network unavailable '+this.url);return textResponses[this.url];}
     async loadImage(){requests.push({kind:'image',url:this.url});throw new Error('image unavailable');}
   }
-  const context={__TEST_ONLY__:true,args:{widgetParameter:'BOXING'},config:{runsInWidget,widgetFamily:'medium'},FileManager:{local:()=>fm.api},Request,Date:TestDate,console};
+  class DateFormatter{
+    string(date){const d=new Date(date.getTime()+9*3600000),wd='日月火水木金土'[d.getUTCDay()];return `${d.getUTCMonth()+1}/${d.getUTCDate()} (${wd}) ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')} JST`;}
+  }
+  const context={__TEST_ONLY__:true,args:{widgetParameter:'BOXING'},config:{runsInWidget,widgetFamily:'medium'},FileManager:{local:()=>fm.api},Request,Date:TestDate,DateFormatter,console};
   vm.createContext(context);
   await vm.runInContext(instrumented,context,{timeout:3000});
   return{api:context.__boxingHighlight,fm,requests};
