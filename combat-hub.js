@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.23.3-github — harden BOXING roll-forward, explicit time display, and support-label consistency; visuals frozen
+// v7.23.4-github — align Medium/Large time-TBA status wording with the verified Small/status policy; visuals frozen
 
 (async()=>{
-const VERSION='7.23.3-github';
+const VERSION='7.23.4-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -396,7 +396,7 @@ function renderLargeMainName(box,name){const parts=largeNameParts(jpDisplay(name
 function largeFightRow(st,row){const block=st.addStack();block.layoutVertically();const lab=block.addStack();const lt=tx(lab,jpCardLabel(row.label),LARGE_UI.fightLabel,new Color(S.accent),'bold');lt.minimumScaleFactor=.78;lab.addSpacer();block.addSpacer(2);const r=block.addStack();r.centerAlignContent();const aa=r.addStack();aa.size=new Size(78,0);const at=tx(aa,largeSlotName(row.a),LARGE_UI.fightName,new Color(C.text),'semibold',2);at.minimumScaleFactor=.76;r.addSpacer(4);tx(r,'VS',LARGE_UI.fightLabel,new Color(S.accent),'bold');r.addSpacer(4);const bb=r.addStack();bb.size=new Size(78,0);const bt=tx(bb,largeSlotName(row.b),LARGE_UI.fightName,new Color(C.text),'semibold',2);bt.minimumScaleFactor=.76;bt.rightAlignText();}
 function largeNextTitle(next){let v=jpDisplay(next?.name||'次大会').replace(/^Crypto\.com\s+/i,'');if(KEY==='ufc')v=v.replace(/^UFC\s+Fight\s+Night\s*[:：]?\s*/i,'');return v;}
 function largeNextMeta(next){if(!next)return'';const d=next.timeTba?dateOnly(next.startAt):dateText(next);const loc=shortLoc(next.location||'');return loc?`${d}\n${loc}`:d;}
-function largeStatusHeading(D){if(D?.timeTba)return'開催まで';const t=new Date(D?.startAt||0).getTime();if(!Number.isFinite(t)||t<=0)return'開催まで';return t>Date.now()?'開催まで':'開催状況';}
+function largeStatusHeading(D){if(D?.nextPending||D?.timeTba)return'開催';const t=new Date(D?.startAt||0).getTime();if(!Number.isFinite(t)||t<=0)return'開催';return t>Date.now()?'開催まで':'開催状況';}
 function largeStatusDate(D){if(D?.nextPending)return'日程未定';const t=new Date(D?.startAt||0).getTime();if(!Number.isFinite(t)||t<=0)return'日程未定';if(KEY==='boxing'&&!D.timeTba)return dateText(D);if(D?.displayDate)return String(D.displayDate);return D.timeTba?dateOnly(D.startAt):dateText(D);}
 function largeStatusLocation(D){if(D?.nextPending)return'会場未定';const loc=shortLoc(D?.location||'');return loc||'会場未定';}
 function largeRightText(st,text,size,color,weight='semibold'){const row=st.addStack();row.addSpacer();const t=tx(row,text,size,color,weight,1);t.minimumScaleFactor=.70;t.rightAlignText();return t;}

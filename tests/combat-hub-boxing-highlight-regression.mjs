@@ -43,7 +43,7 @@ async function boot({now=Date.parse('2026-09-23T12:00:00+09:00'),runsInWidget=fa
   return{api:context.__boxingHighlight,fm,requests};
 }
 
-assert.match(src,/const VERSION='7\.23\.3-github'/);
+assert.match(src,/const VERSION='7\.23\.4-github'/);
 assert.match(src,/const BOXING_SOURCE_POLICY_VERSION=3/);
 for(const host of ['ringmagazine.com','matchroomboxing.com','premierboxingchampions.com','toprank.com','queensberry.co.uk','teiken.com'])assert.ok(src.includes(host),`missing official BOXING source: ${host}`);
 assert.doesNotMatch(src,/goldenboypromotions\.com/,'Golden Boy must stay disabled until a stable public schedule surface is verified');
