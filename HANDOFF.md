@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.3 has passed targeted BOXING Medium + Large physical iPhone QA and is the current VERIFIED_BASELINE.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.3 remains the current VERIFIED_BASELINE; v7.23.4 changes only Medium/Large time-TBA status wording and requires targeted K-1 Medium + Large physical QA before promotion.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -31,10 +31,10 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.23.3-github**.
-- Latest runtime-changing PR: **#96 — harden BOXING roll-forward after highlighted-event promotion**.
-- Runtime merge commit: `ef417c8719c69bd37c315c27784f80079dc32a59`.
-- Main Regression after PR #96: **#897 success**.
+- Production runtime: **v7.23.4-github**.
+- Latest runtime-changing PR: **#99 — align time-TBA status wording in Medium and Large**.
+- Runtime merge commit: `affa68fdeb78062f965644d29dfc6cdfe897af67`.
+- Main Regression after PR #99: **#914 success**.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=10` is the current canonical card-policy version.
@@ -542,6 +542,29 @@ Final targeted physical iPhone QA on v7.23.3 passed on 2026-09-24:
 
 `v7.23.3-github` is now the current `VERIFIED_BASELINE`.
 
+### v7.23.4 — time-TBA status wording alignment
+
+Physical K-1 Medium audit on 2026-09-24 found one wording-only inconsistency:
+- event identity/date/venue/pending card state were correct.
+- `timeTba=true` rendered `開催まで / 時刻未定` in Medium because Medium intentionally reuses `largeStatusHeading(...)`.
+- Small and the shared status policy already use `開催 / 時刻未定` for time-TBA events.
+
+v7.23.4:
+- `largeStatusHeading(...)` now returns `開催` when `nextPending || timeTba`.
+- exact-time future events continue to render `開催まで`.
+- Medium inherits the fix without a geometry change.
+- no data-source, cache-policy, Loader, BOXING architecture, other-organization, or friends-stable changes.
+
+Automated evidence:
+- PR #99 Regression #913 SUCCESS
+- merge-to-main Regression #914 SUCCESS
+- Large regression explicitly guards `開催 / 時刻未定` for time-TBA and preserves `開催まで` for exact-time future events
+
+Physical iPhone QA still required before v7.23.4 VERIFIED_BASELINE promotion:
+- K-1 Medium: right header = `開催` / `時刻未定`, existing 11/23 / 後楽園ホール / pending card / geometry unchanged
+- K-1 Large: right header = `開催` / `時刻未定`, existing 11/23 / 後楽園ホール / pending card / next panel / geometry unchanged
+- v7.23.3 remains the VERIFIED_BASELINE until both checks pass.
+
 ## 11. Known debt / risks
 
 ### BOXING source availability / timing
@@ -592,22 +615,20 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.23.3-github`
+- runtime `v7.23.4-github`
 - Loader `v4.2.0`
-- runtime PR `#96`
-- runtime merge `ef417c8719c69bd37c315c27784f80079dc32a59`
-- main Regression `#897 success`
+- runtime PR `#99`
+- runtime merge `affa68fdeb78062f965644d29dfc6cdfe897af67`
+- main Regression `#914 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **VERIFIED_BASELINE** — automated regression green and targeted BOXING Medium + Large physical iPhone QA passed on 2026-09-24
-- current VERIFIED_BASELINE: `v7.23.3-github`
-- accepted BOXING scope: exact 16:30 JST display, `セミ / 本戦` support labels, `注目興行 / 帝拳 / 公式確認済み`, verified event identity/location/background/geometry
-- future-only BOXING roll-forward is covered by automated regression; 9/27 started cards cannot outrank an available future candidate
-- all previously accepted UFC / RIZIN / ONE / K-1 scopes remain accepted
+- validation status: **PARTIAL** — automated regression green; targeted K-1 Medium + Large wording QA pending
+- previous/current verified reference: `v7.23.3-github` VERIFIED_BASELINE
+- v7.23.4 pending physical scope: K-1 time-TBA status heading only (`開催 / 時刻未定`) in Medium/Large; existing event data/pending content/geometry must remain unchanged
+- all previously accepted BOXING / UFC / RIZIN / ONE scopes remain accepted
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
-- v7.23.3 BOXING roll-forward/time/support-label hardening cycle is **CLOSED** unless new device evidence or official-source drift appears
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -616,4 +637,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.3-github（PR #96 / merge `ef417c8719c69bd37c315c27784f80079dc32a59` / main Regression #897 success）です。v7.23.3は2026-09-24のtargeted BOXING Medium + Large physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。Prime Video Boxing 16 / 井上拓真 vs 那須川天心 / `9/27 (日) 16:30 JST` / トヨタアリーナ東京、support `セミ / 本戦`、Large provenance `注目興行 / 帝拳 / 公式確認済み`、背景、geometryを実機確認済みです。future-only BOXING roll-forwardも自動回帰で保護されています。BOXING Widget discoveryはnetwork-freeのままです。Small/Medium/Large geometry、Loader v4.2.0、UFC/RIZIN/ONE/K-1、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいdevice evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.4-github（PR #99 / merge `affa68fdeb78062f965644d29dfc6cdfe897af67` / main Regression #914 success）です。v7.23.3は直前のVERIFIED_BASELINEです。v7.23.4はMedium/Largeのtime-TBA status wordingだけを修正し、`開催まで / 時刻未定`を`開催 / 時刻未定`へ統一しました。Small/Medium/Large geometry、Loader v4.2.0、データsource/cache policy、BOXING architecture、UFC/RIZIN/ONE、friends-stableは変更していません。残る未完了はK-1 Medium + Largeのtargeted physical QAだけです。Loaderを手動実行後、右上が`開催 / 時刻未定`になり、11/23 / 後楽園ホール / pending card / geometryが維持されていることを確認し、通ればv7.23.4をVERIFIED_BASELINEへ昇格してください。
