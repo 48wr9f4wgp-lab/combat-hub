@@ -215,7 +215,7 @@ function stringRequests(requests) {
   assert.equal(pending.nextPending,true,'Unverified BOXING cache must not reach widget output');
   assert.equal(pending.cacheVerified,false);
   assert.equal(stringRequests(requests).length,0,'BOXING widget must not deep-discover when cache is unverified');
-  fm.api.writeString(path,JSON.stringify({savedAt:now-60_000,verifiedAt:now-60_000,verifiedBy:'boxingHighlightDiscovery',sourcePolicy:1,data:future}));
+  fm.api.writeString(path,JSON.stringify({savedAt:now-60_000,verifiedAt:now-60_000,verifiedBy:'boxingHighlightDiscovery',sourcePolicy:2,data:future}));
   const verified=await api.loadData();
   assert.equal(verified.name,future.name);
   assert.equal(verified.cacheVerified,true);
@@ -236,7 +236,7 @@ function stringRequests(requests) {
   assert.equal(data.prefetched,true);
   const saved=JSON.parse(fm.api.readString('/docs/combat-hub-next-boxing.json'));
   assert.equal(saved.verifiedBy,'boxingHighlightDiscovery');
-  assert.equal(saved.sourcePolicy,1);
+  assert.equal(saved.sourcePolicy,2);
   assert.equal(saved.verifiedAt,now);
   assert.equal(saved.data.source,event);
 }
