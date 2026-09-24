@@ -49,8 +49,10 @@ assert.ok(src.includes("main:{a:'ジョナス・サルシチャ',b:'ゾーラ・
 // BOXING trusted current baseline is Ring-official; exact broadcast clock remains source-driven.
 has(/boxing:\{startAt:'2026-09-20T00:00:00\+09:00'[^\n]*timeTba:true[^\n]*name:'Cruz vs Bravo'/, 'BOXING Ring current snapshot missing');
 has(/ringmagazine\.com\/events\/pitbull-vs-bravo-4KcUnNvGRpDnb0ONBP3SkH/, 'BOXING snapshot must use canonical Ring event source');
-has(/const BOXING_SOURCE_POLICY_VERSION=1/, 'BOXING highlight source policy missing');
+has(/const BOXING_SOURCE_POLICY_VERSION=2/, 'BOXING highlight source policy missing');
 has(/boxingHighlightDiscovery/, 'BOXING highlight verified-cache provenance missing');
+has(/Prime Video Boxing 16/, 'Japanese BOXING highlighted-event baseline missing');
+has(/TOYOTA ARENA TOKYO/, 'Japanese BOXING venue truth missing');
 has(/注目興行/, 'BOXING highlighted-event copy missing');
 
 // Roll-forward safety.
