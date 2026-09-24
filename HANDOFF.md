@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.4 remains the current VERIFIED_BASELINE; v7.23.5 changes only ONE display aliases and requires targeted ONE Small physical QA before promotion.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.5 has passed targeted ONE Small physical iPhone QA and is the current VERIFIED_BASELINE.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -590,12 +590,14 @@ Automated evidence:
 - merge-to-main Regression #931 SUCCESS
 - Japanese display regression locks the current ONE 172 event/fighter aliases
 
-Physical iPhone QA still required before v7.23.5 VERIFIED_BASELINE promotion:
-- ONE Small only: event title = `ONE フライデーファイツ 172`.
+Final targeted physical iPhone QA on v7.23.5 passed on 2026-09-24:
+- ONE Small PASS: event title = `ONE フライデーファイツ 172`.
 - main = `スーパーレック vs オスマン・ルーニ`.
-- existing `バンタム級ムエタイ`, 9/25, バンコク, countdown, background and Small geometry remain intact.
-- Medium/Large recheck is not required unless a symptom appears because the localization shortens the fighter strings and uses the same shared display map.
-- v7.23.4 remains the VERIFIED_BASELINE until this Small check passes.
+- existing `バンタム級ムエタイ`, `9/25 (金) 22:30 JST`, `バンコク`, countdown, background and Small geometry remained intact.
+- support rows remain source-faithful English because a first-party Japanese spelling was not verified for those fighters; no guessed transliteration was introduced.
+- no clipping, blank/white widget, stale English main-event alias, or geometry regression was observed.
+
+`v7.23.5-github` is now the current `VERIFIED_BASELINE`.
 
 ## 11. Known debt / risks
 
@@ -656,11 +658,13 @@ Canonical production:
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **PARTIAL** — automated regression green; targeted ONE Small Japanese-display QA pending
-- previous/current verified reference: `v7.23.4-github` VERIFIED_BASELINE
-- v7.23.5 pending physical scope: ONE Small event title + main fighter Japanese aliases only; existing event data/context/date/location/countdown/background/geometry must remain unchanged
+- validation status: **VERIFIED_BASELINE** — automated regression green and targeted ONE Small physical iPhone QA passed on 2026-09-24
+- current VERIFIED_BASELINE: `v7.23.5-github`
+- accepted ONE Small scope: `ONE フライデーファイツ 172` / `スーパーレック vs オスマン・ルーニ` with discipline/date/time/location/countdown/background/geometry preserved
+- support rows remain English unless a first-party Japanese spelling is verified; no inferred transliteration is used
 - all previously accepted BOXING / UFC / RIZIN / K-1 scopes remain accepted
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
+- v7.23.5 ONE Japanese-display cycle is **CLOSED** unless new verified localization data, device evidence or official-source drift appears
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -669,4 +673,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.5-github（PR #102 / merge `d984309008c58e10016dafa1d5ae1df141ebbb0e` / main Regression #931 success）です。v7.23.4は直前のVERIFIED_BASELINEです。v7.23.5はONEのdisplay aliasだけを変更し、ONE Friday Fights 172を`ONE フライデーファイツ 172`、Superlek Jitmuangnonを`スーパーレック`、Othman Rhouniを`オスマン・ルーニ`へ日本語化しました。公式ONE日本語ticket表記を使用しています。event selection/date/time/location/context、geometry、Loader v4.2.0、他団体、friends-stableは変更していません。残る未完了はONE Smallのtargeted physical QAだけです。Smallで日本語大会名・`スーパーレック vs オスマン・ルーニ`・既存バンタム級ムエタイ/9/25/バンコク/countdown/geometryを確認し、通ればv7.23.5をVERIFIED_BASELINEへ昇格してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.5-github（PR #102 / merge `d984309008c58e10016dafa1d5ae1df141ebbb0e` / main Regression #931 success）です。v7.23.5は2026-09-24のtargeted ONE Small physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。`ONE フライデーファイツ 172`、`スーパーレック vs オスマン・ルーニ`、`バンタム級ムエタイ`、9/25 22:30 JST、バンコク、countdown、背景、Small geometryを実機確認済みです。supportの日本語表記は一次公式で確認できた場合のみ追加し、未確認のカタカナは作りません。event selection/date/time/location/context、geometry、Loader v4.2.0、他団体、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいverified localization data、device evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
