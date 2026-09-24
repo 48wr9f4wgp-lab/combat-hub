@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 const src=fs.readFileSync(new URL('../combat-hub.js', import.meta.url),'utf8');
 assert.match(src,/const VERSION='7\.\d+\.\d+-github'/);
 assert.match(src,/const JP_DISPLAY=\{/);
-for(const s of ['ノーチェUFC','ジェアン・シウヴァ','ホセ・ミゲル・デルガド','ブランドン・モレノ','マノン・フィオロ','アレクサ・グラッソ','ONE フライデーファイツ 170','ヨードレックペット','ポンペット','吉成名高','ハー・リン・オム','若松佑弥','ウィリー・ファン・ローエン','士門','スーブラック','陽勇','常陸飛雄馬','ライアン・ガルシア','コナー・ベン','ジェイ・オペタイア','ノエル・ミカエリアン','Crypto.com UFC 331：ヴァン vs パントージャ2']) assert.ok(src.includes(s),`missing Japanese alias: ${s}`);
+for(const s of ['ノーチェUFC','ジェアン・シウヴァ','ホセ・ミゲル・デルガド','ブランドン・モレノ','マノン・フィオロ','アレクサ・グラッソ','ONE フライデーファイツ 170','ONE フライデーファイツ 172','スーパーレック','オスマン・ルーニ','ヨードレックペット','ポンペット','吉成名高','ハー・リン・オム','若松佑弥','ウィリー・ファン・ローエン','士門','スーブラック','陽勇','常陸飛雄馬','ライアン・ガルシア','コナー・ベン','ジェイ・オペタイア','ノエル・ミカエリアン','Crypto.com UFC 331：ヴァン vs パントージャ2']) assert.ok(src.includes(s),`missing Japanese alias: ${s}`);
 assert.match(src,/mainNameParts\(jpDisplay\(name\)\)/);
 assert.match(src,/jpDisplay\(row\.a\)/);
 assert.match(src,/jpDisplay\(row\.b\)/);
