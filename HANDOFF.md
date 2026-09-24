@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.2 has passed targeted BOXING Medium + Large physical iPhone QA and is the current VERIFIED_BASELINE.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.2 remains the current VERIFIED_BASELINE; v7.23.3 hardens BOXING roll-forward/time/support semantics and requires targeted BOXING Medium + Large physical QA before promotion.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -31,10 +31,10 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.23.2-github**.
-- Latest runtime-changing PR: **#93 — canonicalize BOXING candidates before highlight dedupe**.
-- Runtime merge commit: `f4837ba68bfc567de2dc8b22a832def50d45f47f`.
-- Main Regression after PR #93: **#878 success**.
+- Production runtime: **v7.23.3-github**.
+- Latest runtime-changing PR: **#96 — harden BOXING roll-forward after highlighted-event promotion**.
+- Runtime merge commit: `ef417c8719c69bd37c315c27784f80079dc32a59`.
+- Main Regression after PR #96: **#897 success**.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=10` is the current canonical card-policy version.
@@ -231,7 +231,7 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - Exact-time future events keep `開催まで`.
 - Time-TBA events and safe pending events use `開催` with `時刻未定` / `確認中`, avoiding awkward `開催まで / 時刻未定` and `開催まで / 確認中` combinations.
 - Medium and Large wording/geometry remain unchanged.
-- Small still requires one final physical-device confirmation of K-1 and BOXING wording before visual freeze.
+- Small physical-device verification was completed on 2026-09-18 across all five organizations; the dedicated Small geometry is part of the verified baseline.
 
 ## 6D. Small UI architecture in v7.20.0
 
@@ -243,7 +243,7 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - `small` no longer falls through `renderMedium(...)`; manual preview now uses `presentSmall()`.
 - Medium v7.17.x and Large v7.16.1 geometry are unchanged.
 - Automated regression covers family routing, five-series availability, square background composition, pending/confirmed hierarchy, and BOXING low-memory isolation.
-- Physical-device verification is still required before Small is promoted from WORKING_HEAD to VERIFIED_BASELINE.
+- Small was subsequently promoted through physical-device verification; no Small recheck is pending unless a new Small-specific symptom appears.
 
 ## 6I. Official-image / structured-bout / BOXING hardening in v7.22.0
 
@@ -254,7 +254,7 @@ Physical iPhone visual confirmation for v7.15.0 is still required before calling
 - UFC prefers a complete official fighter pair, then official event artwork. K-1 prefers official poster/event artwork, then fighter imagery.
 - BOXING current-event verification keeps the canonical Ring current snapshot path. The trusted current baseline remains Cruz vs Bravo at Pechanga Arena, with Ramos vs Nursultanov as the co-main baseline.
 - BOXING future/highlighted-event discovery is multi-source from first-party official promotion/event surfaces, but only during manual/non-widget execution. Home-screen Widget execution remains network-free for BOXING discovery and poster retrieval.
-- BOXING current-cache provenance remains `verifiedBy:'refreshLockedCurrent'`. Highlighted-event cache uses `verifiedBy:'boxingHighlightDiscovery'` plus `BOXING_SOURCE_POLICY_VERSION=1`.
+- BOXING current-cache provenance remains `verifiedBy:'refreshLockedCurrent'`. Highlighted-event cache uses `verifiedBy:'boxingHighlightDiscovery'` plus current `BOXING_SOURCE_POLICY_VERSION=3`.
 - `CARD_POLICY_VERSION=4` migrates pre-v7.22 card/context semantics once.
 - Small / Medium / Large geometry and typography remain frozen.
 
@@ -511,6 +511,35 @@ Final targeted physical iPhone QA on v7.23.2 passed on 2026-09-24:
 
 `v7.23.2-github` is now the current `VERIFIED_BASELINE`.
 
+### v7.23.3 — BOXING roll-forward hardening
+
+Audit after v7.23.2 found one forward-transition risk and two presentation/semantic gaps:
+
+- grace-valid past BOXING cards could remain in the candidate set after a newer future event existed, creating a possible backward roll from 9/27 to the 9/26 fallback before advancing.
+- exact verified BOXING time was stored but Medium/Large displayed only the date plus countdown.
+- the first trusted BOXING support row could remain `MAIN CARD / 本戦` instead of the shared fallback policy `CO-MAIN / セミ`.
+
+v7.23.3:
+- after dedupe, if any future BOXING candidate exists, all started/past candidates are excluded before highlight scoring.
+- the regression suite explicitly checks the 2026-09-27 post-start state rolls forward to the future Matchroom card rather than backward to a grace-valid 9/26 card.
+- Medium/Large BOXING status now renders exact verified time explicitly, e.g. `9/27 (日) 16:30 JST`.
+- verified BOXING cache is sanitized on read so support-label semantics self-heal without a new data-source cache policy.
+- Prime Video Boxing 16 support fallback is canonicalized to first support = `CO-MAIN / セミ`, second support = `MAIN CARD / 本戦`.
+- README was refreshed to document Small / Medium / Large and the multi-source manual-verify -> cache-only BOXING architecture.
+- geometry tokens, Loader v4.2.0, source policy v3, UFC/RIZIN/ONE/K-1, and friends-stable are unchanged.
+
+Automated evidence:
+- branch Regression #895 SUCCESS
+- PR #96 Regression #896 SUCCESS
+- merge-to-main Regression #897 SUCCESS
+- BOXING highlighted-event suite now covers post-start future-only roll-forward, exact time display, and support-label consistency
+
+Physical iPhone QA still required before v7.23.3 VERIFIED_BASELINE promotion:
+- run Loader manually once
+- BOXING Medium: exact `9/27 (日) 16:30 JST` visible; first support shows `セミ`, second shows `本戦`; no white screen/clipping/geometry regression
+- BOXING Large: exact `9/27 (日) 16:30 JST` visible; first support shows `セミ`, second shows `本戦`; `注目興行 / 帝拳 / 公式確認済み` remains intact
+- v7.23.2 remains the VERIFIED_BASELINE until these checks pass.
+
 ## 11. Known debt / risks
 
 ### BOXING source availability / timing
@@ -523,7 +552,7 @@ UFC / K-1 / Ring / Matchroom / PBC / Top Rank / Queensberry / 帝拳 page markup
 
 ### README / historical handoff
 
-- `README.md` may still lag current runtime architecture.
+- `README.md` was refreshed in v7.23.3 for Small / Medium / Large and BOXING highlighted-event architecture.
 - `HANDOFF_CODEX.md` is historical and must not replace this file as the canonical handoff.
 
 ## 12. Do-not-do list
@@ -561,22 +590,21 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.23.2-github`
+- runtime `v7.23.3-github`
 - Loader `v4.2.0`
-- runtime PR `#93`
-- runtime merge `f4837ba68bfc567de2dc8b22a832def50d45f47f`
-- main Regression `#878 success`
+- runtime PR `#96`
+- runtime merge `ef417c8719c69bd37c315c27784f80079dc32a59`
+- main Regression `#897 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **VERIFIED_BASELINE** — automated regression green and targeted BOXING Medium + Large physical iPhone QA passed on 2026-09-24
-- current VERIFIED_BASELINE: `v7.23.2-github`
-- accepted BOXING highlighted-event scope: Prime Video Boxing 16 / 井上拓真 vs 那須川天心 / verified 16:30 JST timing via countdown / トヨタアリーナ東京 / Large provenance `帝拳 / 公式確認済み`
-- accepted support rows: 西田凌佑 vs サム・グッドマン; 坪井智也 vs リカルド・マラジカ
+- validation status: **PARTIAL** — automated regression green; targeted BOXING Medium + Large physical QA pending
+- previous/current verified reference: `v7.23.2-github` VERIFIED_BASELINE
+- v7.23.3 pending physical scope: explicit 16:30 JST status line + support labels `セミ / 本戦` in Medium/Large; existing event identity/location/provenance/background/geometry must remain intact
+- future-only BOXING roll-forward is covered by automated regression; 9/27 started cards cannot outrank an available future candidate
 - all previously accepted UFC / RIZIN / ONE / K-1 scopes remain accepted
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
-- v7.23.0-v7.23.2 BOXING highlighted-event migration/fix cycle is **CLOSED** unless new device evidence or official-source drift appears
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -585,4 +613,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.2-github（PR #93 / merge `f4837ba68bfc567de2dc8b22a832def50d45f47f` / main Regression #878 success）です。v7.23.2は2026-09-24のtargeted BOXING Medium + Large physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。Prime Video Boxing 16 / 井上拓真 vs 那須川天心 / verified 16:30 JST timing / トヨタアリーナ東京、support 2試合、Large provenance `注目興行 / 帝拳 / 公式確認済み`、背景、geometryを実機確認済みです。BOXING Widget discoveryはnetwork-freeのままです。Small/Medium/Large geometry、Loader v4.2.0、UFC/RIZIN/ONE/K-1、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいdevice evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.3-github（PR #96 / merge `ef417c8719c69bd37c315c27784f80079dc32a59` / main Regression #897 success）です。v7.23.2が直前のVERIFIED_BASELINEです。v7.23.3はBOXINGだけをhardeningし、future candidateがある時の過去興行巻き戻り禁止、Medium/Largeで`9/27 (日) 16:30 JST`の明示表示、support fallbackを1件目=`セミ` / 2件目=`本戦`へ統一しました。READMEも現行Small/Medium/Large＋multi-source BOXINGへ更新済みです。geometry、Loader v4.2.0、BOXING_SOURCE_POLICY_VERSION=3、UFC/RIZIN/ONE/K-1、friends-stableは変更していません。残る未完了はBOXING Medium + Largeのtargeted physical QAだけです。Loaderを手動実行後、16:30 JST明示・セミ/本戦・既存の注目興行/帝拳/公式確認済み・no white screen/clippingを確認し、通ればv7.23.3をVERIFIED_BASELINEへ昇格してください。
