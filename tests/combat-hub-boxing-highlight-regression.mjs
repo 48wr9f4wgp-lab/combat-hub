@@ -122,7 +122,7 @@ assert.match(src,/KEY==='boxing'\?'注目興行':'次大会'/);
   assert.equal(data.main.b,'那須川天心');
   assert.equal(data.support[0].label,'CO-MAIN','first BOXING support row must follow canonical support-label policy');
   assert.equal(data.support[1].label,'MAIN CARD','second BOXING support row must remain main-card fallback');
-  assert.match(api.largeStatusDate(data),/9\/27 \(日\) 16:30 JST/,'Medium/Large status date must show verified exact BOXING time explicitly');
+  assert.match(manual.api.largeStatusDate(data),/9\/27 \(日\) 16:30 JST/,'Medium/Large status date must show verified exact BOXING time explicitly');
   const saved=JSON.parse(fm.strings.get('/docs/combat-hub-next-boxing.json'));
   assert.equal(saved.verifiedBy,'boxingHighlightDiscovery');
   assert.equal(saved.sourcePolicy,3);
