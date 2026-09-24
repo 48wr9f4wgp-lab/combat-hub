@@ -7,7 +7,7 @@ const marker='const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudi
 assert.ok(src.includes(marker),'runtime instrumentation marker changed');
 const instrumented=src.replace(
   marker,
-  `globalThis.__boxingHighlight={boxingSourceId,boxingOfficialSource,boxingOfficialListingEvents,boxingHighlightValid,boxingHighlightScore,boxingTrustedHighlights,dedupeBoxingCandidates,discoverBoxingHighlight,safePendingEvent,loadData,boxingSourcePriority,boxingCleanFighterName,boxingCandidateMatch};if(globalThis.__TEST_ONLY__)return;${marker}`,
+  `globalThis.__boxingHighlight={boxingSourceId,boxingOfficialSource,boxingOfficialListingEvents,boxingHighlightValid,boxingHighlightScore,boxingTrustedHighlights,dedupeBoxingCandidates,discoverBoxingHighlight,safePendingEvent,loadData,boxingSourcePriority,boxingCleanFighterName,boxingCandidateMatch,largeStatusDate};if(globalThis.__TEST_ONLY__)return;${marker}`,
 );
 
 function sharedFM(){
@@ -34,13 +34,16 @@ async function boot({now=Date.parse('2026-09-23T12:00:00+09:00'),runsInWidget=fa
     async loadString(){requests.push({kind:'string',url:this.url});if(!(this.url in textResponses))throw new Error('network unavailable '+this.url);return textResponses[this.url];}
     async loadImage(){requests.push({kind:'image',url:this.url});throw new Error('image unavailable');}
   }
-  const context={__TEST_ONLY__:true,args:{widgetParameter:'BOXING'},config:{runsInWidget,widgetFamily:'medium'},FileManager:{local:()=>fm.api},Request,Date:TestDate,console};
+  class DateFormatter{
+    string(date){const d=new Date(date.getTime()+9*3600000),wd='日月火水木金土'[d.getUTCDay()];return `${d.getUTCMonth()+1}/${d.getUTCDate()} (${wd}) ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')} JST`;}
+  }
+  const context={__TEST_ONLY__:true,args:{widgetParameter:'BOXING'},config:{runsInWidget,widgetFamily:'medium'},FileManager:{local:()=>fm.api},Request,Date:TestDate,DateFormatter,console};
   vm.createContext(context);
   await vm.runInContext(instrumented,context,{timeout:3000});
   return{api:context.__boxingHighlight,fm,requests};
 }
 
-assert.match(src,/const VERSION='7\.23\.2-github'/);
+assert.match(src,/const VERSION='7\.23\.3-github'/);
 assert.match(src,/const BOXING_SOURCE_POLICY_VERSION=3/);
 for(const host of ['ringmagazine.com','matchroomboxing.com','premierboxingchampions.com','toprank.com','queensberry.co.uk','teiken.com'])assert.ok(src.includes(host),`missing official BOXING source: ${host}`);
 assert.doesNotMatch(src,/goldenboypromotions\.com/,'Golden Boy must stay disabled until a stable public schedule surface is verified');
@@ -84,6 +87,14 @@ assert.match(src,/KEY==='boxing'\?'注目興行':'次大会'/);
 }
 
 {
+  const now=Date.parse('2026-09-27T18:00:00+09:00'),{api}=await boot({now});
+  const next=await api.discoverBoxingHighlight(now);
+  assert.equal(next.name,'Whittaker vs Wallace','after the 9/27 event starts, a future highlight must outrank any still-grace-valid past card');
+  assert.equal(next.promoter,'Matchroom');
+  assert.ok(new Date(next.startAt).getTime()>now,'highlight roll-forward must never move backward when a future candidate exists');
+}
+
+{
   const now=Date.parse('2026-09-23T12:00:00+09:00'),{api}=await boot({now});
   const cfg={id:'matchroom',label:'Matchroom',url:'https://www.matchroomboxing.com/events/'};
   const html=`
@@ -112,6 +123,9 @@ assert.match(src,/KEY==='boxing'\?'注目興行':'次大会'/);
   assert.equal(data.location,'TOYOTA ARENA TOKYO');
   assert.equal(data.main.a,'井上拓真');
   assert.equal(data.main.b,'那須川天心');
+  assert.equal(data.support[0].label,'CO-MAIN','first BOXING support row must follow canonical support-label policy');
+  assert.equal(data.support[1].label,'MAIN CARD','second BOXING support row must remain main-card fallback');
+  assert.match(manual.api.largeStatusDate(data),/9\/27 \(日\) 16:30 JST/,'Medium/Large status date must show verified exact BOXING time explicitly');
   const saved=JSON.parse(fm.strings.get('/docs/combat-hub-next-boxing.json'));
   assert.equal(saved.verifiedBy,'boxingHighlightDiscovery');
   assert.equal(saved.sourcePolicy,3);

@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.23.2-github — canonicalize polluted BOXING fighter/date text so local promoter truth merges with Ring candidates; visuals frozen
+// v7.23.3-github — harden BOXING roll-forward, explicit time display, and support-label consistency; visuals frozen
 
 (async()=>{
-const VERSION='7.23.2-github';
+const VERSION='7.23.3-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -33,7 +33,7 @@ const BOXING_OFFICIAL_SOURCES=[
 ];
 // Golden Boy is intentionally excluded until a stable public schedule surface is verified.
 const BOXING_TRUSTED_HIGHLIGHTS=[
-  {startAt:'2026-09-27T16:30:00+09:00',displayDate:'9/27 (日)',timeTba:false,location:'TOYOTA ARENA TOKYO',name:'Prime Video Boxing 16',source:'https://www.teiken.com/bout/',sourceId:'teiken',promoter:'帝拳',aliases:{a:['Takuma Inoue','Inoue'],b:['Tenshin Nasukawa','Nasukawa']},main:{a:'井上拓真',b:'那須川天心',context:'WBC世界バンタム級タイトルマッチ'},support:[{label:'MAIN CARD',a:'西田凌佑',b:'サム・グッドマン',context:'IBF世界スーパーバンタム級暫定王座決定戦'},{label:'MAIN CARD',a:'坪井智也',b:'リカルド・マラジカ',context:'WBC世界スーパーフライ級王座決定戦'}],cardTba:false,verifiedFallback:true,localPromoterTruth:true},
+  {startAt:'2026-09-27T16:30:00+09:00',displayDate:'9/27 (日)',timeTba:false,location:'TOYOTA ARENA TOKYO',name:'Prime Video Boxing 16',source:'https://www.teiken.com/bout/',sourceId:'teiken',promoter:'帝拳',aliases:{a:['Takuma Inoue','Inoue'],b:['Tenshin Nasukawa','Nasukawa']},main:{a:'井上拓真',b:'那須川天心',context:'WBC世界バンタム級タイトルマッチ'},support:[{label:'CO-MAIN',a:'西田凌佑',b:'サム・グッドマン',context:'IBF世界スーパーバンタム級暫定王座決定戦'},{label:'MAIN CARD',a:'坪井智也',b:'リカルド・マラジカ',context:'WBC世界スーパーフライ級王座決定戦'}],cardTba:false,verifiedFallback:true,localPromoterTruth:true},
   {startAt:'2026-09-26T12:00:00+01:00',displayDate:'9/26 (土)',timeTba:true,location:'BP Pulse Live, Birmingham',name:'Liam Davies vs Nathaniel Collins',source:'https://queensberry.co.uk/blogs/queensberry-promotions-blog/homestretch-press-conference-quotes',sourceId:'queensberry',promoter:'Queensberry',main:{a:'Liam Davies',b:'Nathaniel Collins',context:'フェザー級'},support:[],cardTba:false,verifiedFallback:true},
   {startAt:'2026-10-03T12:00:00+01:00',displayDate:'10/3 (土)',timeTba:true,location:'Utilita Arena, Birmingham',name:'Whittaker vs Wallace',source:'https://www.matchroomboxing.com/events/whittaker-vs-wallace/',sourceId:'matchroom',promoter:'Matchroom',main:{a:'Ben Whittaker',b:'Conor Wallace',context:''},support:[],cardTba:false,verifiedFallback:true},
   {startAt:'2026-10-18T09:00:00+09:00',timeTba:false,location:'Las Vegas',name:'Fundora vs Hadribeaj',source:'https://www.premierboxingchampions.com/boxing-schedule',sourceId:'pbc',promoter:'PBC',main:{a:'Sebastian Fundora',b:'Ermal Hadribeaj',context:''},support:[],cardTba:false,verifiedFallback:true},
@@ -249,8 +249,11 @@ function dedupeBoxingCandidates(candidates){
 async function discoverBoxingHighlight(now=Date.now()){
   if(KEY!=='boxing')return null;let candidates=boxingTrustedHighlights(now);
   for(const cfg of BOXING_OFFICIAL_SOURCES){try{const html=await reqText(cfg.url,6),live=boxingOfficialListingEvents(html,cfg,now).map(e=>({...e,verifiedSources:[cfg.id]}));candidates.push(...live);}catch(_){}}
-  candidates=dedupeBoxingCandidates(candidates).sort((a,b)=>boxingHighlightScore(b,now)-boxingHighlightScore(a,now)||new Date(a.startAt)-new Date(b.startAt));
-  return candidates[0]?{...candidates[0],highlight:true,highlightScore:boxingHighlightScore(candidates[0],now),cardSourceType:'official-highlight'}:null;
+  candidates=dedupeBoxingCandidates(candidates);
+  const future=candidates.filter(e=>new Date(e.startAt).getTime()>now);
+  if(future.length)candidates=future;
+  candidates.sort((a,b)=>boxingHighlightScore(b,now)-boxingHighlightScore(a,now)||new Date(a.startAt)-new Date(b.startAt));
+  return candidates[0]?{...sanitizeEventFightContext(candidates[0]),highlight:true,highlightScore:boxingHighlightScore(candidates[0],now),cardSourceType:'official-highlight'}:null;
 }
 
 function ringUsDst(y,mo,day){const marchSecond=8+((7-new Date(Date.UTC(y,2,8)).getUTCDay())%7),novFirst=1+((7-new Date(Date.UTC(y,10,1)).getUTCDay())%7);if(mo<2||mo>10)return false;if(mo>2&&mo<10)return true;if(mo===2)return day>=marchSecond;return day<novFirst;}
@@ -297,7 +300,7 @@ function trustedRollforward(snap){const n=trustedFutureEvents().find(x=>rollforw
 function boxingOfficialSource(e){return!!boxingSourceId(e);}
 function boxingRingSource(e){return boxingSourceId(e)==='ring';}
 function boxingPrefetchValid(snap,e,now=Date.now()){return KEY==='boxing'&&!!e&&boxingRingSource(e)&&rollforwardEligible(snap,e,now);}
-function boxingVerifiedCache(cached,snap,now){if(KEY!=='boxing'||!cached?.data||cached?.verifiedBy!=='boxingHighlightDiscovery'||Number(cached?.sourcePolicy)!==BOXING_SOURCE_POLICY_VERSION||!Number.isFinite(Number(cached?.verifiedAt)))return null;const data=normalizeOneCompositeEvent(cached.data);return boxingHighlightValid(data,now)?{...data,highlight:true}:null;}
+function boxingVerifiedCache(cached,snap,now){if(KEY!=='boxing'||!cached?.data||cached?.verifiedBy!=='boxingHighlightDiscovery'||Number(cached?.sourcePolicy)!==BOXING_SOURCE_POLICY_VERSION||!Number.isFinite(Number(cached?.verifiedAt)))return null;const data=sanitizeEventFightContext(normalizeOneCompositeEvent(cached.data));return boxingHighlightValid(data,now)?{...data,highlight:true}:null;}
 function boxingCurrentVerifiedCache(cached,snap){if(KEY!=='boxing'||!cached?.data||cached?.verifiedBy!=='refreshLockedCurrent'||!Number.isFinite(Number(cached?.verifiedAt)))return null;const data=normalizeOneCompositeEvent(cached.data);return currentLocked(snap)&&boxingRingSource(data)&&sameEventIdentity(data,snap)?data:null;}
 async function prefetchBoxingVisual(data){if(KEY!=='boxing'||!boxingOfficialSource(data))return data;let last=null;for(const source of [...new Set([data.visualSource,data.source].filter(Boolean))]){const p=await eventPosterResult({...data,source},{localOnly:false});last=p;if(p.image)return{...data,posterURL:p.url||data.posterURL||null,posterSource:p.source||data.posterSource||'none',posterPrefetched:true,visualSource:source};}return{...data,posterURL:last?.url||data.posterURL||null,posterSource:last?.source||data.posterSource||'none',posterPrefetched:false};}
 function safePendingEvent(now=Date.now(),lightweight=false){const box=KEY==='boxing',name=box?'注目興行':'次大会';return{startAt:new Date(now+24*3600000).toISOString(),location:'会場未定',name,main:{a:name,b:'確認中',context:''},support:[],cardTba:true,posterURL:null,posterCandidates:[],posterSource:'none',source:null,timeTba:true,displayDate:'日程未定',nextPending:true,highlightPending:box,lightweightPending:!!lightweight,cacheVerified:false,cardSourceType:box?'highlight-pending':'safe-pending'};}
@@ -394,7 +397,7 @@ function largeFightRow(st,row){const block=st.addStack();block.layoutVertically(
 function largeNextTitle(next){let v=jpDisplay(next?.name||'次大会').replace(/^Crypto\.com\s+/i,'');if(KEY==='ufc')v=v.replace(/^UFC\s+Fight\s+Night\s*[:：]?\s*/i,'');return v;}
 function largeNextMeta(next){if(!next)return'';const d=next.timeTba?dateOnly(next.startAt):dateText(next);const loc=shortLoc(next.location||'');return loc?`${d}\n${loc}`:d;}
 function largeStatusHeading(D){if(D?.timeTba)return'開催まで';const t=new Date(D?.startAt||0).getTime();if(!Number.isFinite(t)||t<=0)return'開催まで';return t>Date.now()?'開催まで':'開催状況';}
-function largeStatusDate(D){if(D?.nextPending)return'日程未定';if(D?.displayDate)return String(D.displayDate);const t=new Date(D?.startAt||0).getTime();if(!Number.isFinite(t)||t<=0)return'日程未定';return D.timeTba?dateOnly(D.startAt):dateText(D);}
+function largeStatusDate(D){if(D?.nextPending)return'日程未定';const t=new Date(D?.startAt||0).getTime();if(!Number.isFinite(t)||t<=0)return'日程未定';if(KEY==='boxing'&&!D.timeTba)return dateText(D);if(D?.displayDate)return String(D.displayDate);return D.timeTba?dateOnly(D.startAt):dateText(D);}
 function largeStatusLocation(D){if(D?.nextPending)return'会場未定';const loc=shortLoc(D?.location||'');return loc||'会場未定';}
 function largeRightText(st,text,size,color,weight='semibold'){const row=st.addStack();row.addSpacer();const t=tx(row,text,size,color,weight,1);t.minimumScaleFactor=.70;t.rightAlignText();return t;}
 function renderLarge(w,D,ctx,next,nextPoster){
