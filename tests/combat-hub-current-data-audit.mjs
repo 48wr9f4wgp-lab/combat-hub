@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const src=fs.readFileSync('combat-hub.js','utf8');
 const preview=fs.readFileSync('combat-hub-preview-loader.js','utf8');
 
-assert.match(src,/const VERSION='7\.23\.2-github'/);
+assert.match(src,/const VERSION='7\.23\.3-github'/);
 assert.match(src,/const TRUSTED_FUTURE=\{/,'verified future fallback set missing');
 assert.match(src,/UFC Fight Night: Rosas Jr\. vs Barcelos/,'verified post-UFC331 fallback missing');
 assert.match(src,/K-1 2026\.11\.23/,'verified K-1 11\/23 fallback missing');
@@ -22,6 +22,8 @@ assert.match(src,/TOYOTA ARENA TOKYO/,'verified Japan venue missing');
 assert.match(src,/function boxingSourcePriority\(e\)/,'BOXING local promoter authority policy missing');
 assert.match(src,/function boxingCleanFighterName\(v\)/,'BOXING schedule-text fighter cleaner missing');
 assert.match(src,/function boxingCandidateMatch\(a,b\)/,'BOXING alias-aware candidate merge guard missing');
+assert.match(src,/const future=candidates\.filter\(e=>new Date\(e\.startAt\)\.getTime\(\)>now\)/,'BOXING highlighted-event future-first roll-forward guard missing');
+assert.match(src,/if\(KEY==='boxing'&&!D\.timeTba\)return dateText\(D\)/,'BOXING exact-time status display missing');
 assert.match(src,/function enrichTrustedEventMeta\(ev\)/,'verified metadata hydration helper missing');
 assert.match(src,/function unresolvedLocation\(v\)/,'placeholder-location override helper missing');
 assert.match(src,/function richerContext\(a,b,eventName=''\)/,'richer verified fight-context selection missing');
