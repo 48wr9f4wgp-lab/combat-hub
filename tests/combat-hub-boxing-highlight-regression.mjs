@@ -7,7 +7,7 @@ const marker='const D=await loadData(),ctx=await heroContext(D);writeRuntimeAudi
 assert.ok(src.includes(marker),'runtime instrumentation marker changed');
 const instrumented=src.replace(
   marker,
-  `globalThis.__boxingHighlight={boxingSourceId,boxingOfficialSource,boxingOfficialListingEvents,boxingHighlightValid,boxingHighlightScore,boxingTrustedHighlights,dedupeBoxingCandidates,discoverBoxingHighlight,safePendingEvent,loadData};if(globalThis.__TEST_ONLY__)return;${marker}`,
+  `globalThis.__boxingHighlight={boxingSourceId,boxingOfficialSource,boxingOfficialListingEvents,boxingHighlightValid,boxingHighlightScore,boxingTrustedHighlights,dedupeBoxingCandidates,discoverBoxingHighlight,safePendingEvent,loadData,boxingSourcePriority};if(globalThis.__TEST_ONLY__)return;${marker}`,
 );
 
 function sharedFM(){
@@ -40,9 +40,9 @@ async function boot({now=Date.parse('2026-09-23T12:00:00+09:00'),runsInWidget=fa
   return{api:context.__boxingHighlight,fm,requests};
 }
 
-assert.match(src,/const VERSION='7\.23\.0-github'/);
-assert.match(src,/const BOXING_SOURCE_POLICY_VERSION=1/);
-for(const host of ['ringmagazine.com','matchroomboxing.com','premierboxingchampions.com','toprank.com','queensberry.co.uk'])assert.ok(src.includes(host),`missing official BOXING source: ${host}`);
+assert.match(src,/const VERSION='7\.23\.1-github'/);
+assert.match(src,/const BOXING_SOURCE_POLICY_VERSION=2/);
+for(const host of ['ringmagazine.com','matchroomboxing.com','premierboxingchampions.com','toprank.com','queensberry.co.uk','teiken.com'])assert.ok(src.includes(host),`missing official BOXING source: ${host}`);
 assert.doesNotMatch(src,/goldenboypromotions\.com/,'Golden Boy must stay disabled until a stable public schedule surface is verified');
 assert.match(src,/verifiedBy:'boxingHighlightDiscovery'/);
 assert.match(src,/sourcePolicy:BOXING_SOURCE_POLICY_VERSION/);
@@ -56,14 +56,18 @@ assert.match(src,/KEY==='boxing'\?'注目興行':'次大会'/);
   assert.equal(api.boxingSourceId('https://origin.premierboxingchampions.com/boxing-schedule'),'pbc');
   assert.equal(api.boxingSourceId('https://toprank.com/news/x'),'toprank');
   assert.equal(api.boxingSourceId('https://queensberry.co.uk/pages/x'),'queensberry');
+  assert.equal(api.boxingSourceId('https://www.teiken.com/bout/'),'teiken');
+  assert.ok(api.boxingSourcePriority({sourceId:'teiken'})>api.boxingSourcePriority({sourceId:'ring'}),'local promoter truth must outrank Ring metadata');
   assert.equal(api.boxingOfficialSource({source:'https://example.com/fight'}),false);
 }
 
 {
   const now=Date.parse('2026-09-23T12:00:00+09:00'),{api}=await boot({now});
   const trusted=api.boxingTrustedHighlights(now).sort((a,b)=>api.boxingHighlightScore(b,now)-api.boxingHighlightScore(a,now));
-  assert.equal(trusted[0].name,'Liam Davies vs Nathaniel Collins','near-term verified Queensberry card should lead the current highlight set');
-  assert.equal(trusted[0].promoter,'Queensberry');
+  assert.equal(trusted[0].name,'Prime Video Boxing 16','verified Japan world-title card should lead the current highlight set');
+  assert.equal(trusted[0].promoter,'帝拳');
+  assert.equal(trusted[0].startAt,'2026-09-27T16:30:00+09:00');
+  assert.equal(trusted[0].location,'TOYOTA ARENA TOKYO');
 }
 
 {
@@ -89,16 +93,23 @@ assert.match(src,/KEY==='boxing'\?'注目興行':'次大会'/);
   const data=await manual.api.loadData();
   assert.equal(data.cacheVerified,true,'manual BOXING run must persist a verified highlight');
   assert.equal(data.highlight,true);
-  assert.equal(data.name,'Liam Davies vs Nathaniel Collins');
-  assert.equal(data.promoter,'Queensberry');
+  assert.equal(data.name,'Prime Video Boxing 16');
+  assert.equal(data.promoter,'帝拳');
+  assert.equal(data.startAt,'2026-09-27T16:30:00+09:00');
+  assert.equal(data.location,'TOYOTA ARENA TOKYO');
+  assert.equal(data.main.a,'井上拓真');
+  assert.equal(data.main.b,'那須川天心');
   const saved=JSON.parse(fm.strings.get('/docs/combat-hub-next-boxing.json'));
   assert.equal(saved.verifiedBy,'boxingHighlightDiscovery');
-  assert.equal(saved.sourcePolicy,1);
+  assert.equal(saved.sourcePolicy,2);
   assert.equal(saved.data.highlight,true);
 
   const widget=await boot({now,runsInWidget:true,fm,textResponses:{}});
   const cached=await widget.api.loadData();
-  assert.equal(cached.name,'Liam Davies vs Nathaniel Collins');
+  assert.equal(cached.name,'Prime Video Boxing 16');
+  assert.equal(cached.startAt,'2026-09-27T16:30:00+09:00');
+  assert.equal(cached.main.a,'井上拓真');
+  assert.equal(cached.main.b,'那須川天心');
   assert.equal(cached.cacheVerified,true);
   assert.equal(cached.cardSourceType,'verified-boxing-highlight-cache');
   assert.equal(widget.requests.filter(r=>r.kind==='string').length,0,'BOXING Widget highlight consumption must remain network-free');

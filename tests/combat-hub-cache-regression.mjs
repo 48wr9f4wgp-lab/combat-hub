@@ -215,7 +215,7 @@ function stringRequests(requests) {
   assert.equal(pending.nextPending,true,'Unverified BOXING cache must not reach widget output');
   assert.equal(pending.cacheVerified,false);
   assert.equal(stringRequests(requests).length,0,'BOXING widget must not deep-discover when cache is unverified');
-  fm.api.writeString(path,JSON.stringify({savedAt:now-60_000,verifiedAt:now-60_000,verifiedBy:'boxingHighlightDiscovery',sourcePolicy:1,data:future}));
+  fm.api.writeString(path,JSON.stringify({savedAt:now-60_000,verifiedAt:now-60_000,verifiedBy:'boxingHighlightDiscovery',sourcePolicy:2,data:future}));
   const verified=await api.loadData();
   assert.equal(verified.name,future.name);
   assert.equal(verified.cacheVerified,true);
@@ -223,12 +223,12 @@ function stringRequests(requests) {
   assert.equal(stringRequests(requests).length,0,'BOXING widget verified-cache path must remain network-free');
 }
 
-// Manual BOXING execution should discover from Ring, validate, and persist a verified next-event cache.
+// Manual BOXING execution should still accept a live Ring candidate when no nearer trusted highlight remains.
 {
-  const now=Date.parse('2026-09-22T13:00:00+09:00');
+  const now=Date.parse('2027-02-01T13:00:00+09:00');
   const listing='https://www.ringmagazine.com/events';
   const event='https://www.ringmagazine.com/events/alpha-vs-beta';
-  const listingHtml=`<script type="application/ld+json">${JSON.stringify({'@type':'Event',name:'Alpha vs Beta Championship',startDate:'2026-09-27T10:00:00+09:00',location:{name:'Las Vegas'},url:event})}</script>`;
+  const listingHtml=`<script type="application/ld+json">${JSON.stringify({'@type':'Event',name:'Alpha vs Beta Championship',startDate:'2027-02-07T10:00:00+09:00',location:{name:'Las Vegas'},url:event})}</script>`;
   const detailHtml='<title>Alpha vs Beta</title><meta property="og:image" content="https://img.example/alpha-beta.jpg">';
   const {api,fm}=await boot('BOXING',{now,runsInWidget:false,textResponses:{[listing]:listingHtml,[event]:detailHtml}});
   const data=await api.loadData();
@@ -236,7 +236,7 @@ function stringRequests(requests) {
   assert.equal(data.prefetched,true);
   const saved=JSON.parse(fm.api.readString('/docs/combat-hub-next-boxing.json'));
   assert.equal(saved.verifiedBy,'boxingHighlightDiscovery');
-  assert.equal(saved.sourcePolicy,1);
+  assert.equal(saved.sourcePolicy,2);
   assert.equal(saved.verifiedAt,now);
   assert.equal(saved.data.source,event);
 }

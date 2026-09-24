@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const src=fs.readFileSync('combat-hub.js','utf8');
 const preview=fs.readFileSync('combat-hub-preview-loader.js','utf8');
 
-assert.match(src,/const VERSION='7\.23\.0-github'/);
+assert.match(src,/const VERSION='7\.23\.1-github'/);
 assert.match(src,/const TRUSTED_FUTURE=\{/,'verified future fallback set missing');
 assert.match(src,/UFC Fight Night: Rosas Jr\. vs Barcelos/,'verified post-UFC331 fallback missing');
 assert.match(src,/K-1 2026\.11\.23/,'verified K-1 11\/23 fallback missing');
@@ -14,8 +14,12 @@ assert.match(src,/replace\(\/\^UFC\[\^\|\]\{0,120\}\\\|\\s\*\/i,''\)/,'Japanese 
 assert.match(src,/function k1ListingEvents\(html,base,now=Date\.now\(\)\)/,'K-1 schedule listing parser missing');
 assert.match(src,/function oneBoutContext\(raw\)/,'ONE discipline context parser missing');
 assert.match(src,/function safePendingEvent\(now=Date\.now\(\),lightweight=false\)/,'neutral pending helper missing');
-assert.match(src,/const BOXING_SOURCE_POLICY_VERSION=1/,'BOXING highlight source policy missing');
+assert.match(src,/const BOXING_SOURCE_POLICY_VERSION=2/,'BOXING highlight source policy missing');
 assert.match(src,/function discoverBoxingHighlight\(now=Date\.now\(\)\)/,'BOXING multi-source highlight discovery missing');
+assert.match(src,/Prime Video Boxing 16/,'verified Japan highlight baseline missing');
+assert.match(src,/2026-09-27T16:30:00\+09:00/,'verified Japan official start time missing');
+assert.match(src,/TOYOTA ARENA TOKYO/,'verified Japan venue missing');
+assert.match(src,/function boxingSourcePriority\(e\)/,'BOXING local promoter authority policy missing');
 assert.match(src,/function enrichTrustedEventMeta\(ev\)/,'verified metadata hydration helper missing');
 assert.match(src,/function unresolvedLocation\(v\)/,'placeholder-location override helper missing');
 assert.match(src,/function richerContext\(a,b,eventName=''\)/,'richer verified fight-context selection missing');

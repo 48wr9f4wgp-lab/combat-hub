@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.23.0-github — BOXING highlighted-event aggregation across verified official promoter sources; visuals frozen
+// v7.23.1-github — prioritize local promoter truth for BOXING time/venue/name while preserving verified visual fallback; visuals frozen
 
 (async()=>{
-const VERSION='7.23.0-github';
+const VERSION='7.23.1-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -22,16 +22,18 @@ const SERIES={
   k1:{label:'K-1',accent:'#FF8C3A',listing:'https://www.k-1.co.jp/k-1wgp/schedule',detail:/\/schedule\/\d+/i}
 };
 const S=SERIES[KEY], C={text:'#F7F8FA',sub:'#D7DCE3',muted:'#9AA2AD'};
-const BOXING_SOURCE_POLICY_VERSION=1;
+const BOXING_SOURCE_POLICY_VERSION=2;
 const BOXING_OFFICIAL_SOURCES=[
   {id:'ring',label:'The Ring',url:'https://www.ringmagazine.com/events'},
   {id:'matchroom',label:'Matchroom',url:'https://www.matchroomboxing.com/events/'},
   {id:'pbc',label:'PBC',url:'https://www.premierboxingchampions.com/boxing-schedule'},
   {id:'toprank',label:'Top Rank',url:'https://toprank.com/news?categories=fight-announcements'},
-  {id:'queensberry',label:'Queensberry',url:'https://queensberry.co.uk/pages/events'}
+  {id:'queensberry',label:'Queensberry',url:'https://queensberry.co.uk/pages/events'},
+  {id:'teiken',label:'帝拳',url:'https://www.teiken.com/bout/'}
 ];
 // Golden Boy is intentionally excluded until a stable public schedule surface is verified.
 const BOXING_TRUSTED_HIGHLIGHTS=[
+  {startAt:'2026-09-27T16:30:00+09:00',displayDate:'9/27 (日)',timeTba:false,location:'TOYOTA ARENA TOKYO',name:'Prime Video Boxing 16',source:'https://www.teiken.com/bout/',sourceId:'teiken',promoter:'帝拳',main:{a:'井上拓真',b:'那須川天心',context:'WBC世界バンタム級タイトルマッチ'},support:[{label:'MAIN CARD',a:'西田凌佑',b:'サム・グッドマン',context:'IBF世界スーパーバンタム級暫定王座決定戦'},{label:'MAIN CARD',a:'坪井智也',b:'リカルド・マラジカ',context:'WBC世界スーパーフライ級王座決定戦'}],cardTba:false,verifiedFallback:true,localPromoterTruth:true},
   {startAt:'2026-09-26T12:00:00+01:00',displayDate:'9/26 (土)',timeTba:true,location:'BP Pulse Live, Birmingham',name:'Liam Davies vs Nathaniel Collins',source:'https://queensberry.co.uk/blogs/queensberry-promotions-blog/homestretch-press-conference-quotes',sourceId:'queensberry',promoter:'Queensberry',main:{a:'Liam Davies',b:'Nathaniel Collins',context:'フェザー級'},support:[],cardTba:false,verifiedFallback:true},
   {startAt:'2026-10-03T12:00:00+01:00',displayDate:'10/3 (土)',timeTba:true,location:'Utilita Arena, Birmingham',name:'Whittaker vs Wallace',source:'https://www.matchroomboxing.com/events/whittaker-vs-wallace/',sourceId:'matchroom',promoter:'Matchroom',main:{a:'Ben Whittaker',b:'Conor Wallace',context:''},support:[],cardTba:false,verifiedFallback:true},
   {startAt:'2026-10-18T09:00:00+09:00',timeTba:false,location:'Las Vegas',name:'Fundora vs Hadribeaj',source:'https://www.premierboxingchampions.com/boxing-schedule',sourceId:'pbc',promoter:'PBC',main:{a:'Sebastian Fundora',b:'Ermal Hadribeaj',context:''},support:[],cardTba:false,verifiedFallback:true},
@@ -139,6 +141,7 @@ const JP_DISPLAY={
 'Dabdam Por Tor Tor Thongtawee':'ダブダム','Petsangwan Sor Samarngarment':'ペットサンワン',
 'Ryan Garcia':'ライアン・ガルシア','Conor Benn':'コナー・ベン',
 'Isaac Cruz':'アイザック・クルス','Nestor Bravo':'ネスター・ブラボ','Jesus Ramos':'ヘスス・ラモス','Meiirim Nursultanov':'メイリム・ヌルスルタノフ',
+'Takuma Inoue':'井上拓真','Tenshin Nasukawa':'那須川天心','Ryosuke Nishida':'西田凌佑','Sam Goodman':'サム・グッドマン','Tomoya Tsuboi':'坪井智也','Ricardo Malajika':'リカルド・マラジカ',
 'Jai Opetaia':'ジェイ・オペタイア','Noel Mikaelian':'ノエル・ミカエリアン',
 'Nadaka':'吉成名高','Nadaka Yoshinari':'吉成名高',
 'Har Ling Om':'ハー・リン・オム','Ling Om':'ハー・リン・オム',
@@ -171,7 +174,7 @@ function linkedFighterPairs(html,base=S.listing){return linkedFighterBouts(html,
 function semanticVsPairs(html){if(KEY!=='ufc'&&KEY!=='k1')return[];const lines=decodeEntities(String(cardScope(html)||'').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ').replace(/<(?:br|hr)\b[^>]*>/gi,'\n').replace(/<\/(?:a|div|span|p|h[1-6]|li|section|article|td|th|tr|strong|em)>/gi,'\n').replace(/<[^>]+>/g,' ')).split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);const bad=/^(?:main card|prelims?|early prelims?|fight card|対戦カード|所属ジム|戦歴|生年月日|身長|体重|ファイトスタイル|出身地|国籍|sns|image|odds?|watch|tickets?|follow live|[-+]?\d+(?:\.\d+)?|#\d+)$/i,isName=x=>{const n=cardFighterName(x);return n.length>=2&&n.length<=48&&/[A-Za-zぁ-んァ-ヶ一-龯]/.test(n)&&!bad.test(n)&&!/(?:bout|title|級|round|戦|勝|敗|分|cm|kg|arena|card)/i.test(n);},pick=(start,step)=>{for(let j=start,c=0;j>=0&&j<lines.length&&c<7;j+=step,c++){if(/^vs\.?$/i.test(lines[j]))continue;if(isName(lines[j]))return cardFighterName(lines[j]);}return'';};const out=[],seen=new Set();for(let i=0;i<lines.length;i++){if(!/^vs\.?$/i.test(lines[i]))continue;const a=pick(i-1,-1),b=pick(i+1,1),k=a+'|'+b;if(a&&b&&!seen.has(k)){seen.add(k);out.push({a,b});}}return out.slice(0,8);}
 function officialPageBouts(html,base){if(KEY==='ufc'||KEY==='k1'){const linked=linkedFighterBouts(html,base);if(linked.length)return linked;const semantic=semanticVsPairs(html);if(semantic.length)return semantic;}return fightPairs(html);}
 function officialPagePairs(html,base=S.listing){return officialPageBouts(html,base);}
-function shortLoc(s){const v=String(s||'');if(/LaLa\s*arena\s*TOKYO-BAY|ららアリーナ\s*東京ベイ/i.test(v))return'千葉・船橋';if(/Shanghai|Pudong|China|上海/i.test(v))return'上海';if(/Osaka|大阪/i.test(v))return'大阪';if(/Bangkok|Lumpinee|バンコク|ルンピニー/i.test(v))return'バンコク';if(/Paris|パリ/i.test(v))return'パリ';if(/Las Vegas|ラスベガス/i.test(v))return'ラスベガス';if(/San Diego|サンディエゴ/i.test(v))return'サンディエゴ';if(/Yokohama Buntai|Yokohama BUNTAI|横浜BUNTAI|Yokohama|横浜/i.test(v))return'横浜BUNTAI';if(/代々木|Yoyogi/i.test(v))return'東京・代々木第二';if(/Tokyo|東京/i.test(v))return'東京';return v.length>14?v.slice(0,13)+'…':v;}
+function shortLoc(s){const v=String(s||'');if(/TOYOTA\s*ARENA\s*TOKYO|トヨタアリーナ東京/i.test(v))return'トヨタアリーナ東京';if(/LaLa\s*arena\s*TOKYO-BAY|ららアリーナ\s*東京ベイ/i.test(v))return'千葉・船橋';if(/Shanghai|Pudong|China|上海/i.test(v))return'上海';if(/Osaka|大阪/i.test(v))return'大阪';if(/Bangkok|Lumpinee|バンコク|ルンピニー/i.test(v))return'バンコク';if(/Paris|パリ/i.test(v))return'パリ';if(/Las Vegas|ラスベガス/i.test(v))return'ラスベガス';if(/San Diego|サンディエゴ/i.test(v))return'サンディエゴ';if(/Yokohama Buntai|Yokohama BUNTAI|横浜BUNTAI|Yokohama|横浜/i.test(v))return'横浜BUNTAI';if(/代々木|Yoyogi/i.test(v))return'東京・代々木第二';if(/Tokyo|東京/i.test(v))return'東京';return v.length>14?v.slice(0,13)+'…':v;}
 function validOrgName(name){const n=String(name||'');if(KEY==='ufc')return/UFC/i.test(n);if(KEY==='rizin')return/RIZIN/i.test(n);if(KEY==='one')return/ONE/i.test(n);if(KEY==='k1')return/K-1/i.test(n);if(KEY==='boxing')return/(?:\bvs\.?\b|boxing|fight|title|championship|対)/i.test(n);return false;}
 function normalizeOneCompositeEvent(ev){if(KEY!=='one'||!ev)return ev;const originalName=stripHTML(ev.name||''),m=originalName.match(/ONE Friday Fights\s+\d+/i);if(!m||!/The Inner Circle\s+\d+/i.test(originalName))return ev;const t=new Date(ev.startAt).getTime();if(!Number.isFinite(t))return{...ev,name:m[0],compositeName:originalName,oneComposite:true};const j=new Date(t+9*3600000),jh=j.getUTCHours(),jm=j.getUTCMinutes(),startAt=jh===20&&jm===30?new Date(t+2*3600000).toISOString():ev.startAt;return{...ev,name:m[0],startAt,compositeName:originalName,oneComposite:true};}
 function ufcCardTime(raw,min,max){const MONTH={JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11},ZONE={UTC:0,GMT:0,EDT:-4,EST:-5,CDT:-5,CST:-6,MDT:-6,MST:-7,PDT:-7,PST:-8,BST:1,CET:1,CEST:2,JST:9};const s=decodeEntities(String(raw||'')).replace(/\s+/g,' ').trim(),m=s.match(/(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat),?\s+([A-Za-z]{3})\s+(\d{1,2})\s*\/\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*([A-Z]{2,5})/i);if(!m)return null;const mo=MONTH[m[1].toUpperCase()],off=ZONE[m[6].toUpperCase()];if(mo==null||off==null)return null;let h=Number(m[3])%12;if(m[5].toUpperCase()==='PM')h+=12;const day=Number(m[2]),mi=Number(m[4]),ref=new Date(Number.isFinite(min)?min:Date.now()).getUTCFullYear(),hits=[];for(const y of [ref-1,ref,ref+1]){const t=Date.UTC(y,mo,day,h,mi)-off*3600000;if((!Number.isFinite(min)||t>min)&&(!Number.isFinite(max)||t<max))hits.push(t);}return hits.length?new Date(Math.min(...hits)).toISOString():null;}
@@ -195,9 +198,11 @@ function boxingSourceId(v){
   if(/premierboxingchampions\.com/.test(s))return'pbc';
   if(/toprank\.com/.test(s))return'toprank';
   if(/queensberry\.co\.uk/.test(s))return'queensberry';
+  if(/teiken\.com/.test(s))return'teiken';
   return'';
 }
 function boxingPromoter(v){const id=boxingSourceId(v);return BOXING_OFFICIAL_SOURCES.find(x=>x.id===id)?.label||'';}
+function boxingSourcePriority(e){return({teiken:120,matchroom:110,pbc:110,toprank:110,queensberry:110,ring:70})[e?.sourceId||boxingSourceId(e)]||0;}
 function boxingDateCandidates(text,now=Date.now()){
   const raw=String(text||''),M={jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11},out=[],seen=new Set(),ref=new Date(now).getUTCFullYear();
   const add=(y,mo,d)=>{const t=Date.UTC(y,mo,d,12,0,0);if(t<now-2*86400000||t>now+180*86400000||seen.has(t))return;seen.add(t);out.push(t);};
@@ -232,10 +237,10 @@ function boxingHighlightScore(e,now=Date.now()){
 }
 function boxingCandidateQuality(e){let q=0;if(e?.main?.a&&e?.main?.b)q+=10;if(String(e?.main?.a||'').includes(' '))q+=2;if(String(e?.main?.b||'').includes(' '))q+=2;if(e?.location)q+=3;if(e?.main?.context)q+=3;if(e?.posterURL)q+=1;return q;}
 function mergeBoxingCandidate(a,b){
-  if(!a)return b;if(!b)return a;const base=boxingCandidateQuality(b)>boxingCandidateQuality(a)?b:a,other=base===a?b:a;return{...base,liveSource:!!(a.liveSource||b.liveSource),verifiedFallback:!!(a.verifiedFallback||b.verifiedFallback),verifiedSources:[...new Set([...(a.verifiedSources||[a.sourceId].filter(Boolean)),...(b.verifiedSources||[b.sourceId].filter(Boolean))])],location:base.location||other.location||'',main:{...(base.main||other.main),context:richerContext(base.main?.context,other.main?.context,base.name||other.name)}};
+  if(!a)return b;if(!b)return a;const ap=boxingSourcePriority(a),bp=boxingSourcePriority(b),base=bp!==ap?(bp>ap?b:a):(boxingCandidateQuality(b)>boxingCandidateQuality(a)?b:a),other=base===a?b:a,visualSource=base.visualSource||(boxingSourcePriority(other)<boxingSourcePriority(base)?other.source:null);return{...base,visualSource:visualSource||null,posterURL:base.posterURL||other.posterURL||null,posterSource:base.posterSource||other.posterSource||'none',posterCandidates:(base.posterCandidates||[]).length?base.posterCandidates:(other.posterCandidates||[]),liveSource:!!(a.liveSource||b.liveSource),verifiedFallback:!!(a.verifiedFallback||b.verifiedFallback),verifiedSources:[...new Set([...(a.verifiedSources||[a.sourceId].filter(Boolean)),...(b.verifiedSources||[b.sourceId].filter(Boolean))])],location:base.location||other.location||'',main:{...(base.main||other.main),context:richerContext(base.main?.context,other.main?.context,base.name||other.name)},support:(base.support||[]).length?base.support:(other.support||[])};
 }
 function dedupeBoxingCandidates(candidates){
-  const m=new Map();for(const e of candidates){if(!boxingHighlightValid(e))continue;const ids=[eventIdentityText(e.main.a),eventIdentityText(e.main.b)].sort(),k=ids.join('|')+'|'+eventJstDateKey(e);m.set(k,mergeBoxingCandidate(m.get(k),e));}return[...m.values()];
+  const m=new Map();for(const e of candidates){if(!boxingHighlightValid(e))continue;const ids=[fighterIdentity(e.main.a),fighterIdentity(e.main.b)].sort(),k=ids.join('|')+'|'+eventJstDateKey(e);m.set(k,mergeBoxingCandidate(m.get(k),e));}return[...m.values()];
 }
 async function discoverBoxingHighlight(now=Date.now()){
   if(KEY!=='boxing')return null;let candidates=boxingTrustedHighlights(now);
@@ -290,7 +295,7 @@ function boxingRingSource(e){return boxingSourceId(e)==='ring';}
 function boxingPrefetchValid(snap,e,now=Date.now()){return KEY==='boxing'&&!!e&&boxingRingSource(e)&&rollforwardEligible(snap,e,now);}
 function boxingVerifiedCache(cached,snap,now){if(KEY!=='boxing'||!cached?.data||cached?.verifiedBy!=='boxingHighlightDiscovery'||Number(cached?.sourcePolicy)!==BOXING_SOURCE_POLICY_VERSION||!Number.isFinite(Number(cached?.verifiedAt)))return null;const data=normalizeOneCompositeEvent(cached.data);return boxingHighlightValid(data,now)?{...data,highlight:true}:null;}
 function boxingCurrentVerifiedCache(cached,snap){if(KEY!=='boxing'||!cached?.data||cached?.verifiedBy!=='refreshLockedCurrent'||!Number.isFinite(Number(cached?.verifiedAt)))return null;const data=normalizeOneCompositeEvent(cached.data);return currentLocked(snap)&&boxingRingSource(data)&&sameEventIdentity(data,snap)?data:null;}
-async function prefetchBoxingVisual(data){if(KEY!=='boxing'||!boxingOfficialSource(data))return data;const p=await eventPosterResult(data,{localOnly:false});return{...data,posterURL:p.url||data.posterURL||null,posterSource:p.source||data.posterSource||'none',posterPrefetched:!!p.image};}
+async function prefetchBoxingVisual(data){if(KEY!=='boxing'||!boxingOfficialSource(data))return data;let last=null;for(const source of [...new Set([data.visualSource,data.source].filter(Boolean))]){const p=await eventPosterResult({...data,source},{localOnly:false});last=p;if(p.image)return{...data,posterURL:p.url||data.posterURL||null,posterSource:p.source||data.posterSource||'none',posterPrefetched:true,visualSource:source};}return{...data,posterURL:last?.url||data.posterURL||null,posterSource:last?.source||data.posterSource||'none',posterPrefetched:false};}
 function safePendingEvent(now=Date.now(),lightweight=false){const box=KEY==='boxing',name=box?'注目興行':'次大会';return{startAt:new Date(now+24*3600000).toISOString(),location:'会場未定',name,main:{a:name,b:'確認中',context:''},support:[],cardTba:true,posterURL:null,posterCandidates:[],posterSource:'none',source:null,timeTba:true,displayDate:'日程未定',nextPending:true,highlightPending:box,lightweightPending:!!lightweight,cacheVerified:false,cardSourceType:box?'highlight-pending':'safe-pending'};}
 async function loadData(){
   const snap=sanitizeEventFightContext(normalizeOneCompositeEvent({...SNAPSHOT[KEY]})),now=Date.now(),path=cacheFile(`combat-hub-next-${KEY}.json`),cached=readJSON(path),cachedData=cached?.data?sanitizeEventFightContext(enrichTrustedEventMeta(normalizeOneCompositeEvent(cached.data))):null;
