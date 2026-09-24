@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.4 has passed targeted K-1 Medium + Large physical iPhone QA and is the current VERIFIED_BASELINE.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.4 remains the current VERIFIED_BASELINE; v7.23.5 changes only ONE display aliases and requires targeted ONE Small physical QA before promotion.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
@@ -31,10 +31,10 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.23.4-github**.
-- Latest runtime-changing PR: **#99 — align time-TBA status wording in Medium and Large**.
-- Runtime merge commit: `affa68fdeb78062f965644d29dfc6cdfe897af67`.
-- Main Regression after PR #99: **#914 success**.
+- Production runtime: **v7.23.5-github**.
+- Latest runtime-changing PR: **#102 — localize ONE Friday Fights 172 display**.
+- Runtime merge commit: `d984309008c58e10016dafa1d5ae1df141ebbb0e`.
+- Main Regression after PR #102: **#931 success**.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=10` is the current canonical card-policy version.
@@ -567,6 +567,36 @@ Final targeted physical iPhone QA on v7.23.4 passed on 2026-09-24:
 
 `v7.23.4-github` is now the current `VERIFIED_BASELINE`.
 
+### v7.23.5 — ONE Friday Fights 172 Japanese display
+
+Small physical audit on 2026-09-24 found no data or geometry defect across the five organizations, but ONE remained visually inconsistent with the Japanese-first UI because the current event and main-event fighter names were still English.
+
+Current official ONE evidence:
+- ONE Friday Fights 172 main event = Superlek Jitmuangnon vs Othman Rhouni.
+- discipline = bantamweight Muay Thai.
+- Japan broadcast start = 9/25 22:30 JST.
+- ONE's Japanese first-party ticket surface uses `スーパーレック` and `オスマン・ルーニ`.
+
+v7.23.5 is display-only:
+- `ONE Friday Fights 172` -> `ONE フライデーファイツ 172`.
+- `Superlek Jitmuangnon` -> `スーパーレック`.
+- `Othman Rhouni` -> `オスマン・ルーニ`.
+- all render families already pass names/event text through `jpDisplay(...)`, so no renderer or geometry branch was added.
+- no event selection, date/time/location, card parser, cache policy, Loader, other organization, or friends-stable change.
+
+Automated evidence:
+- branch Regression #929 SUCCESS
+- PR #102 Regression #930 SUCCESS
+- merge-to-main Regression #931 SUCCESS
+- Japanese display regression locks the current ONE 172 event/fighter aliases
+
+Physical iPhone QA still required before v7.23.5 VERIFIED_BASELINE promotion:
+- ONE Small only: event title = `ONE フライデーファイツ 172`.
+- main = `スーパーレック vs オスマン・ルーニ`.
+- existing `バンタム級ムエタイ`, 9/25, バンコク, countdown, background and Small geometry remain intact.
+- Medium/Large recheck is not required unless a symptom appears because the localization shortens the fighter strings and uses the same shared display map.
+- v7.23.4 remains the VERIFIED_BASELINE until this Small check passes.
+
 ## 11. Known debt / risks
 
 ### BOXING source availability / timing
@@ -617,21 +647,20 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.23.4-github`
+- runtime `v7.23.5-github`
 - Loader `v4.2.0`
-- runtime PR `#99`
-- runtime merge `affa68fdeb78062f965644d29dfc6cdfe897af67`
-- main Regression `#914 success`
+- runtime PR `#102`
+- runtime merge `d984309008c58e10016dafa1d5ae1df141ebbb0e`
+- main Regression `#931 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **VERIFIED_BASELINE** — automated regression green and targeted K-1 Medium + Large physical iPhone QA passed on 2026-09-24
-- current VERIFIED_BASELINE: `v7.23.4-github`
-- accepted v7.23.4 scope: K-1 Medium/Large time-TBA status heading `開催 / 時刻未定` with event/date/venue/pending content/next-panel/background/geometry preserved
-- all previously accepted BOXING / UFC / RIZIN / ONE scopes remain accepted
+- validation status: **PARTIAL** — automated regression green; targeted ONE Small Japanese-display QA pending
+- previous/current verified reference: `v7.23.4-github` VERIFIED_BASELINE
+- v7.23.5 pending physical scope: ONE Small event title + main fighter Japanese aliases only; existing event data/context/date/location/countdown/background/geometry must remain unchanged
+- all previously accepted BOXING / UFC / RIZIN / K-1 scopes remain accepted
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
-- v7.23.4 time-TBA wording alignment cycle is **CLOSED** unless new device evidence or official-source drift appears
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -640,4 +669,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.4-github（PR #99 / merge `affa68fdeb78062f965644d29dfc6cdfe897af67` / main Regression #914 success）です。v7.23.4は2026-09-24のtargeted K-1 Medium + Large physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。Medium/Largeとも右上`開催 / 時刻未定`、11/23、後楽園ホール、pending card、背景、geometryを実機確認済みで、Largeは次大会`K-1 2026.12.29 / 横浜BUNTAI / 時刻未定`も維持しています。Small/Medium/Large geometry、Loader v4.2.0、データsource/cache policy、BOXING architecture、UFC/RIZIN/ONE、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいdevice evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.5-github（PR #102 / merge `d984309008c58e10016dafa1d5ae1df141ebbb0e` / main Regression #931 success）です。v7.23.4は直前のVERIFIED_BASELINEです。v7.23.5はONEのdisplay aliasだけを変更し、ONE Friday Fights 172を`ONE フライデーファイツ 172`、Superlek Jitmuangnonを`スーパーレック`、Othman Rhouniを`オスマン・ルーニ`へ日本語化しました。公式ONE日本語ticket表記を使用しています。event selection/date/time/location/context、geometry、Loader v4.2.0、他団体、friends-stableは変更していません。残る未完了はONE Smallのtargeted physical QAだけです。Smallで日本語大会名・`スーパーレック vs オスマン・ルーニ`・既存バンタム級ムエタイ/9/25/バンコク/countdown/geometryを確認し、通ればv7.23.5をVERIFIED_BASELINEへ昇格してください。
