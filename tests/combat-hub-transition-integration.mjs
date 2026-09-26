@@ -142,6 +142,25 @@ function stringRequests(requests){return requests.filter(r=>r.kind==='string').m
   assert.equal(next?.name,'K-1 2026.11.23','K-1 Large next panel must advance to verified 11/23 event');
   assert.equal(next?.location,'後楽園ホール');
 
+  // Physical-device regression: v7.23.6 could keep a fresh 11/23 current cache
+  // and a fresh 12/29 Large-next cache, hiding the earlier verified Brasilia event.
+  const physicalNow=Date.parse('2026-09-27T01:00:00+09:00'),physicalFm=makeSharedFileManager();
+  physicalFm.strings.set('/docs/combat-hub-next-k1.json',JSON.stringify({
+    savedAt:physicalNow,cardCheckedAt:physicalNow,cardRefreshedAt:0,cardPolicy:10,
+    data:{name:'K-1 2026.11.23',startAt:'2026-11-23T00:00:00+09:00',displayDate:'11/23 (月・祝)',location:'後楽園ホール',source:'https://www.k-1.co.jp/schedule/16670',timeTba:true}
+  }));
+  physicalFm.strings.set('/docs/combat-hub-large-next-k1.json',JSON.stringify({
+    savedAt:physicalNow,policy:3,
+    data:{name:'K-1 2026.12.29',startAt:'2026-12-29T00:00:00+09:00',displayDate:'12/29 (火)',location:'横浜BUNTAI',source:'https://www.k-1.co.jp/schedule/16678',timeTba:true}
+  }));
+  const physical=await boot('K1',{now:physicalNow,fm:physicalFm,textResponses:{}});
+  const recoveredCurrent=await physical.api.loadData();
+  assert.equal(recoveredCurrent.name,'K-1 WORLD GP 2026 -90KG in BRASILIA','fresh later current cache must not hide an earlier verified current event');
+  assert.equal(recoveredCurrent.startAt,'2026-09-27T07:00:00+09:00');
+  assert.equal(recoveredCurrent.location,'ブラジル・ブラジリア');
+  const recoveredNext=await physical.api.loadLargeNext(recoveredCurrent);
+  assert.equal(recoveredNext?.name,'K-1 2026.11.23','fresh later Large-next cache must not hide an earlier verified next event');
+  assert.equal(recoveredNext?.location,'後楽園ホール');
   const laterNow=Date.parse('2026-09-28T20:00:00+09:00'),laterFm=makeSharedFileManager();
   const later=await boot('K1',{now:laterNow,fm:laterFm,textResponses:{}});
   const laterCurrent=await later.api.loadData();
