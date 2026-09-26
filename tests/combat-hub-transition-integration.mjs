@@ -158,6 +158,10 @@ function stringRequests(requests){return requests.filter(r=>r.kind==='string').m
   assert.equal(recoveredCurrent.name,'K-1 WORLD GP 2026 -90KG in BRASILIA','fresh later current cache must not hide an earlier verified current event');
   assert.equal(recoveredCurrent.startAt,'2026-09-27T07:00:00+09:00');
   assert.equal(recoveredCurrent.location,'ブラジル・ブラジリア');
+  assert.ok(recoveredCurrent.main&&recoveredCurrent.main.a&&recoveredCurrent.main.b,'trusted cache-priority recovery must preserve render-safe main shape');
+  assert.equal(recoveredCurrent.main.a,'対戦カード');
+  assert.equal(recoveredCurrent.main.b,'発表待ち');
+  assert.equal(recoveredCurrent.cardTba,true,'verified event without a confirmed card must remain pending instead of crashing render');
   const recoveredNext=await physical.api.loadLargeNext(recoveredCurrent);
   assert.equal(recoveredNext?.name,'K-1 2026.11.23','fresh later Large-next cache must not hide an earlier verified next event');
   assert.equal(recoveredNext?.location,'後楽園ホール');
