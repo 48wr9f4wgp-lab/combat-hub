@@ -31,10 +31,11 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime: **v7.23.5-github**.
-- Latest runtime-changing PR: **#102 — localize ONE Friday Fights 172 display**.
-- Runtime merge commit: `d984309008c58e10016dafa1d5ae1df141ebbb0e`.
-- Main Regression after PR #102: **#931 success**.
+- Production runtime / WORKING_HEAD runtime: **v7.23.6-github**.
+- Latest runtime-changing PR: **#106 — handle K-1 overseas JST schedule times**.
+- Runtime merge commit: `29d0e7775974760b5b7932036d06cf3383f1a3e9`.
+- Main Regression after PR #106: **#958 success**.
+- Current VERIFIED_BASELINE remains **v7.23.5-github** until targeted K-1 physical iPhone QA passes.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=10` is the current canonical card-policy version.
@@ -599,6 +600,34 @@ Final targeted physical iPhone QA on v7.23.5 passed on 2026-09-24:
 
 `v7.23.5-github` is now the current `VERIFIED_BASELINE`.
 
+### v7.23.6 — K-1 overseas JST schedule-time handling
+
+2026-09-27 maintenance audit found new first-party K-1 schedule data for `K-1 WORLD GP 2026 -90KG in BRASILIA`. The official K-1 event page lists:
+- event date surface = 2026-09-25 in Brasilia
+- venue = `ブラジル・ブラジリア / SOCIAL HALL AABB BRASILIA`
+- explicit Japanese start = `2026-09-27 07:00 JST`
+
+The pre-v7.23.6 K-1 listing parser could discover the event identity/date but did not robustly preserve an explicit overseas `日本時間 ... 開始予定` line or a Brasilia venue when the Japanese-time line appeared after the venue. That could degrade the event to time-TBA / incomplete location metadata.
+
+v7.23.6 changes only the K-1 data layer:
+- parse explicit `日本時間 YYYY年M月D日 H:MM開始予定` as authoritative JST when present
+- prefer venue text after the selected date, then fall back backward for overseas schedule layouts
+- normalize Brasilia to `ブラジル・ブラジリア`
+- add the first-party verified Brasilia event as a fallback at `2026-09-27T07:00:00+09:00`
+- preserve 11/23 and 12/29 as the following verified K-1 fallbacks
+- no geometry, Loader, BOXING/UFC/RIZIN/ONE policy, or friends-stable change
+
+Automated evidence:
+- PR #106 Regression #957 SUCCESS
+- runtime merge `29d0e7775974760b5b7932036d06cf3383f1a3e9`
+- merge-to-main Regression #958 SUCCESS
+- transition integration covers exact JST parsing, Brasilia location normalization, Brasilia -> 11/23 -> 12/29 roll-forward
+
+Validation state:
+- `v7.23.6-github` = **WORKING_HEAD / automated VERIFIED, physical QA pending**
+- `v7.23.5-github` remains **VERIFIED_BASELINE**
+- required next evidence = targeted physical iPhone K-1 Medium/Large check for Brasilia event date/time/location/current-next behavior
+
 ## 11. Known debt / risks
 
 ### BOXING source availability / timing
@@ -649,24 +678,23 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime `v7.23.5-github`
+- runtime / WORKING_HEAD runtime `v7.23.6-github`
 - Loader `v4.2.0`
-- runtime PR `#102`
-- runtime merge `d984309008c58e10016dafa1d5ae1df141ebbb0e`
-- runtime-merge Regression `#931 success`
-- verified-baseline promotion commit `290597b7cf852f06b446638b99d9df6863ad017c`
-- final baseline-promotion main Regression `#939 success`
+- runtime PR `#106`
+- runtime merge `29d0e7775974760b5b7932036d06cf3383f1a3e9`
+- runtime-merge Regression `#958 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **VERIFIED_BASELINE** — automated regression green and targeted ONE Small physical iPhone QA passed on 2026-09-24
+- validation status: **PARTIAL / DEVICE QA PENDING** — automated regression green; targeted K-1 Brasilia physical iPhone QA still required
 - current VERIFIED_BASELINE: `v7.23.5-github`
-- accepted ONE Small scope: `ONE フライデーファイツ 172` / `スーパーレック vs オスマン・ルーニ` with discipline/date/time/location/countdown/background/geometry preserved
+- pending K-1 target: `K-1 WORLD GP 2026 -90KG in BRASILIA` / `9/27 (日) 07:00 JST` / `ブラジル・ブラジリア`
+- accepted ONE Small scope remains `ONE フライデーファイツ 172` / `スーパーレック vs オスマン・ルーニ` with discipline/date/time/location/countdown/background/geometry preserved
 - support rows remain English unless a first-party Japanese spelling is verified; no inferred transliteration is used
-- all previously accepted BOXING / UFC / RIZIN / K-1 scopes remain accepted
+- all previously accepted BOXING / UFC / RIZIN / K-1 scopes remain accepted for their previously validated scope
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
-- v7.23.5 ONE Japanese-display cycle is **CLOSED** unless new verified localization data, device evidence or official-source drift appears
+- v7.23.6 must not be promoted to VERIFIED_BASELINE until targeted physical K-1 QA passes
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -675,4 +703,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.5-github（PR #102 / runtime merge `d984309008c58e10016dafa1d5ae1df141ebbb0e` / runtime-merge Regression #931 success / verified-baseline promotion commit `290597b7cf852f06b446638b99d9df6863ad017c` / final baseline-promotion main Regression #939 success）です。v7.23.5は2026-09-24のtargeted ONE Small physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。`ONE フライデーファイツ 172`、`スーパーレック vs オスマン・ルーニ`、`バンタム級ムエタイ`、9/25 22:30 JST、バンコク、countdown、背景、Small geometryを実機確認済みです。supportの日本語表記は一次公式で確認できた場合のみ追加し、未確認のカタカナは作りません。event selection/date/time/location/context、geometry、Loader v4.2.0、他団体、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいverified localization data、device evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。WORKING_HEAD runtimeは v7.23.6-github（PR #106 / runtime merge `29d0e7775974760b5b7932036d06cf3383f1a3e9` / main Regression #958 success）です。v7.23.6はK-1公式に追加された `K-1 WORLD GP 2026 -90KG in BRASILIA` の海外日程を対象に、明示された日本時間 `9/27 07:00 JST` と `ブラジル・ブラジリア` を正しく扱うためのdata-layer修正です。自動回帰は合格していますが、targeted physical K-1 QAは未完了なので、現在のVERIFIED_BASELINEは引き続き v7.23.5-githubです。次の1操作はiPhone上でK-1 Medium/Largeを確認し、ブラジリア大会の日付・07:00 JST・場所・current/next表示をスクリーンショットで検証することです。geometry、Loader v4.2.0、BOXING/UFC/RIZIN/ONE policy、friends-stableは変更していません。未実機確認のv7.23.6をVERIFIED_BASELINEへ昇格しないでください。
