@@ -112,15 +112,42 @@ function stringRequests(requests){return requests.filter(r=>r.kind==='string').m
   assert.equal(events[0].location,'後楽園ホール');
   assert.equal(events[1].name,'K-1 2026.12.29');
   assert.equal(events[1].location,'横浜BUNTAI');
+
+  const brasiliaHtml=`
+    <section>
+      <h4>2026年8月1日（土）K-1 WORLD GP 2026 -90KG in BRASILIA</h4>
+      <div>日時・会場</div>
+      <div>2026.09.25 (FRI)</div>
+      <div>ブラジル・ブラジリア / SOCIAL HALL AABB BRASILIA</div>
+      <div>2026年9月26日（土）19:00開始予定</div>
+      <div>※日本時間 2026年9月27日（日）7:00開始予定</div>
+      <a href="/schedule/16689">詳細</a>
+    </section>`;
+  const brasilia=api.k1ListingEvents(brasiliaHtml,'https://www.k-1.co.jp/schedule',now);
+  assert.equal(brasilia.length,1,'K-1 overseas schedule must yield the Brasilia event');
+  assert.equal(brasilia[0].name,'K-1 WORLD GP 2026 -90KG in BRASILIA');
+  assert.equal(brasilia[0].startAt,'2026-09-27T07:00:00+09:00','explicit Japanese-time start must override local event date');
+  assert.equal(brasilia[0].timeTba,false,'explicit Japanese-time start must not remain TBA');
+  assert.equal(brasilia[0].location,'ブラジル・ブラジリア','Brasilia venue must normalize to a readable short location');
+  assert.equal(brasilia[0].displayDate,'9/27','display date must follow the explicit Japanese-time date');
   const sparseK1=api.enrichTrustedEventMeta({name:'K-1 2026.11.23',startAt:'2026-11-23T00:00:00+09:00',source:'https://www.k-1.co.jp/k-1wgp/schedule/16670',location:'会場未定',timeTba:true});
   assert.equal(sparseK1.location,'後楽園ホール','sparse K-1 live candidate must hydrate verified venue metadata');
 
   const current=await api.loadData();
-  assert.equal(current.name,'K-1 2026.11.23','expired Sangju event must roll to verified 11/23 fallback when network is unavailable');
-  assert.equal(current.location,'後楽園ホール');
+  assert.equal(current.name,'K-1 WORLD GP 2026 -90KG in BRASILIA','expired Sangju event must roll to verified Brasilia fallback when network is unavailable');
+  assert.equal(current.startAt,'2026-09-27T07:00:00+09:00');
+  assert.equal(current.timeTba,false);
+  assert.equal(current.location,'ブラジル・ブラジリア');
   const next=await api.loadLargeNext(current);
-  assert.equal(next?.name,'K-1 2026.12.29','K-1 Large next panel must fall through to verified 12/29 event');
-  assert.equal(next?.location,'横浜BUNTAI');
+  assert.equal(next?.name,'K-1 2026.11.23','K-1 Large next panel must advance to verified 11/23 event');
+  assert.equal(next?.location,'後楽園ホール');
+
+  const laterNow=Date.parse('2026-09-28T20:00:00+09:00'),laterFm=makeSharedFileManager();
+  const later=await boot('K1',{now:laterNow,fm:laterFm,textResponses:{}});
+  const laterCurrent=await later.api.loadData();
+  assert.equal(laterCurrent.name,'K-1 2026.11.23','Brasilia must expire after exact-time grace and roll to 11/23 fallback');
+  const laterNext=await later.api.loadLargeNext(laterCurrent);
+  assert.equal(laterNext?.name,'K-1 2026.12.29','12/29 must remain next after 11/23 becomes current');
 }
 
 {
