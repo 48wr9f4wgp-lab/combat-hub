@@ -1,6 +1,6 @@
 # COMBAT HUB — Development Handoff
 
-Updated: 2026-09-20 JST
+Updated: 2026-09-27 JST
 
 > **This file is the canonical handoff for the current project state.**
 > Always fetch current GitHub `main` first. Actual code + this file take priority over old chat logs and `HANDOFF_CODEX.md`.
@@ -653,7 +653,9 @@ Canonical production:
 - Loader `v4.2.0`
 - runtime PR `#102`
 - runtime merge `d984309008c58e10016dafa1d5ae1df141ebbb0e`
-- main Regression `#931 success`
+- runtime-merge Regression `#931 success`
+- verified-baseline promotion commit `290597b7cf852f06b446638b99d9df6863ad017c`
+- final baseline-promotion main Regression `#939 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
@@ -673,4 +675,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.5-github（PR #102 / merge `d984309008c58e10016dafa1d5ae1df141ebbb0e` / main Regression #931 success）です。v7.23.5は2026-09-24のtargeted ONE Small physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。`ONE フライデーファイツ 172`、`スーパーレック vs オスマン・ルーニ`、`バンタム級ムエタイ`、9/25 22:30 JST、バンコク、countdown、背景、Small geometryを実機確認済みです。supportの日本語表記は一次公式で確認できた場合のみ追加し、未確認のカタカナは作りません。event selection/date/time/location/context、geometry、Loader v4.2.0、他団体、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいverified localization data、device evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。productionは v7.23.5-github（PR #102 / runtime merge `d984309008c58e10016dafa1d5ae1df141ebbb0e` / runtime-merge Regression #931 success / verified-baseline promotion commit `290597b7cf852f06b446638b99d9df6863ad017c` / final baseline-promotion main Regression #939 success）です。v7.23.5は2026-09-24のtargeted ONE Small physical iPhone QAに合格し、現在のVERIFIED_BASELINEです。`ONE フライデーファイツ 172`、`スーパーレック vs オスマン・ルーニ`、`バンタム級ムエタイ`、9/25 22:30 JST、バンコク、countdown、背景、Small geometryを実機確認済みです。supportの日本語表記は一次公式で確認できた場合のみ追加し、未確認のカタカナは作りません。event selection/date/time/location/context、geometry、Loader v4.2.0、他団体、friends-stableは変更していません。この完了済みQAへ理由なく戻らず、新しいverified localization data、device evidenceまたはofficial source driftが出た場合のみruntime audit + current main + official sourceで原因層を特定してください。
