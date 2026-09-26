@@ -31,10 +31,10 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime / WORKING_HEAD runtime: **v7.23.6-github**.
-- Latest runtime-changing PR: **#106 — handle K-1 overseas JST schedule times**.
-- Runtime merge commit: `29d0e7775974760b5b7932036d06cf3383f1a3e9`.
-- Main Regression after PR #106: **#958 success**.
+- Production runtime / WORKING_HEAD runtime: **v7.23.7-github**.
+- Latest runtime-changing PR: **#108 — prefer earlier verified K-1 events over stale later caches**.
+- Runtime merge commit: `8ce004a2983811a367ef269f025dfb134629924f`.
+- Main Regression after PR #108: **#975 success**.
 - Current VERIFIED_BASELINE remains **v7.23.5-github** until targeted K-1 physical iPhone QA passes.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
@@ -624,9 +624,29 @@ Automated evidence:
 - transition integration covers exact JST parsing, Brasilia location normalization, Brasilia -> 11/23 -> 12/29 roll-forward
 
 Validation state:
-- `v7.23.6-github` = **WORKING_HEAD / automated VERIFIED, physical QA pending**
+- `v7.23.6-github` = **DEVICE QA FAILED**
+- physical iPhone Medium/Large evidence on 2026-09-27 still showed `11/23 / 後楽園ホール / 時刻未定` as current; Large next remained `12/29 / 横浜BUNTAI`
+- root cause: a fresh cached 11/23 current event and 12/29 Large-next event returned before the newly verified earlier Brasilia event was considered
 - `v7.23.5-github` remains **VERIFIED_BASELINE**
-- required next evidence = targeted physical iPhone K-1 Medium/Large check for Brasilia event date/time/location/current-next behavior
+
+### v7.23.7 — K-1 earlier verified event vs stale later cache
+
+v7.23.7 is a targeted follow-up to the failed v7.23.6 device QA:
+- when K-1 has an existing fresh later-event cache, an earlier eligible first-party verified K-1 event may outrank that cache
+- same rule applies to the K-1 Large-next cache
+- the override is K-1-only and cache-only; UFC/RIZIN/ONE/BOXING cache semantics and live-source priority remain unchanged
+- integration regression now seeds the exact device-failure state: current cache = 11/23 and Large-next cache = 12/29 at 2026-09-27 01:00 JST, and requires recovery to Brasilia current + 11/23 next
+- no geometry, Loader, other-organization policy, or friends-stable change
+
+Automated evidence:
+- PR #108 Regression #974 SUCCESS
+- runtime merge `8ce004a2983811a367ef269f025dfb134629924f`
+- merge-to-main Regression #975 SUCCESS
+
+Validation state:
+- `v7.23.7-github` = **WORKING_HEAD / automated VERIFIED, physical QA pending**
+- `v7.23.5-github` remains **VERIFIED_BASELINE**
+- required next evidence = repeat K-1 Medium/Large physical iPhone QA after refreshing Loader runtime cache
 
 ## 11. Known debt / risks
 
@@ -678,23 +698,23 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime / WORKING_HEAD runtime `v7.23.6-github`
+- runtime / WORKING_HEAD runtime `v7.23.7-github`
 - Loader `v4.2.0`
-- runtime PR `#106`
-- runtime merge `29d0e7775974760b5b7932036d06cf3383f1a3e9`
-- runtime-merge Regression `#958 success`
+- runtime PR `#108`
+- runtime merge `8ce004a2983811a367ef269f025dfb134629924f`
+- runtime-merge Regression `#975 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **PARTIAL / DEVICE QA PENDING** — automated regression green; targeted K-1 Brasilia physical iPhone QA still required
+- validation status: **PARTIAL / DEVICE QA PENDING** — v7.23.6 device QA failed stale-cache ordering; v7.23.7 automated regression green and targeted recheck is required
 - current VERIFIED_BASELINE: `v7.23.5-github`
-- pending K-1 target: `K-1 WORLD GP 2026 -90KG in BRASILIA` / `9/27 (日) 07:00 JST` / `ブラジル・ブラジリア`
+- pending K-1 target: `K-1 WORLD GP 2026 -90KG in BRASILIA` / `9/27 (日) 07:00 JST` / `ブラジル・ブラジリア`; Large next = `11/23 / 後楽園ホール`
 - accepted ONE Small scope remains `ONE フライデーファイツ 172` / `スーパーレック vs オスマン・ルーニ` with discipline/date/time/location/countdown/background/geometry preserved
 - support rows remain English unless a first-party Japanese spelling is verified; no inferred transliteration is used
 - all previously accepted BOXING / UFC / RIZIN / K-1 scopes remain accepted for their previously validated scope
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
-- v7.23.6 must not be promoted to VERIFIED_BASELINE until targeted physical K-1 QA passes
+- v7.23.7 must not be promoted to VERIFIED_BASELINE until targeted physical K-1 QA passes
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -703,4 +723,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。WORKING_HEAD runtimeは v7.23.6-github（PR #106 / runtime merge `29d0e7775974760b5b7932036d06cf3383f1a3e9` / main Regression #958 success）です。v7.23.6はK-1公式に追加された `K-1 WORLD GP 2026 -90KG in BRASILIA` の海外日程を対象に、明示された日本時間 `9/27 07:00 JST` と `ブラジル・ブラジリア` を正しく扱うためのdata-layer修正です。自動回帰は合格していますが、targeted physical K-1 QAは未完了なので、現在のVERIFIED_BASELINEは引き続き v7.23.5-githubです。次の1操作はiPhone上でK-1 Medium/Largeを確認し、ブラジリア大会の日付・07:00 JST・場所・current/next表示をスクリーンショットで検証することです。geometry、Loader v4.2.0、BOXING/UFC/RIZIN/ONE policy、friends-stableは変更していません。未実機確認のv7.23.6をVERIFIED_BASELINEへ昇格しないでください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。WORKING_HEAD runtimeは v7.23.7-github（PR #108 / runtime merge `8ce004a2983811a367ef269f025dfb134629924f` / main Regression #975 success）です。v7.23.6は自動回帰に通ったものの、2026-09-27のphysical K-1 Medium/Largeで11/23 current・12/29 nextの古いcacheが残り、ブラジリア大会を隠したためDEVICE QA FAILEDです。v7.23.7はこの実機状態を回帰fixture化し、K-1に限ってより早いverified eventを後日のfresh cacheより優先します。現在のVERIFIED_BASELINEは引き続き v7.23.5-githubです。次の1操作はScriptableでCOMBAT HUB Loaderを手動実行してK-1を選び、runtime/cacheを更新した後、K-1 Medium/Largeを再確認することです。期待値はcurrent `9/27 / 07:00 JST / ブラジル・ブラジリア`、Large next `11/23 / 後楽園ホール`。geometry、Loader v4.2.0、UFC/RIZIN/ONE/BOXING policy、friends-stableは変更していません。未実機確認のv7.23.7をVERIFIED_BASELINEへ昇格しないでください。
