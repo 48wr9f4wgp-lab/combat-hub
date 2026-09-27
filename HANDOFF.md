@@ -17,7 +17,7 @@ COMBAT HUB is a personal iOS/iPadOS **Scriptable home-screen combat-sports widge
 
 Target quality:
 
-- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.5 has passed targeted ONE Small physical iPhone QA and is the current VERIFIED_BASELINE.
+- Small / Medium / Large geometry remains frozen at the verified baselines. v7.23.9 has passed targeted K-1 Medium/Large physical iPhone QA and is the current VERIFIED_BASELINE; the previously accepted v7.23.5 ONE Small scope remains preserved.
 - Japanese-first premium sports/event UI.
 - Event/date/time/location/countdown/main/support cards readable at a glance.
 - Never invent fighters, cards, dates, times or venues.
