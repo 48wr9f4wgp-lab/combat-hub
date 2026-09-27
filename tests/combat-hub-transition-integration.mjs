@@ -7,7 +7,7 @@ const renderMarker='const D=await loadData(),ctx=await heroContext(D);writeRunti
 assert.ok(src.includes(renderMarker),'runtime instrumentation marker changed');
 const instrumented=src.replace(
   renderMarker,
-  `globalThis.__transitionIntegration={loadData,loadLargeNext,currentLocked,rollforwardEligible,nextEligible,ufcListingEvents,k1ListingEvents,currentPagePairs,safePendingEvent,mainFromBout,shortLoc,trustedLargeNext,enrichTrustedEventMeta,division,largeNextTitle};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
+  `globalThis.__transitionIntegration={loadData,loadLargeNext,currentLocked,rollforwardEligible,nextEligible,ufcListingEvents,k1ListingEvents,currentPagePairs,safePendingEvent,mainFromBout,shortLoc,trustedLargeNext,enrichTrustedEventMeta,division,largeNextTitle,heroContext};if(globalThis.__TEST_ONLY__)return;${renderMarker}`,
 );
 
 function makeSharedFileManager(){
@@ -165,6 +165,23 @@ function stringRequests(requests){return requests.filter(r=>r.kind==='string').m
   const recoveredNext=await physical.api.loadLargeNext(recoveredCurrent);
   assert.equal(recoveredNext?.name,'K-1 2026.11.23','fresh later Large-next cache must not hide an earlier verified next event');
   assert.equal(recoveredNext?.location,'後楽園ホール');
+
+  // v7.23.7 poison-cache regression: once the sparse Brasilia event itself was
+  // written to the current cache, v7.23.8 could still return it before materializing main.
+  const poisonFm=makeSharedFileManager();
+  poisonFm.strings.set('/docs/combat-hub-next-k1.json',JSON.stringify({
+    savedAt:physicalNow,cardCheckedAt:physicalNow,cardRefreshedAt:0,cardPolicy:10,
+    data:{name:'K-1 WORLD GP 2026 -90KG in BRASILIA',startAt:'2026-09-27T07:00:00+09:00',displayDate:'9/27 (日)',location:'ブラジル・ブラジリア',source:'https://www.k-1.co.jp/schedule/16689',timeTba:false}
+  }));
+  const poison=await boot('K1',{now:physicalNow,fm:poisonFm,textResponses:{}});
+  const healed=await poison.api.loadData();
+  assert.equal(healed.name,'K-1 WORLD GP 2026 -90KG in BRASILIA');
+  assert.equal(healed.main?.a,'対戦カード','sparse trusted K-1 cache must self-heal before render');
+  assert.equal(healed.main?.b,'発表待ち');
+  assert.equal(healed.cardTba,true);
+  const healedCtx=await poison.api.heroContext(healed);
+  assert.equal(healedCtx.a.name,'対戦カード','heroContext must be safe after sparse-cache migration');
+  assert.equal(healedCtx.b.name,'発表待ち');
   const laterNow=Date.parse('2026-09-28T20:00:00+09:00'),laterFm=makeSharedFileManager();
   const later=await boot('K1',{now:laterNow,fm:laterFm,textResponses:{}});
   const laterCurrent=await later.api.loadData();
