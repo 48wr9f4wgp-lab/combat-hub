@@ -31,10 +31,10 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime / WORKING_HEAD runtime: **v7.23.8-github**.
-- Latest runtime-changing PR: **#110 — preserve K-1 trusted recovery event shape**.
-- Runtime merge commit: `6ab77312efa50b6a9b0f9718f65ac730d77e43d4`.
-- Main Regression after PR #110: **#988 success**.
+- Production runtime / WORKING_HEAD runtime: **v7.23.9-github**.
+- Latest runtime-changing PR: **#112 — self-heal sparse trusted K-1 caches**.
+- Runtime merge commit: `c9cdd32d3de86e3a0f60914f51fa4968a11880bf`.
+- Main Regression after PR #112: **#1001 success**.
 - Current VERIFIED_BASELINE remains **v7.23.5-github** until targeted K-1 physical iPhone QA passes.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
@@ -664,9 +664,30 @@ Automated evidence:
 - merge-to-main Regression #988 SUCCESS
 
 Validation state:
-- `v7.23.8-github` = **WORKING_HEAD / automated VERIFIED, physical QA pending**
+- `v7.23.8-github` = **DEVICE QA FAILED**
+- physical iPhone still showed Loader `RUNTIME ERROR`: `undefined is not an object (evaluating 'D.main.a')`
+- root cause: v7.23.7 had already persisted the Brasilia event itself as a sparse current cache; v7.23.8 fixed newly-created recovery data but still returned that already-poisoned fresh cache before materialization
 - `v7.23.5-github` remains **VERIFIED_BASELINE**
-- required next evidence = refresh Loader runtime, then repeat K-1 Medium/Large physical iPhone QA
+
+### v7.23.9 — sparse trusted K-1 cache self-heal
+
+v7.23.9 closes the persistent-cache migration hole found by the second device failure:
+- trusted K-1 current-event materialization is centralized
+- if a cached trusted K-1 event is missing `main.a/main.b`, it is upgraded before any fresh-cache return
+- the healed object is written back to the same cache so later widget runs remain render-safe
+- the regression fixture now seeds the exact poisoned Brasilia cache left by v7.23.7
+- the test calls `heroContext()` after migration, covering the exact pre-render path that crashed on device
+- no geometry, Loader, UFC/RIZIN/ONE/BOXING policy, or friends-stable change
+
+Automated evidence:
+- PR #112 Regression #1000 SUCCESS
+- runtime merge `c9cdd32d3de86e3a0f60914f51fa4968a11880bf`
+- merge-to-main Regression #1001 SUCCESS
+
+Validation state:
+- `v7.23.9-github` = **WORKING_HEAD / automated VERIFIED, physical QA pending**
+- `v7.23.5-github` remains **VERIFIED_BASELINE**
+- required next evidence = refresh Loader runtime once, then repeat K-1 Medium/Large physical iPhone QA
 
 ## 11. Known debt / risks
 
@@ -718,23 +739,23 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime / WORKING_HEAD runtime `v7.23.8-github`
+- runtime / WORKING_HEAD runtime `v7.23.9-github`
 - Loader `v4.2.0`
-- runtime PR `#110`
-- runtime merge `6ab77312efa50b6a9b0f9718f65ac730d77e43d4`
-- runtime-merge Regression `#988 success`
+- runtime PR `#112`
+- runtime merge `c9cdd32d3de86e3a0f60914f51fa4968a11880bf`
+- runtime-merge Regression `#1001 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **PARTIAL / DEVICE QA PENDING** — v7.23.7 device QA crashed on missing `D.main`; v7.23.8 automated regression green and targeted recheck is required
+- validation status: **PARTIAL / DEVICE QA PENDING** — v7.23.8 device QA still crashed because a pre-existing sparse Brasilia cache survived; v7.23.9 self-heals that cache and automated regression is green
 - current VERIFIED_BASELINE: `v7.23.5-github`
 - pending K-1 target: current `K-1 WORLD GP 2026 -90KG in BRASILIA` / `9/27 (日) 07:00 JST` / `ブラジル・ブラジリア` / safe pending card; Large next = `11/23 / 後楽園ホール`
 - accepted ONE Small scope remains `ONE フライデーファイツ 172` / `スーパーレック vs オスマン・ルーニ` with discipline/date/time/location/countdown/background/geometry preserved
 - support rows remain English unless a first-party Japanese spelling is verified; no inferred transliteration is used
 - all previously accepted BOXING / UFC / RIZIN / K-1 scopes remain accepted for their previously validated scope
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
-- v7.23.8 must not be promoted to VERIFIED_BASELINE until targeted physical K-1 QA passes
+- v7.23.9 must not be promoted to VERIFIED_BASELINE until targeted physical K-1 QA passes
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -743,4 +764,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。WORKING_HEAD runtimeは v7.23.8-github（PR #110 / runtime merge `6ab77312efa50b6a9b0f9718f65ac730d77e43d4` / main Regression #988 success）です。v7.23.7はK-1 stale-cache orderingを修正しましたが、physical iPhoneで `undefined is not an object (evaluating 'D.main.a')` のRUNTIME ERRORとなりDEVICE QA FAILEDです。v7.23.8はその実機経路を回帰fixture化し、trusted cache-priorityでCurrentへ昇格するK-1 eventにも `対戦カード / 発表待ち` のrender-safe main構造と `cardTba=true` を必ず付与します。現在のVERIFIED_BASELINEは引き続き v7.23.5-githubです。次の1操作はScriptableでCOMBAT HUB Loaderを手動実行してK-1を選びruntimeを更新した後、K-1 Medium/Largeを再確認することです。期待値はRUNTIME ERRORなし、current `9/27 / 07:00 JST / ブラジル・ブラジリア / 対戦カード発表待ち`、Large next `11/23 / 後楽園ホール`。geometry、Loader v4.2.0、UFC/RIZIN/ONE/BOXING policy、friends-stableは変更していません。未実機確認のv7.23.8をVERIFIED_BASELINEへ昇格しないでください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。WORKING_HEAD runtimeは v7.23.9-github（PR #112 / runtime merge `c9cdd32d3de86e3a0f60914f51fa4968a11880bf` / main Regression #1001 success）です。v7.23.8は新規trusted recoveryのevent shapeを修正しましたが、v7.23.7が既に保存した sparse Brasilia current cache をfresh扱いで返し続けたため、physical iPhoneで同じ `D.main.a` RUNTIME ERRORとなりDEVICE QA FAILEDです。v7.23.9はその既存cacheをload時に自己修復し、安全な `対戦カード / 発表待ち` main構造へmigrationして同じcacheへ書き戻します。現在のVERIFIED_BASELINEは引き続き v7.23.5-githubです。次の1操作はScriptableでCOMBAT HUB Loaderを手動実行してK-1を選びruntimeを更新した後、K-1 Medium/Largeを再確認することです。期待値はRUNTIME ERRORなし、current `9/27 / 07:00 JST / ブラジル・ブラジリア / 対戦カード発表待ち`、Large next `11/23 / 後楽園ホール`。geometry、Loader v4.2.0、UFC/RIZIN/ONE/BOXING policy、friends-stableは変更していません。未実機確認のv7.23.9をVERIFIED_BASELINEへ昇格しないでください。
