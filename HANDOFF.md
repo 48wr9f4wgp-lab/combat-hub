@@ -35,7 +35,7 @@ Target quality:
 - Latest runtime-changing PR: **#112 — self-heal sparse trusted K-1 caches**.
 - Runtime merge commit: `c9cdd32d3de86e3a0f60914f51fa4968a11880bf`.
 - Main Regression after PR #112: **#1001 success**.
-- Current VERIFIED_BASELINE remains **v7.23.5-github** until targeted K-1 physical iPhone QA passes.
+- Current VERIFIED_BASELINE: **v7.23.9-github** after targeted K-1 Medium/Large physical iPhone QA on 2026-09-27.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
 - `CARD_POLICY_VERSION=10` is the current canonical card-policy version.
@@ -684,10 +684,15 @@ Automated evidence:
 - runtime merge `c9cdd32d3de86e3a0f60914f51fa4968a11880bf`
 - merge-to-main Regression #1001 SUCCESS
 
+Physical iPhone evidence on 2026-09-27:
+- Medium PASS: no RUNTIME ERROR; current = `K-1 WORLD GP 2026 -90KG in BRASILIA`; status = `開催中`; date = `9/27 (日)`; location = `ブラジル・ブラジリア`; pending card = `対戦カード発表待ち`; verified event background rendered; no clipping/white screen
+- Large PASS: same current-event identity/status/date/location/pending-card state; next panel = `K-1 REVENGE II / 11/23 / 後楽園ホール / 時刻未定`; no RUNTIME ERROR or clipping
+- exact `07:00 JST` start is covered by automated parser/transition regression; the post-start device screenshot correctly renders `開催中` rather than repeating the exact clock time
+
 Validation state:
-- `v7.23.9-github` = **WORKING_HEAD / automated VERIFIED, physical QA pending**
-- `v7.23.5-github` remains **VERIFIED_BASELINE**
-- required next evidence = refresh Loader runtime once, then repeat K-1 Medium/Large physical iPhone QA
+- `v7.23.9-github` = **VERIFIED_BASELINE**
+- automated regression + targeted physical iPhone Medium/Large QA passed
+- the v7.23.6-v7.23.8 failure chain is CLOSED unless new device evidence or official-source drift appears
 
 ## 11. Known debt / risks
 
@@ -748,14 +753,15 @@ Canonical production:
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **PARTIAL / DEVICE QA PENDING** — v7.23.8 device QA still crashed because a pre-existing sparse Brasilia cache survived; v7.23.9 self-heals that cache and automated regression is green
-- current VERIFIED_BASELINE: `v7.23.5-github`
-- pending K-1 target: current `K-1 WORLD GP 2026 -90KG in BRASILIA` / `9/27 (日) 07:00 JST` / `ブラジル・ブラジリア` / safe pending card; Large next = `11/23 / 後楽園ホール`
+- validation status: **VERIFIED_BASELINE** — automated regression green; targeted K-1 Medium/Large physical iPhone QA passed on 2026-09-27
+- current VERIFIED_BASELINE: `v7.23.9-github`
+- accepted K-1 current scope: `K-1 WORLD GP 2026 -90KG in BRASILIA` / post-start `開催中` / `9/27 (日)` / `ブラジル・ブラジリア` / safe pending card; Large next = `K-1 REVENGE II / 11/23 / 後楽園ホール / 時刻未定`
+- exact `07:00 JST` start remains locked by automated parser/transition regression; post-start device UI correctly displays `開催中`
 - accepted ONE Small scope remains `ONE フライデーファイツ 172` / `スーパーレック vs オスマン・ルーニ` with discipline/date/time/location/countdown/background/geometry preserved
 - support rows remain English unless a first-party Japanese spelling is verified; no inferred transliteration is used
 - all previously accepted BOXING / UFC / RIZIN / K-1 scopes remain accepted for their previously validated scope
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
-- v7.23.9 must not be promoted to VERIFIED_BASELINE until targeted physical K-1 QA passes
+- v7.23.9 K-1 recovery cycle is **CLOSED** unless new device evidence or official-source drift appears
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -764,4 +770,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。WORKING_HEAD runtimeは v7.23.9-github（PR #112 / runtime merge `c9cdd32d3de86e3a0f60914f51fa4968a11880bf` / main Regression #1001 success）です。v7.23.8は新規trusted recoveryのevent shapeを修正しましたが、v7.23.7が既に保存した sparse Brasilia current cache をfresh扱いで返し続けたため、physical iPhoneで同じ `D.main.a` RUNTIME ERRORとなりDEVICE QA FAILEDです。v7.23.9はその既存cacheをload時に自己修復し、安全な `対戦カード / 発表待ち` main構造へmigrationして同じcacheへ書き戻します。現在のVERIFIED_BASELINEは引き続き v7.23.5-githubです。次の1操作はScriptableでCOMBAT HUB Loaderを手動実行してK-1を選びruntimeを更新した後、K-1 Medium/Largeを再確認することです。期待値はRUNTIME ERRORなし、current `9/27 / 07:00 JST / ブラジル・ブラジリア / 対戦カード発表待ち`、Large next `11/23 / 後楽園ホール`。geometry、Loader v4.2.0、UFC/RIZIN/ONE/BOXING policy、friends-stableは変更していません。未実機確認のv7.23.9をVERIFIED_BASELINEへ昇格しないでください。
+> COMBAT HUBの開発を引き継ぎます。Repositoryは `48wr9f4wgp-lab/combat-hub` です。必ず現在のGitHub `main` とルート `HANDOFF.md` を正本として取得してください。production runtime / VERIFIED_BASELINEは v7.23.9-github（PR #112 / runtime merge `c9cdd32d3de86e3a0f60914f51fa4968a11880bf` / main Regression #1001 success）です。v7.23.9はv7.23.7が残した sparse Brasilia cache をload時に自己修復し、安全な `対戦カード / 発表待ち` main構造へmigrationして同じcacheへ書き戻します。2026-09-27のphysical iPhone Medium/Large QAでRUNTIME ERROR消滅、current `K-1 WORLD GP 2026 -90KG in BRASILIA / 開催中 / 9/27 / ブラジル・ブラジリア / 対戦カード発表待ち`、Large next `K-1 REVENGE II / 11/23 / 後楽園ホール / 時刻未定` を確認済みです。exact `07:00 JST` はautomated parser/transition regressionで固定され、post-start device UIは `開催中` 表示です。geometry、Loader v4.2.0、UFC/RIZIN/ONE/BOXING policy、friends-stableは変更していません。完了済みQAへ理由なく戻らず、新しいdevice evidence / official-source driftが出た場合のみ原因層を特定して進めてください。
