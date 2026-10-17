@@ -31,11 +31,11 @@ Target quality:
 - Production branch: `main`
 - Production route: `combat-hub-loader.js` -> raw GitHub `main/combat-hub.js`
 - Loader: **v4.2.0**
-- Production runtime / WORKING_HEAD runtime: **v7.23.10-github**.
-- Latest runtime-changing PR: **#116 — localize verified ONE SAMURAI 4 fighter names**.
-- Runtime merge commit: `f323bdaa0c1a24ccfd12e994ff0d619738f4cab5`.
-- Main Regression after PR #116: **#1022 success**.
-- Current VERIFIED_BASELINE remains **v7.23.9-github** pending targeted ONE Medium physical iPhone QA.
+- Production runtime / WORKING_HEAD runtime: **v7.23.11-github**.
+- Latest runtime-changing PR: **#118 — auto-localize ONE athletes from official bilingual event cards**.
+- Runtime merge commit: `316963b6cdd69475d391c0ff41a4caa623b1abe1`.
+- Main Regression after PR #118: **#1037 success**.
+- Current VERIFIED_BASELINE remains **v7.23.9-github** pending targeted ONE physical iPhone localization/performance QA.
 - Current VERIFIED_BASELINE: **v7.23.9-github** after targeted K-1 Medium/Large physical iPhone QA on 2026-09-27.
 - v7.22.4 keeps all v7.22.0-v7.22.3 data/image/BOXING/context hardening and additionally prevents K-1 from treating broad-context `注目/Featured` text as an authoritative fight-role label.
 - K-1 support-order fallback remains the canonical policy: second fight = CO-MAIN/セミ, third and later = MAIN CARD/本戦 unless an explicit trusted label applies.
@@ -731,6 +731,37 @@ Validation state:
 - next evidence = refresh Scriptable Loader once, capture ONE Medium screenshot and verify all 5 aliases, unchanged title and geometry
 - historical v7.23.5 ONE Small and v7.23.9 K-1 device validations remain accepted
 
+### v7.23.11 — automatic ONE Japanese athlete-name localization
+
+The 2026-10-17 user report identified a design debt: static per-fighter `JP_DISPLAY` entries require manual updates for every new ONE event. Source audit of ONE SAMURAI 4 English and Japanese official event-page HTML confirmed the same athlete profile slug is used in both languages while the visible fighter name is localized.
+
+Strategy implemented in v7.23.11:
+- only for `KEY==='one'`, derive English/Japanese official event URLs from current ONE event URL
+- parse the actual `<tr class="vs">` fight card and match fighter names by exact official athlete profile slug, not row order or guessed transliteration
+- adopt only verified Japanese-character names; otherwise preserve English
+- keep existing `JP_DISPLAY` entries as trusted fallback
+- persist event-specific aliases in `FileManager.local()` for 8 hours, with no cross-event leakage
+- on refresh failure reuse only last verified cache for the same event; otherwise use static aliases/English
+- `heroContext(D)` warms official names before Small/Medium/Large render
+- event identity, card selection, date/time, venue, background, geometry, Loader and friends-stable unchanged
+
+Primary-source evidence:
+- https://www.onefc.com/events/one-samurai-4/
+- https://www.onefc.com/jp/events/one-samurai-4/
+
+Automated evidence:
+- PR #118 Regression #1036 SUCCESS
+- runtime merge `316963b6cdd69475d391c0ff41a4caa623b1abe1`
+- runtime main Regression #1037 SUCCESS
+- Japanese-display regression executes the real alias resolver with official-like bilingual HTML, cold/warm cache, network fallback, event isolation and unknown-name fallback
+
+Validation state:
+- `v7.23.11-github` = **WORKING_HEAD / AUTOMATED VERIFIED / ONE DEVICE QA PENDING**
+- `v7.23.10-github` superseded before its own targeted device QA; it was not a new verified baseline
+- `v7.23.9-github` remains **VERIFIED_BASELINE**
+- next evidence: ONE Medium physical iPhone after Loader refresh, checking Japanese names, title, geometry and cold-start performance
+- if ONE publishes no Japanese spelling for an athlete, keep the official English spelling; no invented katakana
+
 ## 11. Known debt / risks
 
 ### BOXING source availability / timing
@@ -781,16 +812,16 @@ When a problem remains, identify the actual layer from runtime audit + source ev
 Canonical production:
 
 - `main`
-- runtime / WORKING_HEAD runtime `v7.23.10-github`
+- runtime / WORKING_HEAD runtime `v7.23.11-github`
 - Loader `v4.2.0`
-- runtime PR `#116`
-- runtime merge `f323bdaa0c1a24ccfd12e994ff0d619738f4cab5`
-- runtime-merge Regression `#1022 success`
+- runtime PR `#118`
+- runtime merge `316963b6cdd69475d391c0ff41a4caa623b1abe1`
+- runtime-merge Regression `#1037 success`
 - `CARD_POLICY_VERSION=10`
 - `LARGE_NEXT_POLICY_VERSION=3`
 - `IMAGE_POLICY_VERSION=2`
 - `BOXING_SOURCE_POLICY_VERSION=3`
-- validation status: **PARTIAL / DEVICE QA PENDING** — v7.23.10 full regression green; targeted ONE SAMURAI 4 Medium iPhone Japanese-display QA not yet completed
+- validation status: **PARTIAL / DEVICE QA PENDING** — v7.23.11 automatic ONE names match passes full CI; targeted ONE Medium physical Japanese-display/performance QA is pending
 - current VERIFIED_BASELINE: `v7.23.9-github`
 - accepted K-1 current scope: `K-1 WORLD GP 2026 -90KG in BRASILIA` / post-start `開催中` / `9/27 (日)` / `ブラジル・ブラジリア` / safe pending card; Large next = `K-1 REVENGE II / 11/23 / 後楽園ホール / 時刻未定`
 - exact `07:00 JST` start remains locked by automated parser/transition regression; post-start device UI correctly displays `開催中`
@@ -799,7 +830,7 @@ Canonical production:
 - all previously accepted BOXING / UFC / RIZIN / K-1 scopes remain accepted for their previously validated scope
 - Small/Medium/Large geometry tokens remain frozen; BOXING Widget discovery remains network-free
 - v7.23.9 K-1 recovery cycle is **CLOSED** unless new device evidence or official-source drift appears
-- v7.23.10 ONE SAMURAI 4 Japanese-display cycle is **OPEN / DEVICE QA PENDING**
+- v7.23.10 fixed-alias implementation was superseded before device QA; v7.23.11 automatic ONE localization is **OPEN / DEVICE QA PENDING**
 
 No temporary implementation workflow or patch script remains in the intended production diff.
 `friends-stable` remains intentionally isolated.
@@ -808,4 +839,4 @@ No temporary implementation workflow or patch script remains in the intended pro
 
 ## Handoff start prompt
 
-> COMBAT HUBの開発を引き継ぎます。GitHub `48wr9f4wgp-lab/combat-hub` の現在の `main` とルート `HANDOFF.md` を正本として再同期してください。WORKING_HEAD runtimeは `v7.23.10-github`（PR #116 / runtime merge `f323bdaa0c1a24ccfd12e994ff0d619738f4cab5` / main Regression #1022 SUCCESS）です。2026-10-17 ONE SAMURAI 4 Medium実機スクショで5名の英語表示を確認し、ONE公式日本語表記に基づき `Jonathan Haggerty`→`ジョナサン・ハガティー`、`Hiroki Akimoto`→`秋元皓貴`、`Rifdean Masdor`→`リファディン・マスドール`、`Masaaki Noiri`→`野杁正明`、`Mohammad Siasarani`→`モハメド・シアサラニ` を `JP_DISPLAY` に追加しました。既存 `Nadaka`→`吉成名高`、イベントタイトル `ONE SAMURAI 4`、日時・場所・データ選択・geometry・Loader v4.2.0は不変です。全自動回帰は合格しましたが、ONE Mediumの修正後実機QAは未実施なので `VERIFIED_BASELINE` は `v7.23.9-github` のまま。次の1操作はiPhoneのScriptableでCOMBAT HUB Loaderを手動実行してONEを選び、Mediumを更新・スクショ確認することです。`friends-stable` は変更禁止。完了済みK-1 QAは理由なく再実行しないでください。
+> COMBAT HUBの開発を引き継ぎます。GitHub `48wr9f4wgp-lab/combat-hub` の `main` とルート `HANDOFF.md` を正本として取得してください。WORKING_HEADは `v7.23.11-github`（PR #118 / runtime merge `316963b6cdd69475d391c0ff41a4caa623b1abe1` / main Regression #1037 SUCCESS）です。新大会ごとに手動辞書追加が必要な問題に対し、ONE公式英語・日本語イベントページに共通のathlete profile slugがあることを実HTMLで確認し、同一選手名を公式ソースから自動対応付ける仕組みへ移行しました。日本語表記が公式にない選手は英語のまま、イベント別キャッシュ8時間、ネットワーク失敗時は同一イベントの確認済みデータまたは静的辞書へフォールバックします。ONEのSmall/Medium/Large描画前に取得しますが、試合データ・日時・画像・geometry・Loader v4.2.0・他団体・friends-stableは変更していません。全自動回帰は合格、ただし実機未確認なのでVERIFIED_BASELINEは `v7.23.9-github` のままです。次はiPhoneのScriptableでCOMBAT HUB LoaderからONEを起動し、Mediumの日本語表示と初回の体感速度を確認してください。`friends-stable`には触れないこと。
