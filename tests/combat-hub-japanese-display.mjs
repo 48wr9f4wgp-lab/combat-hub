@@ -19,7 +19,7 @@ const aliasBegin=src.indexOf('const JP_DISPLAY={');
 const aliasEnd=src.indexOf('function sanitizeFighter(',aliasBegin);
 assert.ok(aliasBegin>=0&&aliasEnd>aliasBegin,'Japanese display resolver section missing');
 const aliasRuntime=src.slice(aliasBegin,aliasEnd);
-const resolve=vm.runInNewContext(`function stripHTML(v){return String(v??'').trim();}\n${aliasRuntime}\njpDisplay`,{});
+const resolve=vm.runInNewContext(`function stripHTML(v){return String(v??'').trim();}\n${aliasRuntime}\njpDisplay`,{KEY:'one'});
 const oneSamurai4Aliases={
   'Jonathan Haggerty':'ジョナサン・ハガティー',
   'Hiroki Akimoto':'秋元皓貴',
