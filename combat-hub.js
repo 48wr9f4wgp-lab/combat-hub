@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.23.10-github — localize ONE SAMURAI 4 fighter names with first-party Japanese spellings; visuals frozen
+// v7.23.11-github — automatically match ONE English/Japanese official event cards by athlete slug; visuals frozen
 
 (async()=>{
-const VERSION='7.23.10-github';
+const VERSION='7.23.11-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -157,7 +157,49 @@ const JP_DISPLAY={
 'Shimon Yoshinari':'士門','Suablack Tor Pran49':'スーブラック','Suablack':'スーブラック',
 'Hyu':'陽勇','Hyuma Hitachi':'常陸飛雄馬'
 };
-function jpDisplay(v){const raw=stripHTML(v);return JP_DISPLAY[raw]||raw;}
+const ONE_OFFICIAL_JP_CACHE_POLICY=1,ONE_OFFICIAL_JP_TTL_MS=8*3600000;
+let ONE_OFFICIAL_JP=Object.create(null);
+function jpDisplay(v){const raw=stripHTML(v);return (KEY==='one'?ONE_OFFICIAL_JP[raw]:null)||JP_DISPLAY[raw]||raw;}
+function oneOfficialEventSlug(source){const m=String(source||'').match(/^https:\/\/(?:www\.)?onefc\.com\/(?:jp\/)?events\/([a-z0-9-]+)\/?(?:[?#].*)?$/i);return m?m[1].toLowerCase():null;}
+function oneOfficialAthleteLabels(html){
+  const labels=Object.create(null),conflict=new Set(),rows=String(html||'').matchAll(/<tr\b[^>]*class=["'][^"']*\bvs\b[^"']*["'][^>]*>([\s\S]*?)<\/tr>/gi);
+  for(const row of rows){for(const link of row[1].matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/gi)){
+    const tag=(link[0].match(/^<a\b[^>]*>/i)||[])[0]||'',url=String(attr(tag,'href')||'');
+    const m=url.match(/^https:\/\/(?:www\.)?onefc\.com\/(?:jp\/)?athletes\/([a-z0-9-]+)\/?(?:[?#].*)?$/i);
+    if(!m)continue;
+    const name=stripHTML(attr(tag,'title')||link[0]);
+    if(!name||name.length>72)continue;
+    const id=m[1].toLowerCase();
+    if(labels[id]&&labels[id]!==name)conflict.add(id);
+    else labels[id]=name;
+  }}
+  for(const id of conflict)delete labels[id];
+  return labels;
+}
+function oneVerifiedJapaneseName(v){
+  const name=stripHTML(v||'').replace(/\s*・\s*/g,'・').trim();
+  return name.length>=2&&name.length<=60&&/[ぁ-んァ-ヶ一-龯]/.test(name)?name:'';
+}
+async function warmOneOfficialJapaneseNames(event){
+  ONE_OFFICIAL_JP=Object.create(null);
+  if(KEY!=='one')return;
+  const slug=oneOfficialEventSlug(event?.source);
+  if(!slug)return;
+  const path=cacheFile('combat-hub-one-japanese-'+safeKey(slug)+'.json'),now=Date.now(),cached=readJSON(path);
+  const cacheValid=!!(cached&&cached.policy===ONE_OFFICIAL_JP_CACHE_POLICY&&cached.slug===slug&&cached.aliases&&typeof cached.aliases==='object'&&!Array.isArray(cached.aliases));
+  const install=aliases=>{const map=Object.create(null);for(const [english,japanese] of Object.entries(aliases||{})){const name=oneVerifiedJapaneseName(japanese),key=stripHTML(english);if(name&&key&&key!==name)map[key]=name;}ONE_OFFICIAL_JP=map;};
+  if(cacheValid&&now-Number(cached.savedAt)>=0&&now-Number(cached.savedAt)<ONE_OFFICIAL_JP_TTL_MS){install(cached.aliases);return;}
+  const enUrl='https://www.onefc.com/events/'+slug+'/',jpUrl='https://www.onefc.com/jp/events/'+slug+'/';
+  try{
+    const [enHtml,jpHtml]=await Promise.all([reqText(enUrl,8),reqText(jpUrl,8)]);
+    const en=oneOfficialAthleteLabels(enHtml),jp=oneOfficialAthleteLabels(jpHtml);
+    if(!Object.keys(en).length||!Object.keys(jp).length)throw new Error('ONE official event card missing');
+    const aliases=Object.create(null);
+    for(const [id,english] of Object.entries(en)){const japanese=oneVerifiedJapaneseName(jp[id]);if(japanese&&english!==japanese)aliases[english]=japanese;}
+    writeJSON(path,{policy:ONE_OFFICIAL_JP_CACHE_POLICY,slug,savedAt:now,aliases});
+    install(aliases);
+  }catch(_){if(cacheValid)install(cached.aliases);}
+}
 function sanitizeFighter(s){let v=cleanName(s);if(KEY==='ufc'){v=v.replace(/^UFC[^|]{0,120}\|\s*/i,'').replace(/^UFC Fight Night:\s*/i,'').replace(/^UFC\s+\d+\s*[:：]\s*/i,'').replace(/\s*\|\s*UFC.*$/i,'').trim();}return v;}
 function splitFight(s){const t=cleanName(s);const m=t.match(/^(.{2,64}?)\s+(?:vs\.?|VS|対)\s+(.{2,64})$/i);return m?{a:sanitizeFighter(m[1]),b:sanitizeFighter(m[2])}:null;}
 function fightPairs(html){const out=[],seen=new Set();for(const m of html.matchAll(/<h[1-4][^>]*>([\s\S]*?)<\/h[1-4]>/gi)){const p=splitFight(m[1]);if(p&&p.a.length<50&&p.b.length<50){const k=p.a+'|'+p.b;if(!seen.has(k)){seen.add(k);out.push(p);}}}if(!out.length){const title=(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1];const p=splitFight(title||'');if(p)out.push(p);}return out.slice(0,6);}
@@ -374,6 +416,7 @@ async function eventPosterResult(D,{localOnly=false}={}){const candidates=[],att
 async function eventPoster(D,opts){return(await eventPosterResult(D,opts)).image;}
 function ctxBase(a,b){return{a,b,poster:null,imageMode:'gradient',posterURLResolved:null,posterSource:'none',imageCacheHit:false,imageFallbackReason:null};}
 async function heroContext(D){
+  if(KEY==='one')await warmOneOfficialJapaneseNames(D);
   if(D?.nextPending){const a={name:D.main?.a||'次大会',image:null,profileURL:null},b={name:D.main?.b||'確認中',image:null,profileURL:null};return{...ctxBase(a,b),imageMode:'gradient',imageFallbackReason:'safe_pending'};}
   if(KEY==='ufc'){const au=D.main?.aProfileURL||KNOWN_UFC[norm(D.main.a)],bu=D.main?.bProfileURL||KNOWN_UFC[norm(D.main.b)],a=await profileImage(au,D.main.a,'ufc'),b=await profileImage(bu,D.main.b,'ufc');if(a.image&&b.image)return{...ctxBase(a,b),imageMode:'fighter_pair',imageCacheHit:!!a.cacheHit&&!!b.cacheHit};const p=await eventPosterResult(D);if(p.image)return{...ctxBase(a,b),poster:p.image,imageMode:'event_poster',posterURLResolved:p.url,posterSource:p.source,imageCacheHit:p.cacheHit};return{...ctxBase(a,b),imageMode:a.image||b.image?'fighter_partial':'gradient',imageFallbackReason:p.fallbackReason};}
   if(KEY==='rizin'){const au=D.main?.aProfileURL||KNOWN_RIZIN[D.main.a],bu=D.main?.bProfileURL||KNOWN_RIZIN[D.main.b],a=await profileImage(au,D.main.a,'rizin'),b=await profileImage(bu,D.main.b,'rizin');if(a.image&&b.image)return{...ctxBase(a,b),imageMode:'fighter_pair',imageCacheHit:!!a.cacheHit&&!!b.cacheHit};const p=await eventPosterResult(D);return p.image?{...ctxBase(a,b),poster:p.image,imageMode:'event_poster',posterURLResolved:p.url,posterSource:p.source,imageCacheHit:p.cacheHit}:{...ctxBase(a,b),imageMode:a.image||b.image?'fighter_partial':'gradient',imageFallbackReason:p.fallbackReason};}
