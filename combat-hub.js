@@ -1,10 +1,10 @@
 // COMBAT HUB — GitHub Standalone / Personal
 // Scriptable 1本で UFC / RIZIN / ONE / BOXING / K-1 を表示
 // Home Screen Widget Parameter: UFC / RIZIN / ONE / BOXING / K1
-// v7.23.9-github — self-heal sparse trusted K-1 event caches before render; visuals frozen
+// v7.23.10-github — localize ONE SAMURAI 4 fighter names with first-party Japanese spellings; visuals frozen
 
 (async()=>{
-const VERSION='7.23.9-github';
+const VERSION='7.23.10-github';
 const MODE_MAP={UFC:'ufc',RIZIN:'rizin',ONE:'one',BOXING:'boxing',K1:'k1'};
 const LABELS=['UFC','RIZIN','ONE','BOXING','K-1'];
 const PARAMS=['UFC','RIZIN','ONE','BOXING','K1'];
@@ -148,6 +148,9 @@ const JP_DISPLAY={
 'Isaac Cruz':'アイザック・クルス','Nestor Bravo':'ネスター・ブラボ','Jesus Ramos':'ヘスス・ラモス','Meiirim Nursultanov':'メイリム・ヌルスルタノフ',
 'Takuma Inoue':'井上拓真','Tenshin Nasukawa':'那須川天心','Ryosuke Nishida':'西田凌佑','Sam Goodman':'サム・グッドマン','Tomoya Tsuboi':'坪井智也','Ricardo Malajika':'リカルド・マラジカ',
 'Jai Opetaia':'ジェイ・オペタイア','Noel Mikaelian':'ノエル・ミカエリアン',
+// ONE SAMURAI 4 verified Japanese names (ONE official Japanese event, athlete pages and press notes).
+'Jonathan Haggerty':'ジョナサン・ハガティー','Hiroki Akimoto':'秋元皓貴',
+'Rifdean Masdor':'リファディン・マスドール','Masaaki Noiri':'野杁正明','Mohammad Siasarani':'モハメド・シアサラニ',
 'Nadaka':'吉成名高','Nadaka Yoshinari':'吉成名高',
 'Har Ling Om':'ハー・リン・オム','Ling Om':'ハー・リン・オム',
 'Yuya Wakamatsu':'若松佑弥','Willie van Rooyen':'ウィリー・ファン・ローエン',
